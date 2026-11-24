@@ -291,9 +291,21 @@
       "status": "passed"
     },
     {
+      "id": "ROLE-HELP-SUPER_ADMIN",
+      "name": "SUPER_ADMIN Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 200
+    },
+    {
       "id": "ROLE-ADMIN",
       "name": "ADMIN supplier-bill page permission",
       "status": "passed"
+    },
+    {
+      "id": "ROLE-HELP-ADMIN",
+      "name": "ADMIN Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
     },
     {
       "id": "ROLE-USER",
@@ -301,9 +313,21 @@
       "status": "passed"
     },
     {
+      "id": "ROLE-HELP-USER",
+      "name": "USER Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
+    },
+    {
       "id": "ROLE-PROJECT_MANAGER",
       "name": "PROJECT_MANAGER supplier-bill page permission",
       "status": "passed"
+    },
+    {
+      "id": "ROLE-HELP-PROJECT_MANAGER",
+      "name": "PROJECT_MANAGER Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
     },
     {
       "id": "ROLE-SITE_ENGINEER",
@@ -311,9 +335,21 @@
       "status": "passed"
     },
     {
+      "id": "ROLE-HELP-SITE_ENGINEER",
+      "name": "SITE_ENGINEER Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
+    },
+    {
       "id": "ROLE-PURCHASE",
       "name": "PURCHASE supplier-bill page permission",
       "status": "passed"
+    },
+    {
+      "id": "ROLE-HELP-PURCHASE",
+      "name": "PURCHASE Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
     },
     {
       "id": "ROLE-STOREKEEPER",
@@ -321,14 +357,32 @@
       "status": "passed"
     },
     {
+      "id": "ROLE-HELP-STOREKEEPER",
+      "name": "STOREKEEPER Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
+    },
+    {
       "id": "ROLE-ACCOUNTS",
       "name": "ACCOUNTS supplier-bill page permission",
       "status": "passed"
     },
     {
+      "id": "ROLE-HELP-ACCOUNTS",
+      "name": "ACCOUNTS Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
+    },
+    {
       "id": "ROLE-VIEWER",
       "name": "VIEWER supplier-bill page permission",
       "status": "passed"
+    },
+    {
+      "id": "ROLE-HELP-VIEWER",
+      "name": "VIEWER Super-Admin-only help and manual access",
+      "status": "passed",
+      "http": 404
     },
     {
       "id": "LOCAL-LOGOUT",

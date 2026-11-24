@@ -3,7 +3,7 @@ TC-0001,Functionality,local,pgAdapterConfig passes the URL through untouched whe
 TC-0002,Functionality,local,"pgAdapterConfig pins the CA, drops sslmode, keeps verification on and preserves encoded credentials",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0003,Financial accuracy,local,money (decimal-safe) never suffers float error,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0004,Financial accuracy,local,money (decimal-safe) rounds half-up away from zero,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0005,Financial accuracy,local,money (decimal-safe) rejects malformed numbers and excess precision,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0005,Financial accuracy,local,money (decimal-safe) rejects malformed numbers and rounds excess precision,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0006,Financial accuracy,local,"money (decimal-safe) computes intra-state GST per line (CGST = SGST = half, each rounded)",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0007,Financial accuracy,local,money (decimal-safe) computes inter-state IGST,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0008,Financial accuracy,local,money (decimal-safe) document totals include taxed charges and round-off,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
@@ -13,8 +13,8 @@ TC-0011,Financial accuracy,local,money (decimal-safe) formats Indian rupees,Name
 TC-0012,Financial accuracy,local,document numbering uses the Indian financial year,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0013,Financial accuracy,local,GST validation validates the GSTIN check digit,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0014,Financial accuracy,local,GST validation party schema derives state and PAN from GSTIN and cross-checks them,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0015,Performance,local,"upload content sniffing detects allowed types from magic bytes, not names",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0016,Performance,local,upload content sniffing sanitises file names,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0015,Functionality,local,"upload content sniffing detects allowed types from magic bytes, not names",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0016,Functionality,local,upload content sniffing sanitises file names,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0017,Security,local,roles & permissions every role exists in the catalogue defaults and no super-admin-only grant leaks,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0018,Security,local,roles & permissions role defaults follow job functions,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0019,Database integrity,local,uses unique article identifiers and keeps manuals free of business records,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
@@ -219,154 +219,170 @@ TC-0217,Functionality,local,status & progress adds comments visible to the team,
 TC-0218,UI/UX,local,combined filters & sorting combines project + department + member + status + due range + overdue,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
 TC-0219,Database integrity,local,projects generates unique codes under concurrency and keeps status history append-only,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
 TC-0220,Security,local,projects dashboard metrics are scoped per user,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0221,Functionality,local,1-2. Super Admin logs in and creates an Admin,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0222,Functionality,local,3. invalid department and duplicate names are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0223,Functionality,local,4. creates team members with multiple departments,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0224,Functionality,local,5-6. creates a project (validation first) and posts status paragraphs,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0225,Functionality,local,7-9. creates a task from the project page with multiple departments and members,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0226,Functionality,local,"10-12. assigned user logs in, sees the task and updates progress",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0227,Functionality,local,"13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0228,Functionality,local,18b. inactive accounts cannot sign in; expired/forged sessions are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0229,Functionality,local,concurrent updates: a stale form is rejected instead of overwriting,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0230,UI/UX,local,Desktop Dashboard opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0231,UI/UX,local,Desktop Projects opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0232,UI/UX,local,Desktop Tasks opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0233,UI/UX,local,Desktop Departments opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0234,UI/UX,local,Desktop Team Members opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0235,UI/UX,local,Desktop Items opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0236,UI/UX,local,Desktop Brands opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0237,UI/UX,local,Desktop Suppliers opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0238,UI/UX,local,Desktop Clients opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0239,UI/UX,local,Desktop Material Planning opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0240,UI/UX,local,Desktop Requisitions opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0241,UI/UX,local,Desktop Rate Enquiries opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0242,UI/UX,local,Desktop Purchase Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0243,Inventory,local,Desktop Site receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0244,Inventory,local,Desktop Inventory opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0245,Financial accuracy,local,Desktop Supplier Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0246,UI/UX,local,Desktop Quotations opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0247,UI/UX,local,Desktop Client POs opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0248,UI/UX,local,Desktop Sales Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0249,Inventory,local,Desktop Challans opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0250,Financial accuracy,local,Desktop Running Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0251,Financial accuracy,local,Desktop Client Invoices opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0252,Inventory,local,Desktop Payments & Receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0253,UI/UX,local,Desktop Credit / Debit Notes opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0254,UI/UX,local,Desktop Project Accounts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0255,UI/UX,local,Desktop Reports opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0256,UI/UX,local,Desktop Documents opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0257,UI/UX,local,Desktop Approvals opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0258,UI/UX,local,Desktop Administration opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0259,UI/UX,local,Mobile /projects/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0260,UI/UX,local,Mobile /purchase-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0261,UI/UX,local,Mobile /sales-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0262,Financial accuracy,local,Mobile /supplier-bills/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0263,Financial accuracy,local,Mobile /payments/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0264,UI/UX,local,Help search finds troubleshooting,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0265,Security,local,Authenticated pdf manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0266,Security,local,Authenticated quick manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0267,Security,local,Authenticated docx manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0268,Security,local,SUPER_ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0269,Security,local,ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0270,Security,local,USER supplier-bill page permission,Named assertions must pass,failed,failed,evidence/local-ui-results.json
-TC-0271,Security,local,PROJECT_MANAGER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0272,Security,local,SITE_ENGINEER supplier-bill page permission,Named assertions must pass,failed,failed,evidence/local-ui-results.json
-TC-0273,Security,local,PURCHASE supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0274,Security,local,STOREKEEPER supplier-bill page permission,Named assertions must pass,failed,failed,evidence/local-ui-results.json
-TC-0275,Security,local,ACCOUNTS supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0276,Security,local,VIEWER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0277,Functionality,local,Local normal logout,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0278,Security,local,Signed-out manual access blocked,Named assertions must pass,passed,HTTP 401,evidence/local-ui-results.json
-TC-0279,Functionality,production,Production read-only GET /projects,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0280,Functionality,production,Production read-only GET /tasks,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0281,Functionality,production,Production read-only GET /departments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0282,Functionality,production,Production read-only GET /team-members,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0283,Functionality,production,Production read-only GET /items,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0284,Functionality,production,Production read-only GET /brands,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0285,Functionality,production,Production read-only GET /parties?type=supplier,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0286,Functionality,production,Production read-only GET /parties?type=client,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0287,Functionality,production,Production read-only GET /rate-enquiries,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0288,Functionality,production,Production read-only GET /purchase-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0289,Functionality,production,Production read-only GET /client-pos,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0290,Functionality,production,Production read-only GET /sales-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0291,Functionality,production,Production read-only GET /stock,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0292,Functionality,production,Production read-only GET /site-receipts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0293,Functionality,production,Production read-only GET /supplier-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0294,Functionality,production,Production read-only GET /challans,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0295,Functionality,production,Production read-only GET /running-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0296,Functionality,production,Production read-only GET /client-invoices,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0297,Functionality,production,Production read-only GET /payments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0298,Functionality,production,Production read-only GET /accounts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0299,Functionality,production,Production read-only GET /reports,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0300,Functionality,production,Production read-only GET /documents,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0301,Functionality,production,Production read-only GET /approvals,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0302,Functionality,production,Production read-only GET /material-planning,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0303,Functionality,production,Production read-only GET /purchase-requisitions,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0304,Functionality,production,Production read-only GET /quotations,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0305,Functionality,production,Production read-only GET /notes,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0306,Functionality,production,Production read-only GET /settings,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0307,Security,production,Production signed-out API /api/attachments/00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0308,Security,production,Production signed-out API /api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0309,Security,production,Production signed-out API /api/reports/pdf,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0310,Security,production,Production signed-out API /api/reports/csv/accounts,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0311,UI/UX,production,Production viewport live-mobile-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-mobile-po-geometry.json
-TC-0312,UI/UX,production,Production viewport live-tablet-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-tablet-po-geometry.json
-TC-0313,UI/UX,production,Production viewport live-sales-form-desktop.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-sales-form-desktop.json
-TC-0314,Security,production,Production normal Super Admin sign-in and sign-out,Named assertions must pass,passed,passed,Live browser observed login → dashboard and account menu → Sign out → login
-TC-0315,Documentation,local,PDF page bounds challan-issue.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0316,Documentation,local,PDF page bounds credit-note-cancelled.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0317,Documentation,local,PDF page bounds grn-discrepancies.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0318,Documentation,local,PDF page bounds invoice-draft-no-signature.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0319,Documentation,local,PDF page bounds invoice-igst-bank.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0320,Documentation,local,PDF page bounds payment-voucher.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0321,Documentation,local,PDF page bounds po-100-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0322,Documentation,local,PDF page bounds po-60-items.pdf,Named assertions must pass,passed,3 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0323,Documentation,local,PDF page bounds po-99-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0324,Documentation,local,PDF page bounds po-draft-missing-optional.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0325,Documentation,local,PDF page bounds po-interstate-large.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0326,Documentation,local,PDF page bounds po-long-terms.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0327,Documentation,local,PDF page bounds po-multi-item-freight-roundoff.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0328,Documentation,local,PDF page bounds po-single-item.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0329,Documentation,local,PDF page bounds ra-bill-landscape.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0330,Documentation,local,PDF page bounds task-report.pdf,Named assertions must pass,passed,8 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0331,Documentation,local,PDF page bounds client_invoice.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0332,Documentation,local,PDF page bounds client_po.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0333,Documentation,local,PDF page bounds purchase_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0334,Documentation,local,PDF page bounds ra_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0335,Documentation,local,PDF page bounds sales_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0336,Documentation,local,PDF page bounds supplier_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0337,Documentation,local,PDF page bounds QUICK_START_GUIDE.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0338,Documentation,local,PDF page bounds WATCON_USER_GUIDE.pdf,Named assertions must pass,passed,85 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0339,Security,local,Production login and direct access for all non-Super-Admin roles,Named assertions must pass,blocked,Only production Super Admin credentials supplied; all nine roles tested locally on one representative page,Owner follow-up required
-TC-0340,Financial accuracy,local,Production dashboard totals against source database,Named assertions must pass,blocked,No authorized production DB read-only connection or reconciled ledger export supplied,Owner follow-up required
-TC-0341,Inventory,local,Production inventory balances against stock ledger,Named assertions must pass,blocked,No production read-only ledger export or DB access supplied,Owner follow-up required
-TC-0342,Database integrity,local,Backup restore and recovery drill,Named assertions must pass,blocked,No backup artifact or isolated managed restore target supplied,Owner follow-up required
-TC-0343,Security,local,SMTP delivery and password-reset mailbox round trip,Named assertions must pass,blocked,No test mailbox or SMTP delivery evidence supplied; reset-token services tested locally,Owner follow-up required
-TC-0344,Performance,local,Production server logs and deployment revision matching,Named assertions must pass,blocked,No Vercel logs or deployment source revision access supplied,Owner follow-up required
-TC-0345,Functionality,local,Live external supplier and client acceptance email delivery,Named assertions must pass,blocked,No isolated external-party accounts supplied,Owner follow-up required
-TC-0346,Functionality,local,All commercial CRUD workflows through UI,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0347,Security,local,All commercial API authorization combinations for every role,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0348,Financial accuracy,local,Statutory GST return and e-invoice validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0349,Financial accuracy,local,Full labour and overhead profitability,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0350,Documentation,local,Every PDF builder with long tables and long fields,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0351,UI/UX,local,Cross-browser Firefox and WebKit workflows,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0352,UI/UX,local,Real iOS and Android device testing,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0353,UI/UX,local,Screen-reader and keyboard accessibility of every form,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0354,Performance,local,Load test with simultaneous HTTP users and large data,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0355,Performance,local,5000-record performance benchmark in this audit,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0356,Database integrity,local,Network interruption during every save and upload,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0357,Functionality,local,WhatsApp recipient handoff and PDF attachment on real device,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0358,Security,local,Malware scanning and XLSX container validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0359,Functionality,local,Full project closure with expenses and all reversal branches,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0360,Documentation,local,Word manual render and visual layout check,Named assertions must pass,blocked,"Word automation renderer could not complete; OOXML file generated, PDF manual separately verified",evidence/word-render.txt
-TC-0361,Security,local,Dependency advisory @prisma/client,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0362,Security,local,Dependency advisory @prisma/config,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0363,Security,local,Dependency advisory @ts-morph/common,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0364,Security,local,Dependency advisory effect,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0365,Security,local,Dependency advisory minimatch,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0366,Security,local,Dependency advisory prisma,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0367,Security,local,Dependency advisory shadcn,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0368,Security,local,Dependency advisory ts-morph,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0369,Functionality,local,TypeScript,Named assertions must pass,passed,Recorded tool output,evidence/typecheck-final.txt
-TC-0370,Functionality,local,ESLint,Named assertions must pass,not executed,Final output pending,evidence/lint-final.txt
-TC-0371,Functionality,local,Production build,Named assertions must pass,not executed,Final output pending,evidence/build-final.txt
+TC-0221,Security,local,includes every accessible project in accounts rather than silently truncating at 1000,Named assertions must pass,passed,Assertions passed,evidence/accounts-completeness.json
+TC-0222,Financial accuracy,local,Delivered-challan eligibility enforced for every RA claim,Named assertions must pass,failed,"RA uses contract-quantity ceilings and certification, without mandatory delivery-challan linkage; business-owner decision required",src/modules/sales/ra-bill.ts buildLines and running-bill service tests
+TC-0223,Functionality,local,1-2. Super Admin logs in and creates an Admin,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0224,Functionality,local,3. invalid department and duplicate names are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0225,Functionality,local,4. creates team members with multiple departments,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0226,Functionality,local,5-6. creates a project (validation first) and posts status paragraphs,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0227,Functionality,local,7-9. creates a task from the project page with multiple departments and members,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0228,Functionality,local,"10-12. assigned user logs in, sees the task and updates progress",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0229,Functionality,local,"13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0230,Functionality,local,18b. inactive accounts cannot sign in; expired/forged sessions are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0231,Functionality,local,concurrent updates: a stale form is rejected instead of overwriting,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
+TC-0232,UI/UX,local,Desktop Dashboard opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0233,UI/UX,local,Desktop Projects opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0234,UI/UX,local,Desktop Tasks opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0235,UI/UX,local,Desktop Departments opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0236,UI/UX,local,Desktop Team Members opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0237,UI/UX,local,Desktop Items opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0238,UI/UX,local,Desktop Brands opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0239,UI/UX,local,Desktop Suppliers opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0240,UI/UX,local,Desktop Clients opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0241,UI/UX,local,Desktop Material Planning opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0242,UI/UX,local,Desktop Requisitions opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0243,UI/UX,local,Desktop Rate Enquiries opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0244,UI/UX,local,Desktop Purchase Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0245,Inventory,local,Desktop Site receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0246,Inventory,local,Desktop Inventory opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0247,Financial accuracy,local,Desktop Supplier Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0248,UI/UX,local,Desktop Quotations opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0249,UI/UX,local,Desktop Client POs opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0250,UI/UX,local,Desktop Sales Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0251,Inventory,local,Desktop Challans opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0252,Financial accuracy,local,Desktop Running Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0253,Financial accuracy,local,Desktop Client Invoices opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0254,Inventory,local,Desktop Payments & Receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0255,UI/UX,local,Desktop Credit / Debit Notes opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0256,UI/UX,local,Desktop Project Accounts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0257,UI/UX,local,Desktop Reports opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0258,UI/UX,local,Desktop Documents opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0259,UI/UX,local,Desktop Approvals opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0260,UI/UX,local,Desktop Administration opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0261,UI/UX,local,Mobile /projects/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0262,UI/UX,local,Mobile /purchase-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0263,UI/UX,local,Mobile /sales-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0264,Financial accuracy,local,Mobile /supplier-bills/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0265,Financial accuracy,local,Mobile /payments/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0266,UI/UX,local,Help search finds troubleshooting,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0267,Security,local,Authenticated pdf manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0268,Security,local,Authenticated quick manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0269,Security,local,Authenticated docx manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0270,Security,local,SUPER_ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0271,Security,local,ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0272,Security,local,USER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0273,Security,local,PROJECT_MANAGER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0274,Security,local,SITE_ENGINEER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0275,Security,local,PURCHASE supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0276,Security,local,STOREKEEPER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0277,Security,local,ACCOUNTS supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0278,Security,local,VIEWER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0279,Functionality,local,Local normal logout,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0280,Security,local,Signed-out manual access blocked,Named assertions must pass,passed,HTTP 401,evidence/local-ui-results.json
+TC-0281,Functionality,local,UI procurement: create fictional project,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0282,Functionality,local,UI procurement: create purchase order,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0283,Functionality,local,UI procurement: submit and approve PO,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0284,Functionality,local,UI procurement: enter and submit actual receipt,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0285,Functionality,local,UI procurement: verify receipt and post stock,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0286,Functionality,local,UI procurement: record and approve supplier bill,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0287,Functionality,local,"UI procurement: reconcile persisted PO, GRN, stock and bill",Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0288,Functionality,local,UI procurement: allocate supplier payment,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0289,Functionality,local,UI procurement: sign in,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0290,Functionality,local,UI sales: create and approve sales order,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0291,Functionality,local,UI sales: dispatch client-delivery challan,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0292,Functionality,local,UI sales: create and issue client invoice,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0293,Functionality,local,UI sales: receive and allocate client payment,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0294,Functionality,local,UI sales: verify persisted settlements and delivered stock,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0295,Functionality,production,Production read-only GET /projects,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0296,Functionality,production,Production read-only GET /tasks,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0297,Functionality,production,Production read-only GET /departments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0298,Functionality,production,Production read-only GET /team-members,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0299,Functionality,production,Production read-only GET /items,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0300,Functionality,production,Production read-only GET /brands,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0301,Functionality,production,Production read-only GET /parties?type=supplier,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0302,Functionality,production,Production read-only GET /parties?type=client,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0303,Functionality,production,Production read-only GET /rate-enquiries,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0304,Functionality,production,Production read-only GET /purchase-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0305,Functionality,production,Production read-only GET /client-pos,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0306,Functionality,production,Production read-only GET /sales-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0307,Functionality,production,Production read-only GET /stock,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0308,Functionality,production,Production read-only GET /site-receipts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0309,Functionality,production,Production read-only GET /supplier-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0310,Functionality,production,Production read-only GET /challans,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0311,Functionality,production,Production read-only GET /running-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0312,Functionality,production,Production read-only GET /client-invoices,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0313,Functionality,production,Production read-only GET /payments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0314,Functionality,production,Production read-only GET /accounts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0315,Functionality,production,Production read-only GET /reports,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0316,Functionality,production,Production read-only GET /documents,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0317,Functionality,production,Production read-only GET /approvals,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0318,Functionality,production,Production read-only GET /material-planning,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0319,Functionality,production,Production read-only GET /purchase-requisitions,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0320,Functionality,production,Production read-only GET /quotations,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0321,Functionality,production,Production read-only GET /notes,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0322,Functionality,production,Production read-only GET /settings,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0323,Security,production,Production signed-out API /api/attachments/00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0324,Security,production,Production signed-out API /api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0325,Security,production,Production signed-out API /api/reports/pdf,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0326,Security,production,Production signed-out API /api/reports/csv/accounts,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0327,UI/UX,production,Production viewport live-mobile-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-mobile-po-geometry.json
+TC-0328,UI/UX,production,Production viewport live-tablet-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-tablet-po-geometry.json
+TC-0329,UI/UX,production,Production viewport live-sales-form-desktop.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-sales-form-desktop.json
+TC-0330,Security,production,Production normal Super Admin sign-in and sign-out,Named assertions must pass,passed,passed,Live browser observed login → dashboard and account menu → Sign out → login
+TC-0331,Documentation,local,PDF page bounds challan-issue.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0332,Documentation,local,PDF page bounds credit-note-cancelled.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0333,Documentation,local,PDF page bounds grn-discrepancies.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0334,Documentation,local,PDF page bounds invoice-draft-no-signature.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0335,Documentation,local,PDF page bounds invoice-igst-bank.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0336,Documentation,local,PDF page bounds payment-voucher.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0337,Documentation,local,PDF page bounds po-100-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0338,Documentation,local,PDF page bounds po-60-items.pdf,Named assertions must pass,passed,3 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0339,Documentation,local,PDF page bounds po-99-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0340,Documentation,local,PDF page bounds po-draft-missing-optional.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0341,Documentation,local,PDF page bounds po-interstate-large.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0342,Documentation,local,PDF page bounds po-long-terms.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0343,Documentation,local,PDF page bounds po-multi-item-freight-roundoff.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0344,Documentation,local,PDF page bounds po-single-item.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0345,Documentation,local,PDF page bounds ra-bill-landscape.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0346,Documentation,local,PDF page bounds task-report.pdf,Named assertions must pass,passed,8 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0347,Documentation,local,PDF page bounds client_invoice.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0348,Documentation,local,PDF page bounds client_po.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0349,Documentation,local,PDF page bounds purchase_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0350,Documentation,local,PDF page bounds ra_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0351,Documentation,local,PDF page bounds sales_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0352,Documentation,local,PDF page bounds supplier_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0353,Documentation,local,PDF page bounds QUICK_START_GUIDE.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0354,Documentation,local,PDF page bounds WATCON_USER_GUIDE.pdf,Named assertions must pass,passed,78 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0355,Security,local,Production login and direct access for all non-Super-Admin roles,Named assertions must pass,blocked,Only production Super Admin credentials supplied; all nine roles tested locally on one representative page,Owner follow-up required
+TC-0356,Financial accuracy,local,Production dashboard totals against source database,Named assertions must pass,blocked,No authorized production DB read-only connection or reconciled ledger export supplied,Owner follow-up required
+TC-0357,Inventory,local,Production inventory balances against stock ledger,Named assertions must pass,blocked,No production read-only ledger export or DB access supplied,Owner follow-up required
+TC-0358,Database integrity,local,Backup restore and recovery drill,Named assertions must pass,blocked,No backup artifact or isolated managed restore target supplied,Owner follow-up required
+TC-0359,Security,local,SMTP delivery and password-reset mailbox round trip,Named assertions must pass,blocked,No test mailbox or SMTP delivery evidence supplied; reset-token services tested locally,Owner follow-up required
+TC-0360,Performance,local,Production server logs and deployment revision matching,Named assertions must pass,blocked,No Vercel logs or deployment source revision access supplied,Owner follow-up required
+TC-0361,Functionality,local,Live external supplier and client acceptance email delivery,Named assertions must pass,blocked,No isolated external-party accounts supplied,Owner follow-up required
+TC-0362,Functionality,local,All commercial CRUD workflows through UI,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0363,Security,local,All commercial API authorization combinations for every role,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0364,Financial accuracy,local,Statutory GST return and e-invoice validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0365,Financial accuracy,local,Full labour and overhead profitability,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0366,Documentation,local,Every PDF builder with long tables and long fields,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0367,UI/UX,local,Cross-browser Firefox and WebKit workflows,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0368,UI/UX,local,Real iOS and Android device testing,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0369,UI/UX,local,Screen-reader and keyboard accessibility of every form,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0370,Performance,local,Load test with simultaneous HTTP users and large data,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0371,Performance,local,5000-record performance benchmark in this audit,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0372,Database integrity,local,Network interruption during every save and upload,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0373,Functionality,local,WhatsApp recipient handoff and PDF attachment on real device,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0374,Security,local,Malware scanning and XLSX container validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0375,Functionality,local,Full project closure with expenses and all reversal branches,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0376,Documentation,local,Word manual render and visual layout check,Named assertions must pass,blocked,"Word automation renderer could not complete; OOXML file generated, PDF manual separately verified",evidence/word-render.txt
+TC-0377,Security,local,Dependency advisory @prisma/client,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0378,Security,local,Dependency advisory @prisma/config,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0379,Security,local,Dependency advisory @ts-morph/common,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0380,Security,local,Dependency advisory effect,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0381,Security,local,Dependency advisory minimatch,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0382,Security,local,Dependency advisory prisma,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0383,Security,local,Dependency advisory shadcn,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0384,Security,local,Dependency advisory ts-morph,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0385,Functionality,local,TypeScript,Named assertions must pass,passed,Recorded tool output,evidence/typecheck-final.txt
+TC-0386,Functionality,local,ESLint,Named assertions must pass,passed,Recorded tool output,evidence/lint-final.txt
+TC-0387,Functionality,local,Production build,Named assertions must pass,passed,Recorded tool output,evidence/build-final.txt

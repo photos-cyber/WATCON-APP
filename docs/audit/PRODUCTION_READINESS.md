@@ -3,15 +3,15 @@
 
 Verdict: **NO-GO** for declaring the complete ERP production-ready. Existing production was not changed, pushed or deployed.
 
-Evidence readiness score: 84.8%. This is the arithmetic mean of eight category scores; each is passed applicable checks / all applicable checks × 100. Failed, blocked and unexecuted checks receive zero. It is a conservative evidence score, not the probability that the app is correct, not branch coverage and not certification. Render checks have narrow expected results. Reclassifying or expanding the checklist changes the score.
+Evidence readiness score: 80.4%. This is the arithmetic mean of eight category scores; each is passed applicable checks / all applicable checks × 100. Failed, blocked and unexecuted checks receive zero. It is a conservative evidence score, not the probability that the app is correct, not branch coverage and not certification. Render checks have narrow expected results. Reclassifying or expanding the checklist changes the score.
 
-- Functionality: 94.8% (109/115 credited checks).
-- Security: 78.3% (54/69 credited checks).
+- Functionality: 96.9% (127/131 credited checks).
+- Security: 82.9% (58/70 credited checks).
 - Database integrity: 87.5% (14/16 credited checks).
-- Financial accuracy: 94.3% (50/53 credited checks).
+- Financial accuracy: 92.6% (50/54 credited checks).
 - Inventory: 97.8% (44/45 credited checks).
 - UI/UX: 91.9% (34/37 credited checks).
-- Performance: 40.0% (2/5 credited checks).
+- Performance: 0.0% (0/3 credited checks).
 - Documentation: 93.5% (29/31 credited checks).
 
 ## Release blockers

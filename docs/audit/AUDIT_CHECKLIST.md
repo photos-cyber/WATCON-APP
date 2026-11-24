@@ -7,7 +7,7 @@
 - [x] TC-0002: pgAdapterConfig pins the CA, drops sslmode, keeps verification on and preserves encoded credentials — passed.
 - [x] TC-0003: money (decimal-safe) never suffers float error — passed.
 - [x] TC-0004: money (decimal-safe) rounds half-up away from zero — passed.
-- [x] TC-0005: money (decimal-safe) rejects malformed numbers and excess precision — passed.
+- [x] TC-0005: money (decimal-safe) rejects malformed numbers and rounds excess precision — passed.
 - [x] TC-0006: money (decimal-safe) computes intra-state GST per line (CGST = SGST = half, each rounded) — passed.
 - [x] TC-0007: money (decimal-safe) computes inter-state IGST — passed.
 - [x] TC-0008: money (decimal-safe) document totals include taxed charges and round-off — passed.
@@ -223,154 +223,170 @@
 - [x] TC-0218: combined filters & sorting combines project + department + member + status + due range + overdue — passed.
 - [x] TC-0219: projects generates unique codes under concurrency and keeps status history append-only — passed.
 - [x] TC-0220: projects dashboard metrics are scoped per user — passed.
-- [x] TC-0221: 1-2. Super Admin logs in and creates an Admin — passed.
-- [x] TC-0222: 3. invalid department and duplicate names are rejected — passed.
-- [x] TC-0223: 4. creates team members with multiple departments — passed.
-- [x] TC-0224: 5-6. creates a project (validation first) and posts status paragraphs — passed.
-- [x] TC-0225: 7-9. creates a task from the project page with multiple departments and members — passed.
-- [x] TC-0226: 10-12. assigned user logs in, sees the task and updates progress — passed.
-- [x] TC-0227: 13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp — passed.
-- [x] TC-0228: 18b. inactive accounts cannot sign in; expired/forged sessions are rejected — passed.
-- [x] TC-0229: concurrent updates: a stale form is rejected instead of overwriting — passed.
-- [x] TC-0230: Desktop Dashboard opens — passed.
-- [x] TC-0231: Desktop Projects opens — passed.
-- [x] TC-0232: Desktop Tasks opens — passed.
-- [x] TC-0233: Desktop Departments opens — passed.
-- [x] TC-0234: Desktop Team Members opens — passed.
-- [x] TC-0235: Desktop Items opens — passed.
-- [x] TC-0236: Desktop Brands opens — passed.
-- [x] TC-0237: Desktop Suppliers opens — passed.
-- [x] TC-0238: Desktop Clients opens — passed.
-- [x] TC-0239: Desktop Material Planning opens — passed.
-- [x] TC-0240: Desktop Requisitions opens — passed.
-- [x] TC-0241: Desktop Rate Enquiries opens — passed.
-- [x] TC-0242: Desktop Purchase Orders opens — passed.
-- [x] TC-0243: Desktop Site receipts opens — passed.
-- [x] TC-0244: Desktop Inventory opens — passed.
-- [x] TC-0245: Desktop Supplier Bills opens — passed.
-- [x] TC-0246: Desktop Quotations opens — passed.
-- [x] TC-0247: Desktop Client POs opens — passed.
-- [x] TC-0248: Desktop Sales Orders opens — passed.
-- [x] TC-0249: Desktop Challans opens — passed.
-- [x] TC-0250: Desktop Running Bills opens — passed.
-- [x] TC-0251: Desktop Client Invoices opens — passed.
-- [x] TC-0252: Desktop Payments & Receipts opens — passed.
-- [x] TC-0253: Desktop Credit / Debit Notes opens — passed.
-- [x] TC-0254: Desktop Project Accounts opens — passed.
-- [x] TC-0255: Desktop Reports opens — passed.
-- [x] TC-0256: Desktop Documents opens — passed.
-- [x] TC-0257: Desktop Approvals opens — passed.
-- [x] TC-0258: Desktop Administration opens — passed.
-- [x] TC-0259: Mobile /projects/new fits viewport — passed.
-- [x] TC-0260: Mobile /purchase-orders/new fits viewport — passed.
-- [x] TC-0261: Mobile /sales-orders/new fits viewport — passed.
-- [x] TC-0262: Mobile /supplier-bills/new fits viewport — passed.
-- [x] TC-0263: Mobile /payments/new fits viewport — passed.
-- [x] TC-0264: Help search finds troubleshooting — passed.
-- [x] TC-0265: Authenticated pdf manual download — passed.
-- [x] TC-0266: Authenticated quick manual download — passed.
-- [x] TC-0267: Authenticated docx manual download — passed.
-- [x] TC-0268: SUPER_ADMIN supplier-bill page permission — passed.
-- [x] TC-0269: ADMIN supplier-bill page permission — passed.
-- [ ] TC-0270: USER supplier-bill page permission — failed.
-- [x] TC-0271: PROJECT_MANAGER supplier-bill page permission — passed.
-- [ ] TC-0272: SITE_ENGINEER supplier-bill page permission — failed.
-- [x] TC-0273: PURCHASE supplier-bill page permission — passed.
-- [ ] TC-0274: STOREKEEPER supplier-bill page permission — failed.
-- [x] TC-0275: ACCOUNTS supplier-bill page permission — passed.
-- [x] TC-0276: VIEWER supplier-bill page permission — passed.
-- [x] TC-0277: Local normal logout — passed.
-- [x] TC-0278: Signed-out manual access blocked — passed.
-- [x] TC-0279: Production read-only GET /projects — passed.
-- [x] TC-0280: Production read-only GET /tasks — passed.
-- [x] TC-0281: Production read-only GET /departments — passed.
-- [x] TC-0282: Production read-only GET /team-members — passed.
-- [x] TC-0283: Production read-only GET /items — passed.
-- [x] TC-0284: Production read-only GET /brands — passed.
-- [x] TC-0285: Production read-only GET /parties?type=supplier — passed.
-- [x] TC-0286: Production read-only GET /parties?type=client — passed.
-- [x] TC-0287: Production read-only GET /rate-enquiries — passed.
-- [x] TC-0288: Production read-only GET /purchase-orders — passed.
-- [x] TC-0289: Production read-only GET /client-pos — passed.
-- [x] TC-0290: Production read-only GET /sales-orders — passed.
-- [x] TC-0291: Production read-only GET /stock — passed.
-- [x] TC-0292: Production read-only GET /site-receipts — passed.
-- [x] TC-0293: Production read-only GET /supplier-bills — passed.
-- [x] TC-0294: Production read-only GET /challans — passed.
-- [x] TC-0295: Production read-only GET /running-bills — passed.
-- [x] TC-0296: Production read-only GET /client-invoices — passed.
-- [x] TC-0297: Production read-only GET /payments — passed.
-- [x] TC-0298: Production read-only GET /accounts — passed.
-- [x] TC-0299: Production read-only GET /reports — passed.
-- [x] TC-0300: Production read-only GET /documents — passed.
-- [x] TC-0301: Production read-only GET /approvals — passed.
-- [x] TC-0302: Production read-only GET /material-planning — passed.
-- [x] TC-0303: Production read-only GET /purchase-requisitions — passed.
-- [x] TC-0304: Production read-only GET /quotations — passed.
-- [x] TC-0305: Production read-only GET /notes — passed.
-- [x] TC-0306: Production read-only GET /settings — passed.
-- [x] TC-0307: Production signed-out API /api/attachments/00000000-0000-0000-0000-000000000000 — passed.
-- [x] TC-0308: Production signed-out API /api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000 — passed.
-- [x] TC-0309: Production signed-out API /api/reports/pdf — passed.
-- [x] TC-0310: Production signed-out API /api/reports/csv/accounts — passed.
-- [x] TC-0311: Production viewport live-mobile-po-geometry.json — passed.
-- [x] TC-0312: Production viewport live-tablet-po-geometry.json — passed.
-- [x] TC-0313: Production viewport live-sales-form-desktop.json — passed.
-- [x] TC-0314: Production normal Super Admin sign-in and sign-out — passed.
-- [x] TC-0315: PDF page bounds challan-issue.pdf — passed.
-- [x] TC-0316: PDF page bounds credit-note-cancelled.pdf — passed.
-- [x] TC-0317: PDF page bounds grn-discrepancies.pdf — passed.
-- [x] TC-0318: PDF page bounds invoice-draft-no-signature.pdf — passed.
-- [x] TC-0319: PDF page bounds invoice-igst-bank.pdf — passed.
-- [x] TC-0320: PDF page bounds payment-voucher.pdf — passed.
-- [x] TC-0321: PDF page bounds po-100-items.pdf — passed.
-- [x] TC-0322: PDF page bounds po-60-items.pdf — passed.
-- [x] TC-0323: PDF page bounds po-99-items.pdf — passed.
-- [x] TC-0324: PDF page bounds po-draft-missing-optional.pdf — passed.
-- [x] TC-0325: PDF page bounds po-interstate-large.pdf — passed.
-- [x] TC-0326: PDF page bounds po-long-terms.pdf — passed.
-- [x] TC-0327: PDF page bounds po-multi-item-freight-roundoff.pdf — passed.
-- [x] TC-0328: PDF page bounds po-single-item.pdf — passed.
-- [x] TC-0329: PDF page bounds ra-bill-landscape.pdf — passed.
-- [x] TC-0330: PDF page bounds task-report.pdf — passed.
-- [x] TC-0331: PDF page bounds client_invoice.pdf — passed.
-- [x] TC-0332: PDF page bounds client_po.pdf — passed.
-- [x] TC-0333: PDF page bounds purchase_order.pdf — passed.
-- [x] TC-0334: PDF page bounds ra_bill.pdf — passed.
-- [x] TC-0335: PDF page bounds sales_order.pdf — passed.
-- [x] TC-0336: PDF page bounds supplier_bill.pdf — passed.
-- [x] TC-0337: PDF page bounds QUICK_START_GUIDE.pdf — passed.
-- [x] TC-0338: PDF page bounds WATCON_USER_GUIDE.pdf — passed.
-- [ ] TC-0339: Production login and direct access for all non-Super-Admin roles — blocked.
-- [ ] TC-0340: Production dashboard totals against source database — blocked.
-- [ ] TC-0341: Production inventory balances against stock ledger — blocked.
-- [ ] TC-0342: Backup restore and recovery drill — blocked.
-- [ ] TC-0343: SMTP delivery and password-reset mailbox round trip — blocked.
-- [ ] TC-0344: Production server logs and deployment revision matching — blocked.
-- [ ] TC-0345: Live external supplier and client acceptance email delivery — blocked.
-- [ ] TC-0346: All commercial CRUD workflows through UI — not executed.
-- [ ] TC-0347: All commercial API authorization combinations for every role — not executed.
-- [ ] TC-0348: Statutory GST return and e-invoice validation — not executed.
-- [ ] TC-0349: Full labour and overhead profitability — not executed.
-- [ ] TC-0350: Every PDF builder with long tables and long fields — not executed.
-- [ ] TC-0351: Cross-browser Firefox and WebKit workflows — not executed.
-- [ ] TC-0352: Real iOS and Android device testing — not executed.
-- [ ] TC-0353: Screen-reader and keyboard accessibility of every form — not executed.
-- [ ] TC-0354: Load test with simultaneous HTTP users and large data — not executed.
-- [ ] TC-0355: 5000-record performance benchmark in this audit — not executed.
-- [ ] TC-0356: Network interruption during every save and upload — not executed.
-- [ ] TC-0357: WhatsApp recipient handoff and PDF attachment on real device — not executed.
-- [ ] TC-0358: Malware scanning and XLSX container validation — not executed.
-- [ ] TC-0359: Full project closure with expenses and all reversal branches — not executed.
-- [ ] TC-0360: Word manual render and visual layout check — blocked.
-- [ ] TC-0361: Dependency advisory @prisma/client — failed.
-- [ ] TC-0362: Dependency advisory @prisma/config — failed.
-- [ ] TC-0363: Dependency advisory @ts-morph/common — failed.
-- [ ] TC-0364: Dependency advisory effect — failed.
-- [ ] TC-0365: Dependency advisory minimatch — failed.
-- [ ] TC-0366: Dependency advisory prisma — failed.
-- [ ] TC-0367: Dependency advisory shadcn — failed.
-- [ ] TC-0368: Dependency advisory ts-morph — failed.
-- [x] TC-0369: TypeScript — passed.
-- [ ] TC-0370: ESLint — not executed.
-- [ ] TC-0371: Production build — not executed.
+- [x] TC-0221: includes every accessible project in accounts rather than silently truncating at 1000 — passed.
+- [ ] TC-0222: Delivered-challan eligibility enforced for every RA claim — failed.
+- [x] TC-0223: 1-2. Super Admin logs in and creates an Admin — passed.
+- [x] TC-0224: 3. invalid department and duplicate names are rejected — passed.
+- [x] TC-0225: 4. creates team members with multiple departments — passed.
+- [x] TC-0226: 5-6. creates a project (validation first) and posts status paragraphs — passed.
+- [x] TC-0227: 7-9. creates a task from the project page with multiple departments and members — passed.
+- [x] TC-0228: 10-12. assigned user logs in, sees the task and updates progress — passed.
+- [x] TC-0229: 13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp — passed.
+- [x] TC-0230: 18b. inactive accounts cannot sign in; expired/forged sessions are rejected — passed.
+- [x] TC-0231: concurrent updates: a stale form is rejected instead of overwriting — passed.
+- [x] TC-0232: Desktop Dashboard opens — passed.
+- [x] TC-0233: Desktop Projects opens — passed.
+- [x] TC-0234: Desktop Tasks opens — passed.
+- [x] TC-0235: Desktop Departments opens — passed.
+- [x] TC-0236: Desktop Team Members opens — passed.
+- [x] TC-0237: Desktop Items opens — passed.
+- [x] TC-0238: Desktop Brands opens — passed.
+- [x] TC-0239: Desktop Suppliers opens — passed.
+- [x] TC-0240: Desktop Clients opens — passed.
+- [x] TC-0241: Desktop Material Planning opens — passed.
+- [x] TC-0242: Desktop Requisitions opens — passed.
+- [x] TC-0243: Desktop Rate Enquiries opens — passed.
+- [x] TC-0244: Desktop Purchase Orders opens — passed.
+- [x] TC-0245: Desktop Site receipts opens — passed.
+- [x] TC-0246: Desktop Inventory opens — passed.
+- [x] TC-0247: Desktop Supplier Bills opens — passed.
+- [x] TC-0248: Desktop Quotations opens — passed.
+- [x] TC-0249: Desktop Client POs opens — passed.
+- [x] TC-0250: Desktop Sales Orders opens — passed.
+- [x] TC-0251: Desktop Challans opens — passed.
+- [x] TC-0252: Desktop Running Bills opens — passed.
+- [x] TC-0253: Desktop Client Invoices opens — passed.
+- [x] TC-0254: Desktop Payments & Receipts opens — passed.
+- [x] TC-0255: Desktop Credit / Debit Notes opens — passed.
+- [x] TC-0256: Desktop Project Accounts opens — passed.
+- [x] TC-0257: Desktop Reports opens — passed.
+- [x] TC-0258: Desktop Documents opens — passed.
+- [x] TC-0259: Desktop Approvals opens — passed.
+- [x] TC-0260: Desktop Administration opens — passed.
+- [x] TC-0261: Mobile /projects/new fits viewport — passed.
+- [x] TC-0262: Mobile /purchase-orders/new fits viewport — passed.
+- [x] TC-0263: Mobile /sales-orders/new fits viewport — passed.
+- [x] TC-0264: Mobile /supplier-bills/new fits viewport — passed.
+- [x] TC-0265: Mobile /payments/new fits viewport — passed.
+- [x] TC-0266: Help search finds troubleshooting — passed.
+- [x] TC-0267: Authenticated pdf manual download — passed.
+- [x] TC-0268: Authenticated quick manual download — passed.
+- [x] TC-0269: Authenticated docx manual download — passed.
+- [x] TC-0270: SUPER_ADMIN supplier-bill page permission — passed.
+- [x] TC-0271: ADMIN supplier-bill page permission — passed.
+- [x] TC-0272: USER supplier-bill page permission — passed.
+- [x] TC-0273: PROJECT_MANAGER supplier-bill page permission — passed.
+- [x] TC-0274: SITE_ENGINEER supplier-bill page permission — passed.
+- [x] TC-0275: PURCHASE supplier-bill page permission — passed.
+- [x] TC-0276: STOREKEEPER supplier-bill page permission — passed.
+- [x] TC-0277: ACCOUNTS supplier-bill page permission — passed.
+- [x] TC-0278: VIEWER supplier-bill page permission — passed.
+- [x] TC-0279: Local normal logout — passed.
+- [x] TC-0280: Signed-out manual access blocked — passed.
+- [x] TC-0281: UI procurement: create fictional project — passed.
+- [x] TC-0282: UI procurement: create purchase order — passed.
+- [x] TC-0283: UI procurement: submit and approve PO — passed.
+- [x] TC-0284: UI procurement: enter and submit actual receipt — passed.
+- [x] TC-0285: UI procurement: verify receipt and post stock — passed.
+- [x] TC-0286: UI procurement: record and approve supplier bill — passed.
+- [x] TC-0287: UI procurement: reconcile persisted PO, GRN, stock and bill — passed.
+- [x] TC-0288: UI procurement: allocate supplier payment — passed.
+- [x] TC-0289: UI procurement: sign in — passed.
+- [x] TC-0290: UI sales: create and approve sales order — passed.
+- [x] TC-0291: UI sales: dispatch client-delivery challan — passed.
+- [x] TC-0292: UI sales: create and issue client invoice — passed.
+- [x] TC-0293: UI sales: receive and allocate client payment — passed.
+- [x] TC-0294: UI sales: verify persisted settlements and delivered stock — passed.
+- [x] TC-0295: Production read-only GET /projects — passed.
+- [x] TC-0296: Production read-only GET /tasks — passed.
+- [x] TC-0297: Production read-only GET /departments — passed.
+- [x] TC-0298: Production read-only GET /team-members — passed.
+- [x] TC-0299: Production read-only GET /items — passed.
+- [x] TC-0300: Production read-only GET /brands — passed.
+- [x] TC-0301: Production read-only GET /parties?type=supplier — passed.
+- [x] TC-0302: Production read-only GET /parties?type=client — passed.
+- [x] TC-0303: Production read-only GET /rate-enquiries — passed.
+- [x] TC-0304: Production read-only GET /purchase-orders — passed.
+- [x] TC-0305: Production read-only GET /client-pos — passed.
+- [x] TC-0306: Production read-only GET /sales-orders — passed.
+- [x] TC-0307: Production read-only GET /stock — passed.
+- [x] TC-0308: Production read-only GET /site-receipts — passed.
+- [x] TC-0309: Production read-only GET /supplier-bills — passed.
+- [x] TC-0310: Production read-only GET /challans — passed.
+- [x] TC-0311: Production read-only GET /running-bills — passed.
+- [x] TC-0312: Production read-only GET /client-invoices — passed.
+- [x] TC-0313: Production read-only GET /payments — passed.
+- [x] TC-0314: Production read-only GET /accounts — passed.
+- [x] TC-0315: Production read-only GET /reports — passed.
+- [x] TC-0316: Production read-only GET /documents — passed.
+- [x] TC-0317: Production read-only GET /approvals — passed.
+- [x] TC-0318: Production read-only GET /material-planning — passed.
+- [x] TC-0319: Production read-only GET /purchase-requisitions — passed.
+- [x] TC-0320: Production read-only GET /quotations — passed.
+- [x] TC-0321: Production read-only GET /notes — passed.
+- [x] TC-0322: Production read-only GET /settings — passed.
+- [x] TC-0323: Production signed-out API /api/attachments/00000000-0000-0000-0000-000000000000 — passed.
+- [x] TC-0324: Production signed-out API /api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000 — passed.
+- [x] TC-0325: Production signed-out API /api/reports/pdf — passed.
+- [x] TC-0326: Production signed-out API /api/reports/csv/accounts — passed.
+- [x] TC-0327: Production viewport live-mobile-po-geometry.json — passed.
+- [x] TC-0328: Production viewport live-tablet-po-geometry.json — passed.
+- [x] TC-0329: Production viewport live-sales-form-desktop.json — passed.
+- [x] TC-0330: Production normal Super Admin sign-in and sign-out — passed.
+- [x] TC-0331: PDF page bounds challan-issue.pdf — passed.
+- [x] TC-0332: PDF page bounds credit-note-cancelled.pdf — passed.
+- [x] TC-0333: PDF page bounds grn-discrepancies.pdf — passed.
+- [x] TC-0334: PDF page bounds invoice-draft-no-signature.pdf — passed.
+- [x] TC-0335: PDF page bounds invoice-igst-bank.pdf — passed.
+- [x] TC-0336: PDF page bounds payment-voucher.pdf — passed.
+- [x] TC-0337: PDF page bounds po-100-items.pdf — passed.
+- [x] TC-0338: PDF page bounds po-60-items.pdf — passed.
+- [x] TC-0339: PDF page bounds po-99-items.pdf — passed.
+- [x] TC-0340: PDF page bounds po-draft-missing-optional.pdf — passed.
+- [x] TC-0341: PDF page bounds po-interstate-large.pdf — passed.
+- [x] TC-0342: PDF page bounds po-long-terms.pdf — passed.
+- [x] TC-0343: PDF page bounds po-multi-item-freight-roundoff.pdf — passed.
+- [x] TC-0344: PDF page bounds po-single-item.pdf — passed.
+- [x] TC-0345: PDF page bounds ra-bill-landscape.pdf — passed.
+- [x] TC-0346: PDF page bounds task-report.pdf — passed.
+- [x] TC-0347: PDF page bounds client_invoice.pdf — passed.
+- [x] TC-0348: PDF page bounds client_po.pdf — passed.
+- [x] TC-0349: PDF page bounds purchase_order.pdf — passed.
+- [x] TC-0350: PDF page bounds ra_bill.pdf — passed.
+- [x] TC-0351: PDF page bounds sales_order.pdf — passed.
+- [x] TC-0352: PDF page bounds supplier_bill.pdf — passed.
+- [x] TC-0353: PDF page bounds QUICK_START_GUIDE.pdf — passed.
+- [x] TC-0354: PDF page bounds WATCON_USER_GUIDE.pdf — passed.
+- [ ] TC-0355: Production login and direct access for all non-Super-Admin roles — blocked.
+- [ ] TC-0356: Production dashboard totals against source database — blocked.
+- [ ] TC-0357: Production inventory balances against stock ledger — blocked.
+- [ ] TC-0358: Backup restore and recovery drill — blocked.
+- [ ] TC-0359: SMTP delivery and password-reset mailbox round trip — blocked.
+- [ ] TC-0360: Production server logs and deployment revision matching — blocked.
+- [ ] TC-0361: Live external supplier and client acceptance email delivery — blocked.
+- [ ] TC-0362: All commercial CRUD workflows through UI — not executed.
+- [ ] TC-0363: All commercial API authorization combinations for every role — not executed.
+- [ ] TC-0364: Statutory GST return and e-invoice validation — not executed.
+- [ ] TC-0365: Full labour and overhead profitability — not executed.
+- [ ] TC-0366: Every PDF builder with long tables and long fields — not executed.
+- [ ] TC-0367: Cross-browser Firefox and WebKit workflows — not executed.
+- [ ] TC-0368: Real iOS and Android device testing — not executed.
+- [ ] TC-0369: Screen-reader and keyboard accessibility of every form — not executed.
+- [ ] TC-0370: Load test with simultaneous HTTP users and large data — not executed.
+- [ ] TC-0371: 5000-record performance benchmark in this audit — not executed.
+- [ ] TC-0372: Network interruption during every save and upload — not executed.
+- [ ] TC-0373: WhatsApp recipient handoff and PDF attachment on real device — not executed.
+- [ ] TC-0374: Malware scanning and XLSX container validation — not executed.
+- [ ] TC-0375: Full project closure with expenses and all reversal branches — not executed.
+- [ ] TC-0376: Word manual render and visual layout check — blocked.
+- [ ] TC-0377: Dependency advisory @prisma/client — failed.
+- [ ] TC-0378: Dependency advisory @prisma/config — failed.
+- [ ] TC-0379: Dependency advisory @ts-morph/common — failed.
+- [ ] TC-0380: Dependency advisory effect — failed.
+- [ ] TC-0381: Dependency advisory minimatch — failed.
+- [ ] TC-0382: Dependency advisory prisma — failed.
+- [ ] TC-0383: Dependency advisory shadcn — failed.
+- [ ] TC-0384: Dependency advisory ts-morph — failed.
+- [x] TC-0385: TypeScript — passed.
+- [x] TC-0386: ESLint — passed.
+- [x] TC-0387: Production build — passed.

@@ -8,17 +8,17 @@ Audit date: 24 November 2026, Asia/Kolkata. Main application: WATCON-APP. Live a
 - User-facing modules: 31, including Authentication and the new Help & User Guide.
 - Exported module operations discovered: 391 (includes helper operations; exact inventory in FEATURE_INVENTORY.csv).
 - Page/handler route files: 95. Prisma models: 74.
-- Test cases in this audit ledger: 371. Passed 336; failed 11; blocked 8; not executed 16.
-- Tracked findings: 9. Fixed locally: 4. Remaining or decision-required: 5. Dependency findings are package entries and can share a root advisory.
-- Evidence readiness score: 84.8%, equal mean of the eight scored categories below.
+- Test cases in this audit ledger: 387. Passed 356; failed 9; blocked 8; not executed 14.
+- Tracked findings: 11. Fixed locally: 6. Remaining or decision-required: 5. Dependency findings are package entries and can share a root advisory.
+- Evidence readiness score: 80.4%, equal mean of the eight scored categories below.
 
-- Functionality: 94.8% (109/115 credited checks).
-- Security: 78.3% (54/69 credited checks).
+- Functionality: 96.9% (127/131 credited checks).
+- Security: 82.9% (58/70 credited checks).
 - Database integrity: 87.5% (14/16 credited checks).
-- Financial accuracy: 94.3% (50/53 credited checks).
+- Financial accuracy: 92.6% (50/54 credited checks).
 - Inventory: 97.8% (44/45 credited checks).
 - UI/UX: 91.9% (34/37 credited checks).
-- Performance: 40.0% (2/5 credited checks).
+- Performance: 0.0% (0/3 credited checks).
 - Documentation: 93.5% (29/31 credited checks).
 
 ## Architecture and relationships

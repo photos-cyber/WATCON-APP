@@ -38,13 +38,14 @@ const databaseDriver: StorageDriver = {
 };
 
 function fsRoot() {
-  return path.resolve(process.env.STORAGE_DIR || "storage");
+  // Runtime user data lives on a separately managed volume; never bundle its contents.
+  return path.resolve(/* turbopackIgnore: true */ process.env.STORAGE_DIR || "storage");
 }
 
 /** Keys are generated server-side (UUID based); this guard rejects anything path-like anyway. */
 function safePath(key: string) {
   if (!/^[a-zA-Z0-9/_-]+$/.test(key) || key.includes("..")) throw new Error("Invalid storage key");
-  const p = path.join(fsRoot(), key);
+  const p = path.join(/* turbopackIgnore: true */ fsRoot(), key);
   if (!p.startsWith(fsRoot())) throw new Error("Invalid storage key");
   return p;
 }
@@ -58,7 +59,7 @@ const filesystemDriver: StorageDriver = {
   },
   async get(key) {
     try {
-      return await readFile(safePath(key));
+      return await readFile(/* turbopackIgnore: true */ safePath(key));
     } catch {
       return null;
     }

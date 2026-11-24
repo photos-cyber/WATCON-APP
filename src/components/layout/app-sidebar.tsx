@@ -13,7 +13,6 @@ import {
   FolderKanban,
   FolderOpen,
   HandCoins,
-  CircleHelp,
   Inbox,
   LayoutDashboard,
   ListChecks,
@@ -113,7 +112,6 @@ export function navGroups(user: NavUser): Group[] {
         user.canViewMembers ? { href: "/team-members", label: "Team Members", icon: Users } : { href: `/team-members/${user.id}`, label: "My Profile", icon: UserRound, match: "/team-members" },
       ],
     },
-    { label: "Help", items: [{ href: "/help", label: "Help & User Guide", icon: CircleHelp }] },
     { label: "Administration", items: [{ href: "/settings", label: "Administration", icon: Settings }] },
   ];
   return groups.filter((g) => g.items.length > 0);

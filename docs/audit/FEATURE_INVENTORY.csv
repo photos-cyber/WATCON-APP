@@ -59,7 +59,7 @@ documents,registerPdfBuilder,src/modules/documents/pdf-models.ts,Unable to test,
 documents,buildPdfModel,src/modules/documents/pdf-models.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
 documents,attachmentModuleWhere,src/modules/documents/visibility.ts,Unable to test,,Source exists; no direct test-call reference found
 help,helpForActor,src/modules/help/articles.ts,Partially working,tests\unit\help.test.ts,Referenced by service tests; not full UI certification
-insights,projectAccountsSummary,src/modules/insights/accounts.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,projectAccountsSummary,src/modules/insights/accounts.ts,Partially working,tests\integration\accounts-completeness.test.ts; tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
 insights,partyLedger,src/modules/insights/accounts.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
 insights,listApprovals,src/modules/insights/approvals.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
 insights,countMyApprovals,src/modules/insights/approvals.ts,Unable to test,,Source exists; no direct test-call reference found

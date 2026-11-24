@@ -32,7 +32,7 @@ No. Its material margin excludes labour and overheads. Do not use it as a comple
 
 ## Which PDFs exist?
 
-Commercial builders cover Purchase Order, Requisition, Rate Enquiry, supplier quotation, Site Receipt, Challan, Client PO, Sales Order, client Quotation, Running Bill, Client Invoice, Supplier Bill, Payment and adjustment note. Task reports have a PDF route. A PDF option is not guaranteed for every dashboard, statement or register.
+Commercial builders cover Purchase Order, Requisition, Rate Enquiry, Site Receipt, Challan, Client PO, Sales Order, client Quotation, Running Bill, Client Invoice, Supplier Bill, Payment and adjustment note. Task reports have a PDF route. A PDF option is not guaranteed for every dashboard, statement or register.
 
 # Troubleshooting
 

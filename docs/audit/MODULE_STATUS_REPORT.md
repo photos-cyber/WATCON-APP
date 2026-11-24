@@ -189,6 +189,8 @@ Status: Partially working until all final download/UI checks are recorded. 43 ar
 
 ## Unsupported or conditional capabilities
 
+- Item-level cost price and selling price fields: Not implemented in the inspected item input schema. Prices are entered on commercial lines.
+- User-uploaded item catalogue photos: Not implemented in the inspected item form. ItemImage rows point to imported public assets; document evidence upload is a separate feature.
 - Separate Sales Department system role: Not implemented; operational sales responsibilities map to PROJECT_MANAGER/ADMIN with so/cpo grants.
 - Complete general ledger and expense-inclusive profitability: Not implemented in the inspected operational accounts engine.
 - Supplier bill as stock posting event: Not implemented in this version; GRN posting is the actual event. Business-owner decision required before changing it.

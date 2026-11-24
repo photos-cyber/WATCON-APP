@@ -80,7 +80,11 @@ Open your account menu and choose Sign out. Do this on shared computers.
 
 ### Verification note
 
-This guide uses current source labels and local tests. Only the sign-in screenshots come from production. Module examples and screenshots use fictional local data. Untested operations are not a promise of a successful transaction.
+This guide explains the available screens. Use only actions your account allows. Ask your supervisor when a business rule is unclear. Training screenshots use fictional records.
+
+### How to get a manual
+
+Help & User Guide is available to Super Admin in Administration → Help & guide. Other employees should ask their supervisor or Super Admin for a copy of this manual. Help pages and downloads are restricted to Super Admin.
 
 ## Dashboard
 
@@ -188,7 +192,7 @@ Open Projects from the left menu. Address: /projects.
 
 Site / project name: A short name employees recognize.
 
-Project code
+Project code: The generated reference for this job.
 
 Site address: The physical work location.
 
@@ -436,7 +440,7 @@ Open Team Members from the left menu. Address: /team-members.
 
 1. Open Team Members.
 
-2. Open the new member form.
+2. Click Add member.
 
 3. Enter the employee details and username.
 
@@ -682,7 +686,7 @@ Open Suppliers from the left menu. Address: /parties?type=supplier.
 
 1. Open Suppliers.
 
-2. Open the new party form.
+2. Click Add supplier.
 
 3. Enter the name and contact details.
 
@@ -696,21 +700,21 @@ Open Suppliers from the left menu. Address: /parties?type=supplier.
 
 Name
 
-Legal / registered name
+Legal / registered name: The name printed on official tax and registration records.
 
-Code
+Code: The short reference used to find this record.
 
-Type
+Type: Choose whether this party is a client, supplier or both.
 
-GSTIN
+GSTIN: The party’s tax registration number. Copy it from its official records.
 
-PAN
+PAN: The party’s permanent tax account number.
 
-State (place of supply)
+State (place of supply): The state used to decide the tax treatment. Ask Accounts if unsure.
 
-TDS section
+TDS section: The tax-deduction category selected by Accounts.
 
-TDS rate %
+TDS rate %: The percentage Accounts must withhold as TDS.
 
 Contact person
 
@@ -726,15 +730,15 @@ City
 
 PIN code
 
-Payment terms (days)
+Payment terms (days): The agreed number of days before payment is due.
 
-Credit limit (₹)
+Credit limit (₹): The permitted amount of credit agreed with this party.
 
 Bank
 
-Account number
+Account number: The bank account to pay or receive money through. Check it independently.
 
-IFSC
+IFSC: The bank branch code used for a bank transfer.
 
 Status: The current stage of the record.
 
@@ -742,7 +746,7 @@ Notes
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Create party. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -796,7 +800,7 @@ Open Clients from the left menu. Address: /parties?type=client.
 
 1. Open Clients.
 
-2. Open the new party form.
+2. Click Add client.
 
 3. Enter the name and contact details.
 
@@ -810,21 +814,21 @@ Open Clients from the left menu. Address: /parties?type=client.
 
 Name
 
-Legal / registered name
+Legal / registered name: The name printed on official tax and registration records.
 
-Code
+Code: The short reference used to find this record.
 
-Type
+Type: Choose whether this party is a client, supplier or both.
 
-GSTIN
+GSTIN: The party’s tax registration number. Copy it from its official records.
 
-PAN
+PAN: The party’s permanent tax account number.
 
-State (place of supply)
+State (place of supply): The state used to decide the tax treatment. Ask Accounts if unsure.
 
-TDS section
+TDS section: The tax-deduction category selected by Accounts.
 
-TDS rate %
+TDS rate %: The percentage Accounts must withhold as TDS.
 
 Contact person
 
@@ -840,15 +844,15 @@ City
 
 PIN code
 
-Payment terms (days)
+Payment terms (days): The agreed number of days before payment is due.
 
-Credit limit (₹)
+Credit limit (₹): The permitted amount of credit agreed with this party.
 
 Bank
 
-Account number
+Account number: The bank account to pay or receive money through. Check it independently.
 
-IFSC
+IFSC: The bank branch code used for a bank transfer.
 
 Status: The current stage of the record.
 
@@ -856,7 +860,7 @@ Notes
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Create party. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -976,7 +980,7 @@ Open Requisitions from the left menu. Address: /purchase-requisitions.
 
 1. Open Requisitions.
 
-2. Open the new requisition form.
+2. Click New requisition.
 
 3. Choose the project and required materials.
 
@@ -1046,7 +1050,7 @@ Open Rate Enquiries from the left menu. Address: /rate-enquiries.
 
 1. Open Rate Enquiries.
 
-2. Open the new enquiry form.
+2. Click New enquiry.
 
 3. Choose the project and suppliers.
 
@@ -1086,7 +1090,7 @@ General specifications
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Save enquiry. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -1094,7 +1098,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1140,7 +1144,7 @@ Open Purchase Orders from the left menu. Address: /purchase-orders.
 
 1. Open Purchase Orders.
 
-2. Open the new purchase order form.
+2. Click New purchase order.
 
 3. Select Project and Supplier.
 
@@ -1192,7 +1196,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1422,7 +1426,7 @@ Open Supplier Bills from the left menu. Address: /supplier-bills.
 
 1. Open Supplier Bills.
 
-2. Open the new bill form.
+2. Click Enter supplier bill.
 
 3. Select the project, supplier and Purchase Order where relevant.
 
@@ -1450,9 +1454,9 @@ Due date
 
 Supplier GSTIN on the invoice
 
-TDS section
+TDS section: The tax-deduction category selected by Accounts.
 
-TDS rate %
+TDS rate %: The percentage Accounts must withhold as TDS.
 
 Freight / other charges ₹
 
@@ -1462,7 +1466,7 @@ Remarks
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -1470,7 +1474,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1560,7 +1564,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1606,7 +1610,7 @@ Open Client POs from the left menu. Address: /client-pos.
 
 1. Open Client POs.
 
-2. Open the new client PO form.
+2. Click New client PO.
 
 3. Choose project and client.
 
@@ -1638,11 +1642,11 @@ Place of supply
 
 Scope of work
 
-Retention %
+Retention %: The agreed part of the bill held back by the client.
 
-Mobilisation advance (₹)
+Mobilisation advance (₹): The contract advance to be recovered from later bills.
 
-Advance recovery % per bill
+Advance recovery % per bill: The agreed rate for deducting that advance from each bill.
 
 Payment terms
 
@@ -1652,7 +1656,7 @@ Notes
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -1660,7 +1664,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1706,7 +1710,7 @@ Open Sales Orders from the left menu. Address: /sales-orders.
 
 1. Open Sales Orders.
 
-2. Open the new order form.
+2. Click New sales order.
 
 3. Choose the project and client.
 
@@ -1744,7 +1748,7 @@ Reason for the change
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -1752,7 +1756,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1798,7 +1802,7 @@ Open Challans from the left menu. Address: /challans.
 
 1. Open Challans.
 
-2. Open the new challan form.
+2. Click New challan.
 
 3. Choose the correct movement type and project.
 
@@ -1846,7 +1850,7 @@ Remarks
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Save challan. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -1854,7 +1858,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1904,7 +1908,7 @@ Open Running Bills from the left menu. Address: /running-bills.
 
 1. Open Running Bills.
 
-2. Open the new running bill form for the project.
+2. Click New running bill for the project.
 
 3. Choose the relevant order.
 
@@ -1916,11 +1920,27 @@ Open Running Bills from the left menu. Address: /running-bills.
 
 ### Important fields
 
-Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form.
+Bill progress
+
+Bill date: The date on this running bill.
+
+Work done from: The first day covered by this bill.
+
+Work done up to: The last day covered by this bill.
+
+Other deductions (₹)
+
+Deduction details
+
+Remarks
+
+Client certificate / reference
+
+Certified on
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -1928,7 +1948,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -1945,6 +1965,10 @@ Prepare the Client Invoice from eligible certified work.
 ### Common mistakes to avoid
 
 Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record.
+
+### Check work before billing
+
+This version limits a running bill by Client PO quantities. It does not automatically require a linked delivered challan for every claim. Check actual completed work and company policy before submitting a claim. Direct Sales Order invoicing has a different delivered-quantity check.
 
 ![Local training application: Running Bills](screenshots/local-running-bills.png)
 
@@ -1978,7 +2002,7 @@ Open Client Invoices from the left menu. Address: /client-invoices.
 
 1. Open Client Invoices.
 
-2. Open the new invoice form.
+2. Click New invoice.
 
 3. Choose the project, client and eligible billing source.
 
@@ -2006,7 +2030,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -2078,7 +2102,7 @@ Remarks
 
 ### How do I save?
 
-Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save.
+Click Record payment or Record receipt, according to the chosen direction. Correct any field named in a validation message. Wait for the saved record and check its status.
 
 ### How do I view or edit?
 
@@ -2086,7 +2110,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -2146,7 +2170,13 @@ Open Credit / Debit Notes from the left menu. Address: /notes.
 
 ### Important fields
 
-Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form.
+Note date
+
+Taxable amount ₹
+
+GST %
+
+Reason
 
 ### How do I save?
 
@@ -2158,7 +2188,7 @@ Open the record from its list. Use Edit only when it is offered. Approved or pos
 
 ### How do I print or download?
 
-Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide.
+Open the saved document. Use Preview to check it, Download to save the PDF, or Print to open printing. Where WhatsApp is shown, check the recipient and attach the downloaded PDF before sending. These actions do not approve or post the document.
 
 ### What happens after saving?
 
@@ -2550,6 +2580,48 @@ Prepare the eligible running bills and record client certification. Issue matchi
 
 Expected material margin is ₹5,000 before labour and overheads, excluding GST. Verify project accounts, all tasks and outstanding documents before project closure. This numerical example is a training worksheet; the audit evidence states which workflows were actually executed.
 
+### Practical training in 19 steps
+
+Use an isolated training application. The trainer needs the required permissions. Have another authorized employee approve records when separation of duties applies. Never share a login.
+
+1. Open Clients. Click Add client. Create a fictional client, or select the existing Acme Developers training record. Use the agreed test state for GST.
+
+2. Open Projects. Click Create new project. Enter ABC Hotel Swimming Pool Installation, a fictional Site address and Project description. Choose the manager and members. Click Create project.
+
+3. Open Team Members. Click Add member to create any missing training employees. Set their departments and temporary passwords. Existing training employees can be reused.
+
+4. Open Tasks. Click Create task. Assign the project, departments, team members and accountable owner. Set a due date. Staff later use Update progress and comments.
+
+5. In Items, create Training pool filter with unit Nos. In Brands, create Training brand. Link the brand from the item page. Use zero opening stock for this exercise.
+
+6. Open Suppliers. Click Add supplier to create a fictional supplier, or use the existing Shree Cement Traders training record. Set its correct test state.
+
+7. Open Rate Enquiries. Click New enquiry. Ask for 10 Training pool filters. Click Save enquiry. Record the supplier offer of ₹1,000 each with 18% GST and compare the offers.
+
+8. Review the awarded Purchase Order. If the enquiry has created one, open that order instead of entering it twice. Otherwise use New purchase order. Set quantity 10, rate ₹1,000 and GST 18%. Review, submit and obtain approval. Stock is still zero.
+
+9. Open Site Receipts. Find the PO under Waiting to be received. Record 6 received with no damage or rejection. Submit receipt, then use Verify & add to stock with the authorized operator. Repeat for the remaining 4. Stock is now 10 at the PO receiving location.
+
+10. Open Supplier Bills. Click Enter supplier bill and select the PO. Copy the supplier invoice reference and date. Check 10 × ₹1,000 plus GST = ₹11,800. Save draft, submit and use Approve for payment. Stock remains 10.
+
+11. Open Inventory. Check Company stock, By location and Stock ledger. Confirm the exact item, brand and receiving location. Do not enter another inward movement for the bill.
+
+12. Open Client POs. Click New client PO. Record the client reference and the same project. Add 10 filters at ₹1,500 and 18% GST. Use zero retention and no advance recovery for this simple exercise. Save draft and obtain approval.
+
+13. Open the Client PO and use Create sales order, or create New sales order with the contract linked. Check 10 filters at ₹1,500. Save draft, submit and obtain approval. Stock is still 10.
+
+14. Open Challans. Use New challan and Deliver to client, with the approved Sales Order and the location that holds the filters. Save challan and Dispatch 4 filters. Repeat for the remaining 6. Keep delivery proof. Stock becomes 6, then zero.
+
+15. Open Running Bills. Use New running bill for the active Client PO. Enter the actual current measurement, review earlier quantities and Save draft. Submit for review, obtain internal approval and record client certification. Use Create invoice on the certified bill, then Create draft invoice and Issue invoice. A fully certified total of 10 gives ₹17,700 including GST.
+
+16. Open the client invoice and use Record receipt. Enter ₹7,080, allocate it to the invoice and save. Later record ₹10,620 against the remaining due. Client due becomes zero. An unallocated receipt is an advance and does not settle the invoice.
+
+17. Open the supplier bill and use Record payment. Pay and allocate ₹5,000, then ₹6,800. Supplier due becomes zero.
+
+18. Open Project Accounts. Check client invoiced/received ₹17,700, supplier billed/paid ₹11,800, receivable zero and payable zero. The material margin is ₹5,000 before labour and overheads. Compare the underlying records if any number differs.
+
+19. Complete the assigned tasks. Review open orders, evidence, transit stock and all balances before closing the job. Fully delivered approved Sales Orders can move project status to Completed automatically; that status alone does not prove every bill is paid.
+
 ## Super Admin
 
 Daily, weekly and monthly work.
@@ -2834,6 +2906,34 @@ The goods classification code used for tax reporting.
 
 An approved correction that reduces the relevant amount due.
 
+### GSTIN
+
+The tax registration number of a business.
+
+### TDS
+
+Tax deducted at source. Part of a payment is withheld for tax rather than paid directly to the other party.
+
+### PAN
+
+The permanent tax account number used on official records.
+
+### IFSC
+
+The code identifying a bank branch for a transfer.
+
+### BOQ
+
+Bill of Quantities. A list of agreed work or material lines and quantities.
+
+### Retention
+
+An agreed amount the client holds back until the required stage.
+
+### Certification
+
+The client’s confirmation of the quantity or value accepted for billing.
+
 ## Frequently Asked Questions
 
 Answers to common questions.
@@ -2868,7 +2968,7 @@ No. Its material margin excludes labour and overheads. Do not use it as a comple
 
 ### Which PDFs exist?
 
-Commercial builders cover Purchase Order, Requisition, Rate Enquiry, supplier quotation, Site Receipt, Challan, Client PO, Sales Order, client Quotation, Running Bill, Client Invoice, Supplier Bill, Payment and adjustment note. Task reports have a PDF route. A PDF option is not guaranteed for every dashboard, statement or register.
+Commercial builders cover Purchase Order, Requisition, Rate Enquiry, Site Receipt, Challan, Client PO, Sales Order, client Quotation, Running Bill, Client Invoice, Supplier Bill, Payment and adjustment note. Task reports have a PDF route. A PDF option is not guaranteed for every dashboard, statement or register.
 
 ## Troubleshooting
 

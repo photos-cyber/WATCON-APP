@@ -45,17 +45,29 @@ Upload sniffing accepts XLSX based on ZIP signature and extension; CSV is only a
 
 Evidence: src/lib/storage/sniff.ts.
 
-## B08: Medium — Open
+## B08: Medium — Fixed locally
 
-Project Accounts stops at 1000 projects without a pagination/truncation message; large portfolios can yield incomplete totals.
+Removed the silent 1000-project cap from Project Accounts; regression verifies 1003 projects and restricted scopes.
 
-Evidence: src/modules/insights/accounts.ts.
+Evidence: accounts-completeness.test.ts.
 
 ## B09: Low — Open
 
 ESLint initially reported 10 unused-variable warnings; final check records the remaining warning count.
 
 Evidence: lint-initial.txt and lint-final.txt.
+
+## B10: Medium — Fixed locally
+
+Unlabelled item/brand comboboxes were unnamed in the accessibility tree. SingleSelect now accepts explicit labels and uses its placeholder when no field label exists; the commercial UI workflow selects the named item field.
+
+Evidence: scripts/audit-procurement-ui.mjs and accessibility snapshot.
+
+## B11: High — Decision required
+
+RA claims are limited by contract quantities and certification, without a mandatory delivered-challan link. Confirm whether measured work may be billed independently of delivery. No eligibility rule was silently changed.
+
+Evidence: src/modules/sales/ra-bill.ts and running-bill service tests.
 
 ## Test infrastructure incident
 

@@ -27,6 +27,9 @@ const nextConfig: NextConfig = {
   // PDF routes read the bundled fonts (₹ glyph) and the standard logo from disk at runtime;
   // standalone output only copies traced files, so include them explicitly.
   outputFileTracingIncludes: {
+    // Native image binaries load adjacent DLL/shared-library files dynamically.
+    // Tracing the .node entry alone drops these from a standalone deployment.
+    "/*": ["./node_modules/@img/sharp-*/lib/**/*"],
     "/api/help/manual": ["./docs/user-guide/*.pdf", "./docs/user-guide/*.docx"],
     "/api/documents/pdf": ["./src/assets/fonts/**/*", "./public/logo1.png"],
     "/api/reports/pdf": ["./src/assets/fonts/**/*", "./public/logo1.png"],

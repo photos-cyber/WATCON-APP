@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ChangePasswordForm } from "@/components/forms/change-password-form";
 import { CompanyForm } from "@/components/settings/company-form";
 import { CommercialSettings } from "@/components/settings/commercial-settings";
@@ -26,6 +27,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
     ...(can(user, "settings.commercial") ? [{ key: "commercial", label: "Commercial" }] : []),
     ...(can(user, "settings.roles") ? [{ key: "roles", label: "Roles & permissions" }] : []),
     ...(can(user, "audit.view") ? [{ key: "audit", label: "Audit log" }] : []),
+    ...(user.role === "SUPER_ADMIN" ? [{ key: "help", label: "Help & guide" }] : []),
   ];
   const tab = tabs.some((t) => t.key === sp.tab) ? String(sp.tab) : "account";
 
@@ -49,6 +51,13 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       {tab === "commercial" && <CommercialSection user={user} />}
       {tab === "roles" && <RolesSection />}
       {tab === "audit" && <AuditSection user={user} sp={sp} />}
+      {tab === "help" && (
+        <section className="rounded-xl border bg-card p-5">
+          <h2 className="text-sm font-semibold">Help & User Guide</h2>
+          <p className="mt-1 mb-3 text-sm text-muted-foreground">Step-by-step guides for every module, plus the downloadable user manual. Visible only to Super Admin.</p>
+          <Link href="/help" className="text-sm text-primary hover:underline">Open Help & User Guide →</Link>
+        </section>
+      )}
     </>
   );
 }

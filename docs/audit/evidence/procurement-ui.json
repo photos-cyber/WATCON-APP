@@ -1,10 +1,6 @@
 {
   "results": [
     {
-      "name": "UI procurement: sign in",
-      "status": "passed"
-    },
-    {
       "name": "UI procurement: create fictional project",
       "status": "passed"
     },
@@ -25,14 +21,49 @@
       "status": "passed"
     },
     {
-      "name": "UI procurement workflow next step",
-      "status": "failed",
-      "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Supplier invoice number', { exact: true })\u001b[22m\n"
+      "name": "UI procurement: record and approve supplier bill",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: reconcile persisted PO, GRN, stock and bill",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: allocate supplier payment",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: sign in",
+      "status": "passed"
+    },
+    {
+      "name": "UI sales: create and approve sales order",
+      "status": "passed"
+    },
+    {
+      "name": "UI sales: dispatch client-delivery challan",
+      "status": "passed"
+    },
+    {
+      "name": "UI sales: create and issue client invoice",
+      "status": "passed"
+    },
+    {
+      "name": "UI sales: receive and allocate client payment",
+      "status": "passed"
+    },
+    {
+      "name": "UI sales: verify persisted settlements and delivered stock",
+      "status": "passed"
     }
   ],
   "ids": {
     "project": "b313c21a-0bc7-471e-94fa-6b7c9ddbd2ed",
     "po": "c654bba0-2808-4ea9-a24d-e350e092811b",
-    "grn": "7e275f90-2ee4-4a9c-b25a-bf74120a6859"
+    "grn": "7e275f90-2ee4-4a9c-b25a-bf74120a6859",
+    "bill": "43692ebd-0497-4e1b-8b32-ef95a53bcee4",
+    "so": "c9d3ae88-210d-4835-8ae8-ca06e20ac2a7",
+    "challan": "11257ede-a50d-469b-b204-458163e66bc6",
+    "invoice": "8b708b86-0954-40e1-ac8c-b7489d6c2956"
   }
 }

@@ -1,0 +1,39 @@
+{
+  "results": [
+    {
+      "name": "Production build: Super Admin opens help through Administration",
+      "status": "passed"
+    },
+    {
+      "name": "Production build: searchable help",
+      "status": "passed"
+    },
+    {
+      "name": "Production build: pdf manual download",
+      "status": "passed",
+      "bytes": 1536193
+    },
+    {
+      "name": "Production build: quick manual download",
+      "status": "passed",
+      "bytes": 61327
+    },
+    {
+      "name": "Production build: docx manual download",
+      "status": "passed",
+      "bytes": 1386578
+    },
+    {
+      "name": "Production build: invalid manual format cannot select a file path",
+      "status": "passed"
+    },
+    {
+      "name": "Production build: employee help and manual restricted by owner policy",
+      "status": "passed"
+    },
+    {
+      "name": "Production build: anonymous manual denied",
+      "status": "passed"
+    }
+  ]
+}

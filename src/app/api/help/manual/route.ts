@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   if (user.mustChangePassword) return NextResponse.json({ error: "Password change required" }, { status: 403 });
+  if (user.role !== "SUPER_ADMIN") return NextResponse.json({ error: "Not found" }, { status: 404 });
   const format = request.nextUrl.searchParams.get("format") ?? "pdf";
   if (!(format in FILES)) return NextResponse.json({ error: "Unknown manual format" }, { status: 400 });
   const [name, type] = FILES[format as keyof typeof FILES];

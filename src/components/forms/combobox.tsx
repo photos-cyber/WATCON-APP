@@ -71,7 +71,7 @@ export function SingleSelect({ options, value, onChange, placeholder = "Selectâ€
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button id={id} type="button" variant="outline" role="combobox" aria-label={ariaLabel} aria-expanded={open} aria-invalid={invalid || undefined} disabled={disabled} className="h-9 w-full justify-between bg-card font-normal">
+        <Button id={id} type="button" variant="outline" role="combobox" aria-label={ariaLabel ?? (id ? undefined : placeholder)} aria-expanded={open} aria-invalid={invalid || undefined} disabled={disabled} className="h-9 w-full justify-between bg-card font-normal">
           <span className={cn("truncate", !current && "text-muted-foreground")}>{current ? current.label : placeholder}</span>
           <ChevronsUpDown className="opacity-50" />
         </Button>

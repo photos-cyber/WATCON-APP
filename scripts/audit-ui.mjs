@@ -79,6 +79,11 @@ try {
     await expect(p).toHaveURL(expected ? /\/supplier-bills$/ : /\/dashboard\?denied=1$/);
     const allowed = new URL(p.url()).pathname === "/supplier-bills";
     results.push({ id: `ROLE-${row.key}`, name: `${row.key} supplier-bill page permission`, status: allowed === expected ? "passed" : "failed" });
+    await p.goto(`${base}/help`);
+    if (row.key === "SUPER_ADMIN") await expect(p.getByLabel("Search help articles")).toBeVisible();
+    else await expect(p.getByRole("heading", { name: "Page not found", exact: true })).toBeVisible();
+    const manual = await c.request.get(`${base}/api/help/manual`);
+    results.push({ id: `ROLE-HELP-${row.key}`, name: `${row.key} Super-Admin-only help and manual access`, status: manual.status() === (row.key === "SUPER_ADMIN" ? 200 : 404) ? "passed" : "failed", http: manual.status() });
     await c.close(); save();
   }
   await page.getByRole("button", { name: "Account menu", exact: true }).click();
