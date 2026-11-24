@@ -25,6 +25,7 @@ export type ProjectRow = {
   total: number;
   completed: number;
   progress: number;
+  progressBasis?: "delivery" | "tasks";
 };
 
 function RowActions({ row, canEdit, canArchive }: { row: ProjectRow; canEdit: boolean; canArchive: boolean }) {
@@ -93,7 +94,17 @@ export function ProjectsTable({ rows, canEdit, canArchive, canCreate }: { rows: 
     { id: "manager", header: "Manager", cell: ({ row }) => <span className="whitespace-nowrap">{row.original.manager ?? "—"}</span> },
     { id: "tasks", header: "Tasks", className: "text-right", cell: ({ row }) => <span className="tabular-nums">{row.original.total}</span> },
     { id: "completed", header: "Done", className: "text-right", cell: ({ row }) => <span className="tabular-nums">{row.original.completed}</span> },
-    { id: "progress", header: "Progress", className: "min-w-32", cell: ({ row }) => <ProgressBar value={row.original.progress} /> },
+    {
+      id: "progress",
+      header: "Progress",
+      className: "min-w-32",
+      cell: ({ row }) => (
+        <div title={row.original.progressBasis === "delivery" ? "Sales order value delivered to the client" : "Completed tasks"}>
+          <ProgressBar value={row.original.progress} />
+          <span className="text-[10px] text-muted-foreground">{row.original.progressBasis === "delivery" ? "delivered" : "tasks"}</span>
+        </div>
+      ),
+    },
     { id: "updatedAt", header: "Updated", sortKey: "updatedAt", cell: ({ row }) => <span className="whitespace-nowrap text-muted-foreground">{formatDate(row.original.updatedAt)}</span> },
     { id: "actions", header: () => <span className="sr-only">Actions</span>, className: "w-10", cell: ({ row }) => <RowActions row={row.original} canEdit={canEdit} canArchive={canArchive} /> },
   ];

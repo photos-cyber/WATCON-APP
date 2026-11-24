@@ -1,204 +1,334 @@
 import "server-only";
+import type { PdfColumn, PdfDoc } from "@/components/documents/pdf/types";
 import { db } from "@/lib/db";
 import { NotFoundError } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
-import { stateName } from "@/lib/gst";
-import { amountInWords, formatINR } from "@/lib/money";
+import { amountInWords, cmpQty, subQty } from "@/lib/money";
 import type { Actor } from "@/lib/permissions/definitions";
-import type { PdfDoc } from "@/components/documents/commercial-pdf";
-import { getCommercialSettings } from "@/modules/commercial/core";
+import { docState, humanize, isZero, loadPdfOrg, partyPanel, pct, projectLabel, qty, rate, rs, signDate, taxByRate, termsSection } from "./pdf-kit";
 
-/** Builds printable models. Every builder loads through the module's scoped getter (same access rules as the page). */
-
-const rs = (v: string | null | undefined) => formatINR(v, { symbol: false }).replace(/^-?/, (m) => `${m}Rs. `);
-const q = (v: string) => (v.includes(".") ? v.replace(/\.?0+$/, "") : v);
-const human = (s: string) => s.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
-
-async function orgHeader(actor: Actor): Promise<PdfDoc["org"]> {
-  const [org, settings] = await Promise.all([db.organization.findUniqueOrThrow({ where: { id: actor.organizationId } }), getCommercialSettings(actor.organizationId)]);
-  return { name: org.name, legalName: org.legalName, address: org.address, phone: org.phone, email: org.email, gstin: settings.gstin, logoDataUrl: org.logoDataUrl };
-}
+/**
+ * Printable models. Every builder loads through the module's own scoped getter, so the PDF
+ * obeys exactly the same access rules as the page. Amounts are the saved, authoritative values.
+ */
 
 type Builder = (actor: Actor, id: string) => Promise<PdfDoc>;
+
+/** Full party card for the letter (legal name, contact person, PIN) — getters select only a few fields. */
+export async function loadParty(organizationId: string, partyId: string | null | undefined) {
+  if (!partyId) return null;
+  return db.party.findFirst({ where: { id: partyId, organizationId }, select: { name: true, legalName: true, address: true, city: true, pincode: true, gstin: true, stateCode: true, phone: true, email: true, contactPerson: true, pan: true } });
+}
+
+const sub = (...parts: (string | null | undefined)[]) => parts.filter(Boolean).join(" · ") || null;
 
 const BUILDERS: Record<string, () => Promise<Builder>> = {
   client_po: async () => (await import("@/modules/sales/pdf")).clientPoPdf,
   sales_order: async () => (await import("@/modules/sales/pdf")).salesOrderPdf,
   ra_bill: async () => (await import("@/modules/sales/pdf")).raBillPdf,
   client_invoice: async () => (await import("@/modules/sales/pdf")).clientInvoicePdf,
+  client_quotation: async () => (await import("@/modules/sales/pdf")).quotationPdf,
   supplier_bill: async () => (await import("@/modules/payables/pdf")).supplierBillPdf,
   payment: async () => (await import("@/modules/payables/pdf")).paymentPdf,
   adjustment_note: async () => (await import("@/modules/payables/pdf")).notePdf,
+
+  // ───────────── Purchase order ─────────────
   purchase_order: async () => {
     const { getPo } = await import("@/modules/procurement/po");
     return async (actor, id) => {
       const { po } = await getPo(actor, id);
+      const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, po.partyId)]);
       const intra = po.taxMode === "INTRA";
+      const columns: PdfColumn[] = [
+        { key: "n", label: "S.No", width: 4.2, align: "center" },
+        { key: "code", label: "Code", width: 8.5 },
+        { key: "item", label: "Description / specification", width: 27 },
+        { key: "brand", label: "Brand", width: 10.5 },
+        { key: "hsn", label: "HSN", width: 8 },
+        { key: "qty", label: "Qty", width: 7, align: "right" },
+        { key: "unit", label: "Unit", width: 5.5 },
+        { key: "rate", label: "Rate (₹)", width: 10, align: "right" },
+        { key: "disc", label: "Disc", width: 5.5, align: "right" },
+        { key: "gst", label: "GST", width: 5.2, align: "right" },
+        { key: "amt", label: "Amount (₹)", width: 12.5, align: "right" },
+      ];
       return {
+        docType: "PO",
         title: "Purchase Order",
-        number: `${po.number}${po.revision ? ` (Rev ${po.revision})` : ""}`,
+        number: po.number,
+        revision: po.revision || null,
         date: formatDate(po.orderDate),
-        status: human(po.status),
-        org: await orgHeader(actor),
-        party: { label: "Supplier", name: po.party.name, address: [po.party.address, po.party.city].filter(Boolean).join(", ") || null, gstin: po.party.gstin, state: po.party.stateCode ? `${po.party.stateCode} – ${stateName(po.party.stateCode)}` : null, phone: po.party.phone },
-        meta: [
-          { label: "Project", value: po.project ? `${po.project.code} – ${po.project.name}` : "Central store" },
-          { label: "Deliver to", value: `${po.deliveryLocation.name}${po.deliveryLocation.address ? `, ${po.deliveryLocation.address}` : ""}${po.deliveryAddress ? ` (${po.deliveryAddress})` : ""}` },
+        dateLabel: "PO date",
+        ...docState(po.status),
+        org,
+        panels: [
+          partyPanel("Supplier", party ?? po.party),
+          {
+            title: "Project & delivery",
+            heading: projectLabel(po.project) ?? "Central store",
+            fields: [
+              { label: "Delivery site", value: po.deliveryLocation.name, strong: true },
+              { label: "Site address", value: [po.deliveryLocation.address, po.deliveryAddress].filter(Boolean).join(", ") || null },
+              { label: "Place of supply", value: po.placeOfSupply },
+            ],
+          },
+        ],
+        facts: [
           { label: "Expected delivery", value: formatDate(po.expectedDate) },
-          { label: "Payment terms", value: po.paymentTerms ?? "—" },
-          ...(po.advanceAmount !== "0.00" ? [{ label: "Advance", value: rs(po.advanceAmount) }] : []),
-          ...(po.pr ? [{ label: "Requisition", value: po.pr.number }] : []),
-          ...(po.rfq ? [{ label: "Rate enquiry", value: po.rfq.number }] : []),
+          { label: "Payment terms", value: po.paymentTerms },
+          { label: "Credit days", value: po.creditDays != null ? `${po.creditDays} days` : null },
+          { label: "Warranty", value: po.warranty },
+          { label: "RFQ reference", value: po.rfq?.number },
+          { label: "Requisition", value: po.pr?.number },
+          ...(isZero(po.advanceAmount) ? [] : [{ label: "Advance", value: rs(po.advanceAmount) }]),
         ],
-        columns: [
-          { key: "n", label: "#", w: "4%" },
-          { key: "item", label: "Item / description", w: "34%" },
-          { key: "hsn", label: "HSN", w: "9%" },
-          { key: "qty", label: "Qty", w: "10%", align: "right" },
-          { key: "rate", label: "Rate", w: "11%", align: "right" },
-          { key: "disc", label: "Disc%", w: "7%", align: "right" },
-          { key: "gst", label: "GST%", w: "7%", align: "right" },
-          { key: "amt", label: "Amount", w: "18%", align: "right" },
-        ],
-        rows: po.lines.map((l) => ({ n: String(l.lineNo), item: `${l.itemBrand.item.name} – ${l.itemBrand.brand.name}${l.description ? `\n${l.description}` : ""}`, hsn: l.hsnCode ?? "", qty: `${q(l.quantity)} ${l.unit}`, rate: rs(l.rate).replace("Rs. ", ""), disc: q(l.discountPct), gst: q(l.gstRate), amt: rs(l.total) })),
+        tableTitle: "Order items",
+        columns,
+        rows: po.lines.map((l) => ({
+          n: String(l.lineNo),
+          code: l.itemBrand.item.code,
+          item: { text: l.itemBrand.item.name, sub: l.description },
+          brand: l.itemBrand.brand.name,
+          hsn: l.hsnCode ?? l.itemBrand.item.hsnCode ?? "",
+          qty: qty(l.quantity),
+          unit: l.unit,
+          rate: rate(l.rate),
+          disc: isZero(l.discountPct) ? "—" : pct(l.discountPct),
+          gst: pct(l.gstRate),
+          amt: rate(l.taxable),
+        })),
         totals: [
-          { label: "Taxable value", value: rs(po.taxable) },
-          ...(po.charges !== "0.00" ? [{ label: "Freight / charges", value: rs(po.charges) }] : []),
+          { label: "Taxable value (items, after discount)", value: rs(po.taxable) },
+          ...(isZero(po.discountTotal) ? [] : [{ label: "Line discounts included", value: rs(po.discountTotal), kind: "info" as const }]),
+          ...(isZero(po.charges) ? [] : [{ label: "Freight / additional charges", value: rs(po.charges) }]),
           ...(intra ? [{ label: "CGST", value: rs(po.cgst) }, { label: "SGST", value: rs(po.sgst) }] : [{ label: "IGST", value: rs(po.igst) }]),
-          ...(po.roundOff !== "0.00" ? [{ label: "Round off", value: rs(po.roundOff) }] : []),
-          { label: "Total", value: rs(po.total), strong: true },
+          ...(isZero(po.roundOff) ? [] : [{ label: "Round off", value: rs(po.roundOff) }]),
+          { label: "Grand total", value: rs(po.total), kind: "grand" as const },
         ],
         amountInWords: amountInWords(po.total),
-        notes: po.terms ? [{ label: "Terms & conditions", value: po.terms }] : [],
-        signatures: ["Prepared by", "Approved by", "Supplier acceptance"],
+        taxSummary: taxByRate(po.lines),
+        sections: [termsSection("Terms & conditions", po.terms)].filter((s) => s !== null),
+        signatures: [
+          { label: "Prepared by", name: po.createdBy.fullName, date: signDate(po.createdAt) },
+          { label: "Approved by", name: po.approvedBy?.fullName ?? null, date: signDate(po.approvedAt), note: po.approvedBy ? "Approved in ERP" : null, company: true },
+          { label: "Supplier acceptance", note: "Sign, stamp & return a copy" },
+        ],
       };
     };
   },
+
+  // ───────────── Purchase requisition ─────────────
   purchase_requisition: async () => {
     const { getPr } = await import("@/modules/procurement/pr");
     return async (actor, id) => {
       const { pr } = await getPr(actor, id);
       return {
+        docType: "PR",
         title: "Purchase Requisition",
         number: pr.number,
         date: formatDate(pr.createdAt),
-        status: human(pr.status),
-        org: await orgHeader(actor),
-        meta: [
-          { label: "Project", value: pr.project ? `${pr.project.code} – ${pr.project.name}` : "Central store" },
-          { label: "Deliver to", value: pr.deliveryLocation?.name ?? "—" },
-          { label: "Required by", value: formatDate(pr.requiredBy) },
-          { label: "Raised by", value: pr.createdBy.fullName },
-          ...(pr.approvedBy ? [{ label: "Approved by", value: pr.approvedBy.fullName }] : []),
+        ...docState(pr.status, { pending: ["SUBMITTED"] }),
+        org: await loadPdfOrg(actor.organizationId),
+        panels: [
+          { title: "Project", heading: projectLabel(pr.project) ?? "Central store", fields: [{ label: "Deliver to", value: pr.deliveryLocation?.name }] },
+          { title: "Requested", heading: pr.createdBy.fullName, fields: [{ label: "Required by", value: formatDate(pr.requiredBy), strong: true }, { label: "Raised on", value: formatDate(pr.createdAt) }] },
         ],
+        tableTitle: "Materials required",
         columns: [
-          { key: "n", label: "#", w: "5%" },
-          { key: "item", label: "Item – brand", w: "45%" },
-          { key: "qty", label: "Quantity", w: "15%", align: "right" },
-          { key: "ordered", label: "Ordered", w: "15%", align: "right" },
-          { key: "by", label: "Required by", w: "20%" },
+          { key: "n", label: "S.No", width: 5, align: "center" },
+          { key: "code", label: "Item code", width: 11 },
+          { key: "item", label: "Item", width: 32 },
+          { key: "brand", label: "Brand", width: 14 },
+          { key: "qty", label: "Qty", width: 10, align: "right" },
+          { key: "unit", label: "Unit", width: 7 },
+          { key: "ordered", label: "Ordered", width: 9, align: "right" },
+          { key: "by", label: "Needed by", width: 12 },
         ],
-        rows: pr.lines.map((l) => ({ n: String(l.lineNo), item: `${l.itemBrand.item.name} – ${l.itemBrand.brand.name}${l.notes ? `\n${l.notes}` : ""}`, qty: `${q(l.quantity)} ${l.itemBrand.item.unit}`, ordered: q(l.orderedQty), by: formatDate(l.requiredBy) })),
-        notes: pr.purpose ? [{ label: "Purpose", value: pr.purpose }] : [],
-        signatures: ["Requested by", "Approved by"],
+        rows: pr.lines.map((l) => ({ n: String(l.lineNo), code: l.itemBrand.item.code, item: { text: l.itemBrand.item.name, sub: l.notes }, brand: l.itemBrand.brand.name, qty: qty(l.quantity), unit: l.itemBrand.item.unit, ordered: qty(l.orderedQty), by: formatDate(l.requiredBy) })),
+        sections: pr.purpose ? [{ title: "Purpose", body: pr.purpose }] : [],
+        signatures: [
+          { label: "Requested by", name: pr.createdBy.fullName, date: signDate(pr.createdAt) },
+          { label: "Approved by", name: pr.approvedBy?.fullName ?? null, date: signDate(pr.approvedAt), note: pr.approvedBy ? "Approved in ERP" : null },
+        ],
       };
     };
   },
+
+  // ───────────── Rate enquiry (RFQ) ─────────────
   rfq: async () => {
     const { getRfq } = await import("@/modules/procurement/rfq");
     return async (actor, id) => {
       const { rfq } = await getRfq(actor, id);
+      const st = docState(rfq.status, { pending: [] });
       return {
+        docType: "RFQ",
         title: "Request for Quotation",
         number: rfq.number,
         date: formatDate(rfq.createdAt),
-        org: await orgHeader(actor),
-        meta: [
-          { label: "Subject", value: rfq.title },
-          { label: "Delivery", value: [rfq.deliveryLocation?.name, rfq.deliveryAddress].filter(Boolean).join(", ") || "—" },
-          { label: "Required by", value: formatDate(rfq.requiredBy) },
-          { label: "Quote by", value: formatDate(rfq.responseDue) },
-          { label: "Payment terms", value: rfq.paymentTerms ?? "—" },
-          { label: "Freight", value: rfq.freightTerms ?? "—" },
-          { label: "Taxes", value: rfq.taxTerms ?? "—" },
-          { label: "Quote validity", value: rfq.validityDays ? `${rfq.validityDays} days` : "—" },
+        ...st,
+        // An RFQ is an invitation, not an approval document: only mark it when cancelled.
+        watermark: rfq.status === "CANCELLED" ? "CANCELLED" : null,
+        org: await loadPdfOrg(actor.organizationId),
+        panels: [
+          { title: "Invited suppliers", lines: rfq.suppliers.map((s) => s.party.name) },
+          {
+            title: "Project & delivery",
+            heading: projectLabel(rfq.project),
+            fields: [
+              { label: "Deliver to", value: rfq.deliveryLocation?.name, strong: true },
+              { label: "Address", value: rfq.deliveryAddress },
+            ],
+          },
         ],
+        facts: [
+          { label: "Quote by", value: formatDate(rfq.responseDue), strong: true },
+          { label: "Needed at site by", value: formatDate(rfq.requiredBy) },
+          { label: "Quote validity", value: rfq.validityDays ? `${rfq.validityDays} days` : null },
+          { label: "Payment terms", value: rfq.paymentTerms },
+          { label: "Freight", value: rfq.freightTerms },
+          { label: "Taxes", value: rfq.taxTerms },
+        ],
+        tableTitle: `Materials — ${rfq.title}`,
         columns: [
-          { key: "n", label: "#", w: "5%" },
-          { key: "item", label: "Material & specification", w: "45%" },
-          { key: "brand", label: "Brand (acceptable alternatives)", w: "30%" },
-          { key: "qty", label: "Quantity", w: "20%", align: "right" },
+          { key: "n", label: "S.No", width: 5, align: "center" },
+          { key: "item", label: "Material & specification", width: 42 },
+          { key: "brand", label: "Brand / acceptable alternatives", width: 29 },
+          { key: "qty", label: "Qty", width: 12, align: "right" },
+          { key: "unit", label: "Unit", width: 9 },
         ],
-        rows: rfq.lines.map((l) => ({ n: String(l.lineNo), item: `${l.item.name}${l.specifications ? `\n${l.specifications}` : ""}`, brand: [l.itemBrand?.brand.name, l.acceptableBrands].filter(Boolean).join(" / ") || "Any", qty: `${q(l.quantity)} ${l.unit}` })),
-        notes: [...(rfq.specifications ? [{ label: "Specifications", value: rfq.specifications }] : []), { label: "Please quote", value: "Rate per unit before tax, discount, GST %, freight, delivery lead time and validity." }],
+        rows: rfq.lines.map((l) => ({ n: String(l.lineNo), item: { text: l.item.name, sub: l.specifications }, brand: [l.itemBrand?.brand.name, l.acceptableBrands].filter(Boolean).join(" / ") || "Any brand", qty: qty(l.quantity), unit: l.unit })),
+        sections: [
+          ...(rfq.specifications ? [{ title: "Specifications", body: rfq.specifications }] : []),
+          {
+            title: "How to quote",
+            items: [
+              "Quote the rate per unit before GST, any discount, and the GST rate for each item.",
+              "Mention freight / transport charges, delivery lead time and the validity of your quotation.",
+              ...(rfq.responseDue ? [`Please send your quotation by ${formatDate(rfq.responseDue)}, quoting reference ${rfq.number}.`] : [`Please quote reference ${rfq.number} in your quotation.`]),
+            ],
+          },
+        ],
+        signatures: [{ label: "Issued by", name: rfq.createdBy.fullName, date: signDate(rfq.createdAt), company: true }],
+        final: rfq.status !== "DRAFT" && rfq.status !== "CANCELLED",
       };
     };
   },
+
+  // ───────────── Goods receipt note ─────────────
   grn: async () => {
     const { getGrn } = await import("@/modules/stores/grn");
     return async (actor, id) => {
       const { grn } = await getGrn(actor, id);
+      const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, grn.partyId)]);
+      const diff = (exp: string, rec: string) => {
+        const c = cmpQty(rec, exp);
+        if (c === 0 || isZero(exp)) return "";
+        return c < 0 ? `Short ${qty(subQty(exp, rec))}` : `Excess ${qty(subQty(rec, exp))}`;
+      };
       return {
+        docType: "GRN",
         title: "Goods Receipt Note",
         number: grn.number,
         date: formatDate(grn.receiptDate),
-        status: human(grn.status),
-        org: await orgHeader(actor),
-        party: grn.party ? { label: "Supplier", name: grn.party.name } : null,
-        meta: [
-          { label: "Project", value: grn.project ? `${grn.project.code} – ${grn.project.name}` : "—" },
-          { label: "Received at", value: grn.location.name },
-          { label: "Against", value: grn.po?.number ?? grn.challan?.number ?? "—" },
-          { label: "Supplier challan / invoice", value: [grn.supplierChallanNo, grn.supplierInvoiceNo].filter(Boolean).join(" / ") || "—" },
-          { label: "Vehicle", value: grn.vehicleNo ?? "—" },
-          { label: "Received by", value: grn.receivedByName ?? grn.createdBy.fullName },
-          ...(grn.postedBy ? [{ label: "Verified & posted by", value: grn.postedBy.fullName }] : []),
+        dateLabel: "Received on",
+        ...docState(grn.status, { pending: ["SUBMITTED"], pendingMark: "NOT VERIFIED", label: grn.status === "SUBMITTED" ? "Awaiting verification" : grn.status === "POSTED" ? "Verified & posted" : undefined }),
+        org,
+        panels: [
+          party ? partyPanel("Supplier", party) : { title: "Received from", heading: grn.challan ? `Challan ${grn.challan.number}` : "—" },
+          { title: "Received at", heading: grn.location.name, fields: [{ label: "Project", value: projectLabel(grn.project) }, { label: "Received by", value: grn.receivedByName ?? grn.createdBy.fullName }] },
         ],
+        facts: [
+          grn.po ? { label: "Against PO", value: grn.po.number, strong: true } : { label: "Against challan", value: grn.challan?.number, strong: true },
+          { label: "Supplier challan", value: grn.supplierChallanNo },
+          { label: "Supplier invoice", value: grn.supplierInvoiceNo },
+          { label: "Vehicle", value: grn.vehicleNo },
+        ],
+        tableTitle: "Items received",
         columns: [
-          { key: "n", label: "#", w: "4%" },
-          { key: "item", label: "Item – brand", w: "36%" },
-          { key: "exp", label: "Expected", w: "12%", align: "right" },
-          { key: "rec", label: "Received", w: "12%", align: "right" },
-          { key: "acc", label: "Accepted", w: "12%", align: "right" },
-          { key: "dmg", label: "Damaged", w: "12%", align: "right" },
-          { key: "rej", label: "Rejected", w: "12%", align: "right" },
+          { key: "n", label: "S.No", width: 4.5, align: "center" },
+          { key: "item", label: "Item – brand", width: 30 },
+          { key: "unit", label: "Unit", width: 6 },
+          { key: "exp", label: "Expected", width: 9, align: "right" },
+          { key: "rec", label: "Received", width: 9, align: "right" },
+          { key: "acc", label: "Accepted", width: 9, align: "right" },
+          { key: "dmg", label: "Damaged", width: 8.5, align: "right" },
+          { key: "rej", label: "Rejected", width: 8.5, align: "right" },
+          { key: "note", label: "Discrepancy", width: 15.5 },
         ],
-        rows: grn.lines.map((l) => ({ n: String(l.lineNo), item: `${l.itemBrand.item.name} – ${l.itemBrand.brand.name}${l.remarks ? `\n${l.remarks}` : ""}`, exp: q(l.expectedQty), rec: `${q(l.receivedQty)} ${l.itemBrand.item.unit}`, acc: q(l.acceptedQty), dmg: q(l.damagedQty), rej: q(l.rejectedQty) })),
-        notes: grn.remarks ? [{ label: "Remarks", value: grn.remarks }] : [],
-        signatures: ["Received by (site)", "Verified by", "Storekeeper"],
+        rows: grn.lines.map((l) => ({
+          n: String(l.lineNo),
+          item: { text: `${l.itemBrand.item.name} – ${l.itemBrand.brand.name}`, sub: sub(l.itemBrand.item.code, l.remarks) },
+          unit: l.itemBrand.item.unit,
+          exp: qty(l.expectedQty),
+          rec: qty(l.receivedQty),
+          acc: qty(l.acceptedQty),
+          dmg: isZero(l.damagedQty) ? "—" : qty(l.damagedQty),
+          rej: isZero(l.rejectedQty) ? "—" : qty(l.rejectedQty),
+          note: diff(l.expectedQty, l.receivedQty),
+        })),
+        sections: grn.remarks ? [{ title: "Remarks", body: grn.remarks }] : [],
+        signatures: [
+          { label: "Received by (site)", name: grn.receivedByName ?? grn.createdBy.fullName, date: signDate(grn.receiptDate) },
+          { label: "Submitted by", name: grn.submittedBy?.fullName ?? null, date: signDate(grn.submittedAt) },
+          { label: "Verified & posted by", name: grn.postedBy?.fullName ?? null, date: signDate(grn.postedAt), note: grn.postedBy ? "Posted to stock in ERP" : null },
+        ],
       };
     };
   },
+
+  // ───────────── Challans (issue / transfer / return / delivery) ─────────────
   challan: async () => {
     const { getChallan, CHALLAN_TYPE_LABELS } = await import("@/modules/stores/challan");
     return async (actor, id) => {
       const { challan: c } = await getChallan(actor, id);
+      const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, c.partyId)]);
+      const titles: Record<string, string> = { ISSUE_TO_SITE: "Material Issue Challan", SITE_TO_SITE: "Stock Transfer Challan", RETURN_TO_STORE: "Material Return Challan", RETURN_TO_SUPPLIER: "Return Challan", CLIENT_DELIVERY: "Delivery Challan" };
+      const st = docState(c.status);
+      const received = c.lines.some((l) => !isZero(l.receivedQty));
       return {
-        title: "Delivery Challan",
+        docType: "DC",
+        title: titles[c.type] ?? "Delivery Challan",
         number: c.number,
         date: formatDate(c.dispatchDate ?? c.createdAt),
-        status: human(c.status),
-        org: await orgHeader(actor),
-        party: c.party ? { label: c.type === "CLIENT_DELIVERY" ? "Consignee" : "Supplier", name: c.party.name, address: c.party.address, gstin: c.party.gstin } : c.toLocation ? { label: "Deliver to", name: c.toLocation.name, address: c.toLocation.address } : null,
-        meta: [
-          { label: "Type", value: CHALLAN_TYPE_LABELS[c.type] },
-          { label: "From", value: c.fromLocation?.name ?? "—" },
-          ...(c.project ? [{ label: "Project", value: `${c.project.code} – ${c.project.name}` }] : []),
-          { label: "Vehicle", value: c.vehicleNo ?? "—" },
-          { label: "Transporter / LR", value: [c.transporter, c.lrNumber].filter(Boolean).join(" / ") || "—" },
-          { label: "Driver", value: [c.driverName, c.driverPhone].filter(Boolean).join(" · ") || "—" },
-          ...(c.po ? [{ label: "Reference PO", value: c.po.number }] : []),
-          ...(c.so ? [{ label: "Reference SO", value: c.so.number }] : []),
+        dateLabel: c.dispatchDate ? "Dispatched" : "Date",
+        ...st,
+        final: c.status !== "DRAFT" && c.status !== "CANCELLED",
+        org,
+        panels: [
+          { title: "Dispatch from", heading: c.fromLocation?.name ?? "—", lines: [c.fromLocation?.address], fields: [{ label: "Project", value: projectLabel(c.project) }] },
+          party
+            ? partyPanel(c.type === "CLIENT_DELIVERY" ? "Consignee" : "Supplier", party, c.toLocation ? [{ label: "Deliver to", value: c.toLocation.name }] : [])
+            : { title: "Deliver to", heading: c.toLocation?.name ?? "—", lines: [c.toLocation?.address] },
         ],
+        facts: [
+          { label: "Purpose", value: CHALLAN_TYPE_LABELS[c.type], strong: true },
+          { label: "Vehicle", value: c.vehicleNo },
+          { label: "Transporter / LR", value: [c.transporter, c.lrNumber].filter(Boolean).join(" / ") || null },
+          { label: "Driver", value: [c.driverName, c.driverPhone].filter(Boolean).join(" · ") || null },
+          { label: "Reference PO", value: c.po?.number },
+          { label: "Reference SO", value: c.so?.number },
+          { label: "Expected by", value: c.expectedDate ? formatDate(c.expectedDate) : null },
+        ],
+        tableTitle: "Materials",
         columns: [
-          { key: "n", label: "#", w: "6%" },
-          { key: "item", label: "Item – brand", w: "50%" },
-          { key: "hsn", label: "HSN", w: "14%" },
-          { key: "qty", label: "Quantity", w: "30%", align: "right" },
+          { key: "n", label: "S.No", width: 5, align: "center" },
+          { key: "code", label: "Item code", width: 11 },
+          { key: "item", label: "Item – brand", width: 38 },
+          { key: "hsn", label: "HSN", width: 10 },
+          { key: "qty", label: "Qty sent", width: 10, align: "right" },
+          { key: "unit", label: "Unit", width: 7 },
+          ...(received ? [{ key: "rec", label: "Received", width: 10, align: "right" as const }] : []),
         ],
-        rows: c.lines.map((l) => ({ n: String(l.lineNo), item: `${l.itemBrand.item.name} – ${l.itemBrand.brand.name}${l.remarks ? `\n${l.remarks}` : ""}`, hsn: l.itemBrand.item.hsnCode ?? "", qty: `${q(l.quantity)} ${l.itemBrand.item.unit}` })),
-        notes: [{ label: "Note", value: "Goods sent for the purpose stated above. Not for sale unless accompanied by a tax invoice." }, ...(c.remarks ? [{ label: "Remarks", value: c.remarks }] : [])],
-        signatures: ["Dispatched by", "Driver", "Received by (name, sign, date)"],
+        rows: c.lines.map((l) => ({ n: String(l.lineNo), code: l.itemBrand.item.code, item: { text: `${l.itemBrand.item.name} – ${l.itemBrand.brand.name}`, sub: l.remarks }, hsn: l.itemBrand.item.hsnCode ?? "", qty: qty(l.quantity), unit: l.itemBrand.item.unit, rec: qty(l.receivedQty) })),
+        sections: [
+          { title: "Declaration", body: c.type === "CLIENT_DELIVERY" ? "Goods delivered against the order referenced above." : "Material moved for the purpose stated above. Not for sale unless accompanied by a tax invoice." },
+          ...(c.remarks ? [{ title: "Remarks", body: c.remarks }] : []),
+        ],
+        signatures: [
+          { label: "Dispatched by", name: c.dispatchedBy?.fullName ?? c.senderName ?? null, date: signDate(c.dispatchedAt) },
+          { label: "Driver / transporter", name: c.driverName ?? null },
+          { label: "Received by", name: c.receiverName ?? null, date: signDate(c.deliveredDate), note: "Name, sign, date & stamp" },
+        ],
       };
     };
   },
@@ -208,8 +338,12 @@ export function registerPdfBuilder(type: string, loader: () => Promise<Builder>)
   BUILDERS[type] = loader;
 }
 
+/** Builds the print model and adds the document's attachment references (names only). */
 export async function buildPdfModel(actor: Actor, type: string, id: string): Promise<PdfDoc> {
   const loader = BUILDERS[type];
   if (!loader || !/^[0-9a-f-]{36}$/i.test(id)) throw new NotFoundError("Document");
-  return (await loader())(actor, id);
+  const doc = await (await loader())(actor, id);
+  const files = await db.attachment.findMany({ where: { organizationId: actor.organizationId, entityType: type, entityId: id, deletedAt: null }, select: { fileName: true, category: true }, orderBy: { createdAt: "asc" }, take: 30 });
+  if (files.length) doc.attachments = [...(doc.attachments ?? []), ...files.map((f) => `${humanize(f.category)}: ${f.fileName}`)];
+  return doc;
 }

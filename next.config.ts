@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
   // change/reset password, temporary member passwords) to the terminal. Never log them.
   logging: { serverFunctions: false },
   output: "standalone",
+  // PDF routes read the bundled fonts (₹ glyph) and the standard logo from disk at runtime;
+  // standalone output only copies traced files, so include them explicitly.
+  outputFileTracingIncludes: {
+    "/api/documents/pdf": ["./src/assets/fonts/**/*", "./public/logo1.png"],
+    "/api/reports/pdf": ["./src/assets/fonts/**/*", "./public/logo1.png"],
+  },
   // Native / worker-resolving packages must not be bundled by Turbopack.
   serverExternalPackages: ["@node-rs/argon2", "@react-pdf/renderer", "pg", "embedded-postgres"],
   turbopack: {

@@ -187,6 +187,10 @@ model Organization {
   clientInvoices       ClientInvoice[]
   stockCounts          StockCount[]
 
+  clientQuotations     ClientQuotation[]
+  paymentMilestones    PaymentMilestone[]
+  paymentTermTemplates PaymentTermTemplate[]
+
   @@map("organizations")
 }
 
@@ -343,6 +347,11 @@ model User {
   countsCreated            StockCount[]          @relation("CountCreatedBy")
   countsPosted             StockCount[]          @relation("CountPostedBy")
 
+  clientQuotesCreated   ClientQuotation[]  @relation("QtCreatedBy")
+  clientQuotesSubmitted ClientQuotation[]  @relation("QtSubmittedBy")
+  clientQuotesApproved  ClientQuotation[]  @relation("QtApprovedBy")
+  milestonesAchieved    PaymentMilestone[] @relation("MilestoneAchievedBy")
+
   @@unique([organizationId, employeeCode])
   @@index([organizationId, status])
   @@index([organizationId, fullName])
@@ -473,6 +482,8 @@ model Project {
   soAmendmentRequests  SoAmendmentRequest[]
   raBills              RaBill[]
   clientInvoices       ClientInvoice[]
+
+  clientQuotations ClientQuotation[]
 
   @@unique([organizationId, code])
   @@index([organizationId, status])
@@ -762,6 +773,8 @@ model ItemBrand {
   soLines        SoLine[]
   countLines     StockCountLine[]
 
+  quotationLinesClient ClientQuotationLine[]
+
   @@unique([itemId, brandId])
   @@index([organizationId])
   @@index([brandId])
@@ -845,8 +858,29 @@ model OrgSettings {
   rateTolerancePct           Decimal       @default(0) @map("rate_tolerance_pct") @db.Decimal(5, 2)
   /// Default PO terms & conditions printed on purchase orders.
   poTerms                    String?       @map("po_terms")
+  // ── Letterhead & documents (printed on PDFs) ──
+  website                    String?
+  /// Office / correspondence address when different from the registered address (organizations.address).
+  officeAddress              String?       @map("office_address")
+  /// Bank details are printed only on documents that ask the reader to pay (tax invoices).
+  bankName                   String?       @map("bank_name")
+  bankAccountName            String?       @map("bank_account_name")
+  bankAccountNo              String?       @map("bank_account_no")
+  bankIfsc                   String?       @map("bank_ifsc")
+  bankBranch                 String?       @map("bank_branch")
+  signatoryName              String?       @map("signatory_name")
+  signatoryDesignation       String?       @map("signatory_designation")
+  /// PNG/JPEG data URLs (≤ 256 KB). Printed only on approved / issued documents.
+  signatureDataUrl           String?       @map("signature_data_url")
+  stampDataUrl               String?       @map("stamp_data_url")
+  /// Short line printed at the foot of every PDF page.
+  documentFooter             String?       @map("document_footer")
   updatedAt                  DateTime      @updatedAt @map("updated_at")
   organization               Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// How advance milestones are billed: PROFORMA (advance request, not a tax invoice; GST on the
+  /// final tax invoice) or TAX_INVOICE (e.g. services, where GST is due on advances).
+  advanceDocument String @default("PROFORMA") @map("advance_document")
 
   @@map("org_settings")
 }
@@ -926,6 +960,8 @@ model Party {
   salesOrders     SalesOrder[]
   raBills         RaBill[]
   clientInvoices  ClientInvoice[]
+
+  clientQuotations ClientQuotation[]
 
   @@unique([organizationId, code])
   @@index([organizationId, name])
@@ -1434,14 +1470,18 @@ model RfqLine {
 }
 
 model RfqSupplier {
-  id        String    @id @default(uuid()) @db.Uuid
-  rfqId     String    @map("rfq_id") @db.Uuid
-  partyId   String    @map("party_id") @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
+  rfqId       String    @map("rfq_id") @db.Uuid
+  partyId     String    @map("party_id") @db.Uuid
   /// INVITED | RESPONDED | DECLINED
-  status    String    @default("INVITED")
-  sentAt    DateTime? @map("sent_at")
-  sentVia   String?   @map("sent_via")
-  createdAt DateTime  @default(now()) @map("created_at")
+  status      String    @default("INVITED")
+  sentAt      DateTime? @map("sent_at")
+  sentVia     String?   @map("sent_via")
+  /// Secret for the supplier's personal quote link (/quote/<token>); no login needed.
+  accessToken String    @unique @default(dbgenerated("(replace((gen_random_uuid())::text, '-'::text, ''::text) || replace((gen_random_uuid())::text, '-'::text, ''::text))")) @map("access_token")
+  /// First time the supplier opened their quote link.
+  viewedAt    DateTime? @map("viewed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   rfq   Rfq   @relation(fields: [rfqId], references: [id], onDelete: Cascade)
   party Party @relation(fields: [partyId], references: [id], onDelete: Restrict)
@@ -1468,6 +1508,8 @@ model SupplierQuotation {
   taxMode        TaxMode         @default(INTRA) @map("tax_mode")
   status         QuotationStatus @default(RECEIVED)
   remarks        String?
+  /// True when the supplier filled it in themselves through their quote link.
+  viaPortal      Boolean         @default(false) @map("via_portal")
   createdById    String          @map("created_by_id") @db.Uuid
   createdAt      DateTime        @default(now()) @map("created_at")
 
@@ -1478,6 +1520,13 @@ model SupplierQuotation {
   supersededBy SupplierQuotation? @relation("QuotationRevision")
   createdBy    User               @relation("SqCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   lines        QuotationLine[]
+
+  /// Structured payment terms (free text stays in paymentTerms).
+  advancePct        Decimal? @map("advance_pct") @db.Decimal(5, 2)
+  creditDays        Int?     @map("credit_days")
+  warranty          String?
+  /// [{ label, basis, value, trigger, days?, note? }]
+  paymentMilestones Json?    @map("payment_milestones")
 
   @@unique([organizationId, number])
   @@index([rfqId])
@@ -1505,6 +1554,9 @@ model QuotationLine {
   rfqLine   RfqLine?          @relation(fields: [rfqLineId], references: [id], onDelete: SetNull)
   itemBrand ItemBrand         @relation(fields: [itemBrandId], references: [id], onDelete: Restrict)
   poLines   PoLine[]
+
+  /// Item-specific payment terms, only when they differ from the quotation terms.
+  paymentTerms String? @map("payment_terms")
 
   @@index([rfqLineId])
   @@map("quotation_lines")
@@ -1570,6 +1622,12 @@ model PurchaseOrder {
   grns             Grn[]
   challans         Challan[]
   bills            SupplierBill[]
+
+  /// Structured supplier payment terms carried from the awarded quotation.
+  advancePct        Decimal? @map("advance_pct") @db.Decimal(5, 2)
+  creditDays        Int?     @map("credit_days")
+  warranty          String?
+  paymentMilestones Json?    @map("payment_milestones")
 
   @@unique([organizationId, number])
   @@index([organizationId, status])
@@ -2155,6 +2213,9 @@ model SalesOrder {
   invoices          ClientInvoice[]
   amendmentRequests SoAmendmentRequest[]
 
+  milestones      PaymentMilestone[]
+  sourceQuotation ClientQuotation?   @relation("QtConvertedSo")
+
   @@unique([organizationId, number])
   @@index([organizationId, status])
   @@index([projectId])
@@ -2362,6 +2423,12 @@ model ClientInvoice {
   allocations     PaymentAllocation[]
   adjustmentNotes AdjustmentNote[]
 
+  /// Milestone billing: the sales-order payment milestone this invoice bills.
+  milestoneId String?           @map("milestone_id") @db.Uuid
+  milestone   PaymentMilestone? @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
+  /// TAX_INVOICE (GST invoice) or PROFORMA (advance request - not a tax invoice).
+  kind        InvoiceKind       @default(TAX_INVOICE)
+
   @@unique([organizationId, number])
   @@index([organizationId, status])
   @@index([projectId])
@@ -2434,4 +2501,185 @@ model StockCountLine {
 
   @@unique([countId, itemBrandId])
   @@map("stock_count_lines")
+}
+
+// ───────────── Client quotations & payment milestones ─────────────
+
+enum ClientQuotationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENT
+  ACCEPTED
+  REJECTED
+  CONVERTED
+  CANCELLED
+}
+
+enum InvoiceKind {
+  TAX_INVOICE
+  PROFORMA
+}
+
+/// Quotation to a client (before the sales order). "Viewed" and "Expired" are derived from
+/// viewedAt / validUntil. Acceptance is verified (emailed one-time code) or recorded by staff.
+model ClientQuotation {
+  id               String                @id @default(uuid()) @db.Uuid
+  organizationId   String                @map("organization_id") @db.Uuid
+  number           String
+  projectId        String                @map("project_id") @db.Uuid
+  partyId          String                @map("party_id") @db.Uuid
+  subject          String?
+  quoteDate        DateTime              @map("quote_date") @db.Date
+  validUntil       DateTime?             @map("valid_until") @db.Date
+  revision         Int                   @default(0)
+  status           ClientQuotationStatus @default(DRAFT)
+  statusNote       String?               @map("status_note")
+  taxMode          TaxMode               @default(INTRA) @map("tax_mode")
+  placeOfSupply    String?               @map("place_of_supply")
+  taxable          Decimal               @default(0) @db.Decimal(18, 2)
+  taxAmount        Decimal               @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  roundOff         Decimal               @default(0) @map("round_off") @db.Decimal(18, 2)
+  total            Decimal               @default(0) @db.Decimal(18, 2)
+  deliveryTerms    String?               @map("delivery_terms")
+  paymentTermsText String?               @map("payment_terms_text")
+  terms            String?
+  notes            String?
+  /// Secret for the client's quotation link (/client-quote/<token>).
+  accessToken      String                @unique @default(dbgenerated("(replace((gen_random_uuid())::text, '-'::text, ''::text) || replace((gen_random_uuid())::text, '-'::text, ''::text))")) @map("access_token")
+  sentAt           DateTime?             @map("sent_at")
+  sentVia          String?               @map("sent_via")
+  viewedAt         DateTime?             @map("viewed_at")
+  otpHash          String?               @map("otp_hash")
+  otpExpiresAt     DateTime?             @map("otp_expires_at")
+  otpAttempts      Int                   @default(0) @map("otp_attempts")
+  acceptedAt       DateTime?             @map("accepted_at")
+  /// CLIENT_LINK_OTP | RECORDED_BY_STAFF
+  acceptanceMethod String?               @map("acceptance_method")
+  acceptedByName   String?               @map("accepted_by_name")
+  acceptedByEmail  String?               @map("accepted_by_email")
+  acceptedByRole   String?               @map("accepted_by_role")
+  acceptedIp       String?               @map("accepted_ip")
+  acceptedAgent    String?               @map("accepted_agent")
+  acceptanceNote   String?               @map("acceptance_note")
+  acceptedRevision Int?                  @map("accepted_revision")
+  /// Frozen copy of what the client accepted (lines, totals, milestones, terms).
+  acceptedSnapshot Json?                 @map("accepted_snapshot")
+  rejectedAt       DateTime?             @map("rejected_at")
+  rejectionReason  String?               @map("rejection_reason")
+  convertedSoId    String?               @unique @map("converted_so_id") @db.Uuid
+  convertedAt      DateTime?             @map("converted_at")
+  version          Int                   @default(1)
+  createdById      String                @map("created_by_id") @db.Uuid
+  submittedById    String?               @map("submitted_by_id") @db.Uuid
+  submittedAt      DateTime?             @map("submitted_at")
+  approvedById     String?               @map("approved_by_id") @db.Uuid
+  approvedAt       DateTime?             @map("approved_at")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  organization Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  project      Project                   @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  party        Party                     @relation(fields: [partyId], references: [id], onDelete: Restrict)
+  createdBy    User                      @relation("QtCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  submittedBy  User?                     @relation("QtSubmittedBy", fields: [submittedById], references: [id], onDelete: Restrict)
+  approvedBy   User?                     @relation("QtApprovedBy", fields: [approvedById], references: [id], onDelete: Restrict)
+  convertedSo  SalesOrder?               @relation("QtConvertedSo", fields: [convertedSoId], references: [id], onDelete: Restrict)
+  lines        ClientQuotationLine[]
+  milestones   PaymentMilestone[]
+  revisions    ClientQuotationRevision[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId, status])
+  @@index([projectId])
+  @@index([partyId])
+  @@map("client_quotations")
+}
+
+model ClientQuotationLine {
+  id          String  @id @default(uuid()) @db.Uuid
+  quotationId String  @map("quotation_id") @db.Uuid
+  lineNo      Int     @map("line_no")
+  itemBrandId String? @map("item_brand_id") @db.Uuid
+  description String
+  brand       String?
+  hsnSac      String? @map("hsn_sac")
+  unit        String
+  quantity    Decimal @db.Decimal(14, 3)
+  rate        Decimal @db.Decimal(18, 4)
+  discountPct Decimal @default(0) @map("discount_pct") @db.Decimal(5, 2)
+  gstRate     Decimal @default(0) @map("gst_rate") @db.Decimal(5, 2)
+  taxable     Decimal @default(0) @db.Decimal(18, 2)
+  taxAmount   Decimal @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  total       Decimal @default(0) @db.Decimal(18, 2)
+
+  quotation ClientQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  itemBrand ItemBrand?      @relation(fields: [itemBrandId], references: [id], onDelete: Restrict)
+
+  @@unique([quotationId, lineNo])
+  @@map("client_quotation_lines")
+}
+
+/// Previous versions of a quotation (snapshot taken when a revision is opened).
+model ClientQuotationRevision {
+  id          String   @id @default(uuid()) @db.Uuid
+  quotationId String   @map("quotation_id") @db.Uuid
+  revision    Int
+  snapshot    Json
+  reason      String?
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  quotation ClientQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@unique([quotationId, revision])
+  @@map("client_quotation_revisions")
+}
+
+/// Payment schedule line on a client quotation or a sales order. `amount` is the share of the
+/// document total (incl. GST). On a sales order, invoices are raised against milestones; a
+/// milestone being due never means it is paid - receipts come only from payment allocations.
+model PaymentMilestone {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  quotationId    String?   @map("quotation_id") @db.Uuid
+  soId           String?   @map("so_id") @db.Uuid
+  sortOrder      Int       @default(0) @map("sort_order")
+  label          String
+  /// PERCENT | AMOUNT
+  basis          String    @default("PERCENT")
+  percent        Decimal?  @db.Decimal(7, 4)
+  amount         Decimal   @default(0) @db.Decimal(18, 2)
+  /// ADVANCE | ON_ORDER | ON_DELIVERY | ON_INSTALLATION | ON_COMPLETION | ON_DATE | NET_DAYS | CUSTOM
+  trigger        String    @default("CUSTOM")
+  dueDate        DateTime? @map("due_date") @db.Date
+  days           Int?
+  note           String?
+  /// Set when an event-based milestone (installation, completion, custom) is confirmed as reached.
+  achievedAt     DateTime? @map("achieved_at")
+  achievedById   String?   @map("achieved_by_id") @db.Uuid
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  quotation    ClientQuotation? @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  so           SalesOrder?      @relation(fields: [soId], references: [id], onDelete: Cascade)
+  achievedBy   User?            @relation("MilestoneAchievedBy", fields: [achievedById], references: [id], onDelete: SetNull)
+  invoices     ClientInvoice[]
+
+  @@index([quotationId])
+  @@index([soId])
+  @@map("payment_milestones")
+}
+
+/// Reusable payment schedules (built-in templates live in code).
+model PaymentTermTemplate {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String
+  milestones     Json
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@map("payment_term_templates")
 }

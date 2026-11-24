@@ -16,7 +16,7 @@ import { GST_STATES } from "@/lib/gst";
 import { formatINR } from "@/lib/money";
 import { setApprovalLimitAction, updateCommercialSettingsAction, updateSeriesAction } from "@/modules/settings/actions";
 
-type Settings = { gstin: string | null; pan: string | null; stateCode: string | null; enforceSegregation: boolean; allowReceiptOnUnapprovedPo: boolean; billMatchMode: "TWO_WAY" | "THREE_WAY"; receiptTolerancePct: string; rateTolerancePct: string; poTerms: string | null };
+type Settings = { gstin: string | null; pan: string | null; stateCode: string | null; enforceSegregation: boolean; allowReceiptOnUnapprovedPo: boolean; billMatchMode: "TWO_WAY" | "THREE_WAY"; receiptTolerancePct: string; rateTolerancePct: string; poTerms: string | null; advanceDocument: "PROFORMA" | "TAX_INVOICE" };
 type Series = { docType: string; label: string; prefix: string; width: number; includeFiscalYear: boolean };
 type Limit = { roleKey: string; docType: string; maxAmount: string };
 
@@ -76,6 +76,17 @@ function PolicyForm({ initial }: { initial: Settings }) {
         </Field>
         <Field id="cs-rtol" label="Over-receipt tolerance %" error={errors.receiptTolerancePct} help="Allowed receipt above PO quantity.">
           <Input id="cs-rtol" inputMode="decimal" value={v.receiptTolerancePct} onChange={(e) => set("receiptTolerancePct", e.target.value)} />
+        </Field>
+        <Field id="cs-adv" label="Advance milestones are billed as" help="Goods: GST is generally not payable on advances, so use a proforma and charge GST on the tax invoice. Services: GST is due on advances — use tax invoices. Confirm with your tax advisor.">
+          <Select value={v.advanceDocument} onValueChange={(x) => set("advanceDocument", x as Settings["advanceDocument"])}>
+            <SelectTrigger id="cs-adv" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PROFORMA">Proforma / advance request (not a tax invoice)</SelectItem>
+              <SelectItem value="TAX_INVOICE">Tax invoice</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
         <Field id="cs-ratetol" label="Bill rate tolerance %" error={errors.rateTolerancePct} help="Allowed bill rate above PO rate.">
           <Input id="cs-ratetol" inputMode="decimal" value={v.rateTolerancePct} onChange={(e) => set("rateTolerancePct", e.target.value)} />

@@ -4,7 +4,7 @@ import { writeAudit } from "@/lib/audit";
 import { db, type Prisma, type Tx } from "@/lib/db";
 import { nextDocNumber } from "@/lib/doc-numbering";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
-import { addQty, cmpQty, subQty, taxModeFor } from "@/lib/money";
+import { addQty, cmpMoney, cmpQty, pctOf, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
 import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
@@ -12,6 +12,7 @@ import { gstRateField, optMoney, optPct, priceDocument, projectIdField, qtyField
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSiteLocation, ensureSystemLocations } from "@/modules/inventory/engine";
 import { refreshPrOrderStatus } from "./pr";
+import { advanceProjectStatus } from "@/modules/projects/lifecycle";
 
 /**
  * Purchase orders.
@@ -43,8 +44,13 @@ export const poSchema = z.object({
   deliveryAddress: optionalText("Delivery address", 500),
   orderDate: dateString,
   expectedDate: optDate,
-  paymentTerms: optionalText("Payment terms", 300),
+  paymentTerms: optionalText("Payment terms", 500),
   advanceAmount: optMoney,
+  /** Structured supplier terms (from the awarded quotation, or entered on the PO). */
+  advancePct: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : String(v).trim())).pipe(z.union([z.null(), z.string().regex(/^\d{1,3}(\.\d{1,2})?$/, "Percent.").refine((v) => Number(v) <= 100, "Max 100%.")])),
+  creditDays: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : Number(v))).pipe(z.union([z.null(), z.number().int().min(0).max(365)])),
+  warranty: optionalText("Warranty", 300),
+  paymentMilestones: z.unknown().optional(),
   terms: optionalText("Terms", 5000),
   internalRemarks: optionalText("Internal remarks", 1000),
   charges: optMoney,
@@ -111,7 +117,12 @@ async function buildPo(tx: Tx, actor: Actor, data: z.output<typeof poSchema>) {
     orderDate: toDbDate(data.orderDate)!,
     expectedDate: toDbDate(data.expectedDate),
     paymentTerms: data.paymentTerms ?? (party.paymentTermsDays !== null ? `${party.paymentTermsDays} days from invoice` : null),
-    advanceAmount: data.advanceAmount,
+    // An advance % from the supplier's terms sets the advance amount unless one was entered.
+    advanceAmount: cmpMoney(data.advanceAmount, "0") === 0 && data.advancePct ? pctOf(priced.totals.total, data.advancePct) : data.advanceAmount,
+    advancePct: data.advancePct,
+    creditDays: data.creditDays ?? party.paymentTermsDays ?? null,
+    warranty: data.warranty,
+    paymentMilestones: Array.isArray(data.paymentMilestones) ? (data.paymentMilestones as Prisma.InputJsonValue) : undefined,
     terms: data.terms ?? settings.poTerms,
     internalRemarks: data.internalRemarks,
     taxMode: mode,
@@ -250,6 +261,7 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
         const status = action === "reject" ? "REJECTED" : anyReceived ? (fully ? "FULLY_RECEIVED" : "PARTIALLY_RECEIVED") : "APPROVED";
         await transition(tx.purchaseOrder, w, ["PENDING_APPROVAL"], action === "approve" ? { status, approvedById: actor.id, approvedAt: new Date() } : { status, statusNote: opts.note }, "purchase order");
         await log(tx, action === "approve" ? "Approved" : "Rejected", action === "approve" ? ` (₹${dec2(po.total)})` : "");
+        if (action === "approve") await advanceProjectStatus(tx, po.projectId, actor.id);
       });
     }
     case "send":

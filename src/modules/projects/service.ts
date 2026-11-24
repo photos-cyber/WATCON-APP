@@ -7,6 +7,7 @@ import { can, type Actor } from "@/lib/permissions/definitions";
 import { projectAccessWhere, projectManageWhere, taskAccessWhere } from "@/lib/permissions/scopes";
 import { toDbDate } from "@/lib/validations/common";
 import { completionRate } from "@/modules/tasks/rules";
+import { deliveryProgressByProject, type DeliveryProgress } from "./lifecycle";
 import {
   projectInputSchema,
   projectListQuerySchema,
@@ -15,9 +16,14 @@ import {
   type ProjectListQuery,
 } from "./validation";
 
-export type TaskCounts = { total: number; completed: number; cancelled: number; open: number; progress: number };
+/**
+ * `progress` is the project's headline progress: sales-order delivery when the project has an
+ * approved sales order with material lines, otherwise task completion (`progressBasis` says which).
+ * `taskProgress` is always the task completion rate.
+ */
+export type TaskCounts = { total: number; completed: number; cancelled: number; open: number; progress: number; taskProgress: number; progressBasis: "delivery" | "tasks"; delivery: DeliveryProgress | null };
 
-const EMPTY_COUNTS: TaskCounts = { total: 0, completed: 0, cancelled: 0, open: 0, progress: 0 };
+const EMPTY_COUNTS: TaskCounts = { total: 0, completed: 0, cancelled: 0, open: 0, progress: 0, taskProgress: 0, progressBasis: "tasks", delivery: null };
 
 /** Visible-task counts per project in ONE grouped query (no N+1). */
 export async function taskCountsByProject(actor: Actor, projectIds: string[]): Promise<Map<string, TaskCounts>> {
@@ -36,7 +42,16 @@ export async function taskCountsByProject(actor: Actor, projectIds: string[]): P
     else c.open += g._count._all;
     map.set(g.projectId, c);
   }
-  for (const c of map.values()) c.progress = completionRate(c);
+  const delivery = await deliveryProgressByProject(projectIds);
+  for (const id of projectIds) {
+    const c = map.get(id) ?? { ...EMPTY_COUNTS };
+    c.taskProgress = completionRate(c);
+    const d = delivery.get(id) ?? null;
+    c.delivery = d;
+    c.progressBasis = d ? "delivery" : "tasks";
+    c.progress = d ? d.progress : c.taskProgress;
+    map.set(id, c);
+  }
   return map;
 }
 

@@ -64,6 +64,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
           total: r.counts.total,
           completed: r.counts.completed,
           progress: r.counts.progress,
+          progressBasis: r.counts.progressBasis,
         }))}
       />
       <Pagination total={result.total} page={result.page} pageSize={result.pageSize} />

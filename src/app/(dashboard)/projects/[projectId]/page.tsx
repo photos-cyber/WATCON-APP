@@ -22,7 +22,7 @@ import { TaskTable } from "@/components/tasks/task-table";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/session";
 import { formatDate, formatDateTime, TASK_STATUS_LABELS } from "@/lib/format";
-import { cmpMoney } from "@/lib/money";
+import { cmpMoney, formatINR } from "@/lib/money";
 import { orNotFound } from "@/lib/pages";
 import { can, type PermissionKey } from "@/lib/permissions/definitions";
 import { projectCommercialActivity } from "@/modules/documents/activity";
@@ -249,6 +249,16 @@ async function Overview({ user, project, counts, capabilities, sp }: { user: Act
               <Detail icon={CalendarDays} label="Start → target completion" value={`${formatDate(project.startDate)} → ${formatDate(project.expectedCompletionDate)}`} />
             </dl>
           </section>
+          {counts.delivery && (
+            <section className="rounded-xl border bg-card p-4" aria-label="Delivery progress">
+              <h2 className="text-sm font-semibold">Project progress</h2>
+              <p className="text-xs text-muted-foreground">Material delivered to the client against the approved sales order(s).</p>
+              <ProgressBar value={counts.delivery.progress} className="mt-3" />
+              <p className="mt-2 text-xs text-muted-foreground">
+                {formatINR(counts.delivery.deliveredValue)} delivered of {formatINR(counts.delivery.orderValue)} (before GST)
+              </p>
+            </section>
+          )}
           <section className="rounded-xl border bg-card p-4" aria-label="Task progress">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">Task progress</h2>
@@ -256,7 +266,7 @@ async function Overview({ user, project, counts, capabilities, sp }: { user: Act
                 All tasks
               </Link>
             </div>
-            <ProgressBar value={counts.progress} className="mt-3" />
+            <ProgressBar value={counts.taskProgress} className="mt-3" />
             <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
               <MiniStat label="Total" value={counts.total} />
               <MiniStat label="Open" value={counts.open} />

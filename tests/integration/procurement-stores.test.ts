@@ -195,6 +195,28 @@ describe("transfers & challans", () => {
     expect(await transit()).toBe("0");
     expect(await ledgerBalance(fx.ibUltra.id)).toEqual({ ledger: "95", current: "95" });
   });
+
+  it("return to store: site → transit → warehouse receipt posts back into the warehouse", async () => {
+    // Put 10 on the site first (issue from warehouse + receipt at site).
+    const issue = await createChallan(fx.roles.sk.actor, { type: "ISSUE_TO_SITE", projectId: fx.p1.id, fromLocationId: fx.warehouse.id, dispatchDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: "10" }] });
+    await challanAction(fx.roles.sk.actor, issue.id, "dispatch", { version: 1 });
+    const issueDetail = await getChallan(fx.actors.admin, issue.id);
+    const gi = await createGrn(fx.roles.se.actor, { clientKey: key(), challanId: issue.id, receiptDate: day(), submit: true, lines: [{ challanLineId: issueDetail.challan.lines[0]!.id, receivedQty: "10" }] });
+    await postGrn(fx.roles.sk.actor, gi.id, await v("grn", gi.id));
+    const site = await db.stockLocation.findUniqueOrThrow({ where: { projectId: fx.p1.id } });
+    const whBalance = async () => (await db.stockBalance.findUnique({ where: { itemBrandId_locationId: { itemBrandId: fx.ibUltra.id, locationId: fx.warehouse.id } } }))?.onHand.toFixed(0);
+    const siteBefore = await siteBalance();
+    const whBefore = await whBalance();
+    const c = await createChallan(fx.roles.sk.actor, { type: "RETURN_TO_STORE", projectId: fx.p1.id, fromLocationId: site.id, toLocationId: fx.warehouse.id, dispatchDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: "4" }] });
+    await challanAction(fx.roles.sk.actor, c.id, "dispatch", { version: await v("challan", c.id) });
+    const detail = await getChallan(fx.actors.admin, c.id);
+    const g = await createGrn(fx.actors.superAdmin, { clientKey: key(), challanId: c.id, receiptDate: day(), submit: true, lines: [{ challanLineId: detail.challan.lines[0]!.id, receivedQty: "4" }] });
+    // Same Super Admin records and posts (allowed for Super Admins).
+    await postGrn(fx.actors.superAdmin, g.id, await v("grn", g.id));
+    expect(await siteBalance()).toBe(String(Number(siteBefore) - 4));
+    expect(await whBalance()).toBe(String(Number(whBefore ?? "0") + 4));
+    expect((await db.challan.findUniqueOrThrow({ where: { id: c.id } })).status).toBe("RECEIVED");
+  });
 });
 
 describe("material planning → requisition → RFQ → award → POs", () => {
@@ -215,12 +237,16 @@ describe("material planning → requisition → RFQ → award → POs", () => {
     const rfq = await createRfq(fx.roles.pu.actor, { projectId: fx.p1.id, prId: pr.id, title: "ACC cement", supplierIds: [fx.supplier.id, fx.supplier2.id], lines: [{ itemId: fx.item.id, itemBrandId: fx.ibAcc.id, quantity: "100", prLineId: prLine.id }] });
     await rfqAction(fx.roles.pu.actor, rfq.id, "send", { version: 1, via: "WhatsApp" });
     const rl = await db.rfqLine.findFirstOrThrow({ where: { rfqId: rfq.id } });
-    await recordQuotation(fx.roles.pu.actor, { rfqId: rfq.id, partyId: fx.supplier.id, quoteDate: day(), validUntil: day(15), freight: "2000", freightGstRate: "18", lines: [{ rfqLineId: rl.id, itemBrandId: fx.ibAcc.id, quantity: "100", rate: "350", gstRate: "28", leadTimeDays: 3 }] });
+    await recordQuotation(fx.roles.pu.actor, { rfqId: rfq.id, partyId: fx.supplier.id, quoteDate: day(), validUntil: day(15), freight: "2000", freightGstRate: "18", advancePct: "30", creditDays: 45, warranty: "12 months", paymentTerms: "Balance against delivery", lines: [{ rfqLineId: rl.id, itemBrandId: fx.ibAcc.id, quantity: "100", rate: "350", gstRate: "28", leadTimeDays: 3, paymentTerms: "Cement: 100% before dispatch" }] });
     await recordQuotation(fx.roles.pu.actor, { rfqId: rfq.id, partyId: fx.supplier2.id, quoteDate: day(), validUntil: day(15), lines: [{ rfqLineId: rl.id, itemBrandId: fx.ibAcc.id, quantity: "100", rate: "362", gstRate: "28", leadTimeDays: 7 }] });
     const cmp = await getRfq(fx.roles.pu.actor, rfq.id);
     const quotes = cmp.comparison[0]!.quotes;
     // lowest rate is supplier 1 (350) but freight makes its landed cost higher: 350×100×1.28 + 2360 = 47160 → 471.6/unit vs 463.36
     expect(quotes.find((q) => q.partyId === fx.supplier.id)!.lowestRate).toBe(true);
+    // Supplier payment terms are visible in the comparison (quotation level + item exception).
+    const s1 = quotes.find((q) => q.partyId === fx.supplier.id)!;
+    expect(s1.terms).toBe("30% advance · 45 days credit · Balance against delivery");
+    expect([s1.lineTerms, s1.warranty, s1.creditDays]).toEqual(["Cement: 100% before dispatch", "12 months", 45]);
     expect(quotes.find((q) => q.partyId === fx.supplier2.id)!.recommended).toBe(true);
     // split award 60 / 40
     const ver = await v("rfq", rfq.id);
@@ -233,6 +259,10 @@ describe("material planning → requisition → RFQ → award → POs", () => {
     expect(succeeded[0]!.value).toHaveLength(2);
     expect(attempts.filter((result) => result.status === "rejected")).toHaveLength(1);
     expect((await db.prLine.findUniqueOrThrow({ where: { id: prLine.id } })).orderedQty.toFixed(0)).toBe("100");
+    // The awarded supplier's terms are carried into its PO (advance amount = 30% of the PO total).
+    const po1 = await db.purchaseOrder.findFirstOrThrow({ where: { rfqId: rfq.id, partyId: fx.supplier.id } });
+    expect([po1.advancePct?.toFixed(2), po1.creditDays, po1.warranty, po1.paymentTerms]).toEqual(["30.00", 45, "12 months", "30% advance · 45 days credit · Balance against delivery"]);
+    expect(po1.advanceAmount.toFixed(2)).toBe((Math.round(Number(po1.total) * 30) / 100).toFixed(2));
     expect((await errorOf(createPosFromAward(fx.roles.pu.actor, rfq.id))).message).toMatch(/already created/);
     mrp = await getMrp(fx.roles.pm.actor, { projectId: fx.p1.id });
     expect([mrp.rows[0]!.poPipeline, mrp.rows[0]!.openPr, mrp.rows[0]!.toOrder]).toEqual(["100", "0", "0"]);

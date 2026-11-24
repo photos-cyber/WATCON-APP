@@ -31,6 +31,7 @@ const RESOLVERS: Record<string, () => Promise<AccessResolver>> = {
   challan: async () => (await import("@/modules/stores/challan")).challanAccess,
   client_po: async () => (await import("@/modules/sales/client-po")).clientPoAccess,
   sales_order: async () => (await import("@/modules/sales/sales-order")).salesOrderAccess,
+  client_quotation: async () => (await import("@/modules/sales/quotation")).quotationAccess,
   so_amendment: async () => (await import("@/modules/sales/sales-order")).soAmendmentAccess,
   ra_bill: async () => (await import("@/modules/sales/ra-bill")).raBillAccess,
   client_invoice: async () => (await import("@/modules/sales/invoice")).clientInvoiceAccess,

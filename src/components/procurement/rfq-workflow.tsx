@@ -1,43 +1,66 @@
 ﻿"use client";
 
-import { Ban, CheckCircle2, Loader2, Lock, Send, ShoppingCart, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Ban, CheckCircle2, Link2, Loader2, Lock, Mail, Send, ShoppingCart, Sparkles, ThumbsDown, ThumbsUp, UserPlus } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import { whatsappLink } from "@/lib/whatsapp";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DocActions, type DocActionDef } from "@/components/commercial/doc-actions";
 import type { ItemBrandOpt } from "@/components/commercial/lines-editor";
 import { DocStatusBadge, Section, ToneBadge } from "@/components/commercial/ui";
-import { SingleSelect } from "@/components/forms/combobox";
+import { MultiSelect, SingleSelect, type ComboOption } from "@/components/forms/combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { callAction } from "@/lib/call-action";
 import { formatDate, formatQty } from "@/lib/format";
 import { formatINR } from "@/lib/money";
-import { createPosFromAwardAction, proposeAwardAction, recordQuotationAction, rfqActionAction } from "@/modules/procurement/actions";
+import { addRfqSuppliersAction, createPosFromAwardAction, markRfqSupplierSharedAction, proposeAwardAction, recordQuotationAction, rfqActionAction } from "@/modules/procurement/actions";
 import type { ComparisonQuote } from "@/modules/procurement/rfq";
 
 type Line = { id: string; itemId: string; name: string; itemBrandId: string | null; quantity: string; unit: string; acceptableBrands: string | null };
 type Quote = { id: string; partyId: string; partyName: string; number: string; revision: number; status: string; quoteDate: string };
 type Can = { manage: boolean; send: boolean; award: boolean; approveAward: boolean; approveBlockedReason: string | null; createPos: boolean; cancel: boolean; close: boolean };
-type Entry = { enabled: boolean; itemBrandId: string; quantity: string; rate: string; discountPct: string; gstRate: string; leadTimeDays: string };
+type Entry = { enabled: boolean; itemBrandId: string; quantity: string; rate: string; discountPct: string; gstRate: string; leadTimeDays: string; paymentTerms: string };
 
 const GST = ["0", "5", "12", "18", "28"];
 const label = "mb-1 block text-xs font-medium text-muted-foreground";
 
-export function RfqWorkflow({ id, version, status, today, can, suppliers, lines, quotations, comparison, options }: { id: string; version: number; status: string; today: string; can: Can; suppliers: { id: string; name: string; status: string }[]; lines: Line[]; quotations: Quote[]; comparison: { lineId: string; name: string; quantity: string; unit: string; quotes: ComparisonQuote[] }[]; options: ItemBrandOpt[] }) {
+type Supplier = { id: string; name: string; status: string; shared: boolean; opened: boolean; phone: string | null; email: string | null; link: string | null };
+
+export function RfqWorkflow({ id, version, status, today, can, suppliers, supplierOptions, enquiry, lines, quotations, comparison, options }: { id: string; version: number; status: string; today: string; can: Can; suppliers: Supplier[]; supplierOptions: ComboOption[]; enquiry: { number: string; title: string; responseDue: string | null }; lines: Line[]; quotations: Quote[]; comparison: { lineId: string; name: string; quantity: string; unit: string; quotes: ComparisonQuote[] }[]; options: ItemBrandOpt[] }) {
   const router = useRouter();
   const gstOf = (l: Line) => options.find((o) => o.id === l.itemBrandId)?.gstRate ?? options.find((o) => o.itemId === l.itemId)?.gstRate ?? "18";
-  const blank = () => Object.fromEntries(lines.map((l) => [l.id, { enabled: true, itemBrandId: l.itemBrandId ?? "", quantity: l.quantity, rate: "", discountPct: "0", gstRate: String(Number(gstOf(l))), leadTimeDays: "" }])) as Record<string, Entry>;
+  const blank = () => Object.fromEntries(lines.map((l) => [l.id, { enabled: true, itemBrandId: l.itemBrandId ?? "", quantity: l.quantity, rate: "", discountPct: "0", gstRate: String(Number(gstOf(l))), leadTimeDays: "", paymentTerms: "" }])) as Record<string, Entry>;
   const [partyId, setPartyId] = useState<string | null>(null);
-  const [head, setHead] = useState({ quoteDate: today, validUntil: "", supplierRef: "", freight: "0", freightGstRate: "18", deliveryDays: "", paymentTerms: "" });
+  const [head, setHead] = useState({ quoteDate: today, validUntil: "", supplierRef: "", freight: "0", freightGstRate: "18", deliveryDays: "", paymentTerms: "", advancePct: "", creditDays: "", warranty: "" });
   const [entries, setEntries] = useState<Record<string, Entry>>(blank);
   const [awards, setAwards] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [newSuppliers, setNewSuppliers] = useState<string[]>([]);
+  const unshared = status !== "DRAFT" && suppliers.some((s) => !s.shared);
   const current = quotations.find((q) => q.partyId === partyId && q.status === "RECEIVED");
   const responded = new Set(quotations.filter((q) => q.status !== "SUPERSEDED").map((q) => q.partyId));
 
   const defs: DocActionDef[] = [];
-  if (can.send && status === "DRAFT") defs.push({ key: "send", label: "Mark as shared with suppliers", icon: Send, variant: "default", confirm: { title: "Mark the enquiry as shared?", description: "Share it first using PDF / WhatsApp / email (top right). This only records that you shared it — the app does not send messages.", noteLabel: "Shared via (e.g. WhatsApp, email)", input: true }, success: "Enquiry marked as shared." });
+  if (can.send && (status === "DRAFT" || unshared)) defs.push({ key: "send", label: status === "DRAFT" ? "Mark as shared with suppliers" : "Mark new suppliers as shared", icon: Send, variant: "default", confirm: { title: "Mark the enquiry as shared?", description: "Share it first using PDF / WhatsApp / email (top right). This only records that you shared it — the app does not send messages.", noteLabel: "Shared via (e.g. WhatsApp, email)", input: true }, success: "Enquiry marked as shared." });
+
+  async function markShared(s: Supplier, via: string) {
+    if (s.shared) return;
+    const res = await callAction(markRfqSupplierSharedAction, id, s.id, via);
+    if (res.ok) router.refresh();
+  }
+
+  async function addSuppliers() {
+    if (!newSuppliers.length) return toast.error("Choose the suppliers to add.");
+    setBusy("add");
+    const res = await callAction(addRfqSuppliersAction, id, { supplierIds: newSuppliers });
+    setBusy(null);
+    if (!res.ok) return toast.error(res.error);
+    toast.success(`${res.data.added} supplier(s) added. Share the enquiry with them (top right), then enter their quotations below.`);
+    setNewSuppliers([]);
+    router.refresh();
+  }
   if (can.approveAward) {
     defs.push({ key: "approve_award", label: "Approve award", icon: ThumbsUp, variant: "default", confirm: { title: "Approve this award?", description: "Purchase orders can then be created for the awarded suppliers." }, success: "Award approved." });
     defs.push({ key: "reject_award", label: "Reject award", icon: ThumbsDown, confirm: { title: "Reject the proposed award?", description: "Purchasing can revise the award and propose again.", noteLabel: "Reason", noteRequired: true }, success: "Award rejected." });
@@ -55,7 +78,7 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, lines,
     toast.success("Quotation recorded. Attach the supplier's quotation file under “Supplier quotations”.");
     setPartyId(null);
     setEntries(blank());
-    setHead((h) => ({ ...h, validUntil: "", supplierRef: "", freight: "0", deliveryDays: "", paymentTerms: "" }));
+    setHead((h) => ({ ...h, validUntil: "", supplierRef: "", freight: "0", deliveryDays: "", paymentTerms: "", advancePct: "", creditDays: "", warranty: "" }));
     router.refresh();
   }
 
@@ -72,15 +95,61 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, lines,
   return (
     <>
       <Section title="Suppliers & actions">
-        <ul className="mb-3 flex flex-wrap gap-2">
-          {suppliers.map((s) => (
-            <li key={s.id} className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm">
-              {responded.has(s.id) ? <CheckCircle2 className="size-3.5 text-emerald-600" /> : <span className="size-2 rounded-full bg-muted-foreground/40" />}
-              {s.name}
-              <span className="text-xs text-muted-foreground">{responded.has(s.id) ? "quoted" : "awaiting quote"}</span>
-            </li>
-          ))}
+        {suppliers.some((s) => s.link) && <p className="mb-2 text-xs text-muted-foreground">Send each supplier their own quote link — they fill in their rates on their phone (no login) and the quotation appears in the comparison below.</p>}
+        <ul className="mb-3 divide-y rounded-lg border">
+          {suppliers.map((s) => {
+            const state = responded.has(s.id) ? "quoted" : s.opened ? "opened the link" : s.shared ? "link sent · awaiting quote" : "not sent yet";
+            const message = s.link ? `Dear ${s.name},\n\nPlease send your best rates for our enquiry ${enquiry.number}: ${enquiry.title}.${enquiry.responseDue ? `\nPlease quote by ${enquiry.responseDue}.` : ""}\n\nFill in your rates here (no login needed):\n${s.link}\n\nThank you.` : "";
+            return (
+              <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                <span className="flex min-w-0 items-center gap-1.5">
+                  {responded.has(s.id) ? <CheckCircle2 className="size-4 shrink-0 text-emerald-600" /> : <span className={`size-2 shrink-0 rounded-full ${s.opened ? "bg-amber-500" : "bg-muted-foreground/40"}`} />}
+                  <span className="truncate font-medium">{s.name}</span>
+                  <span className="text-xs text-muted-foreground">{state}</span>
+                </span>
+                {s.link && (
+                  <span className="flex flex-wrap gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(s.link!);
+                          toast.success(`Quote link for ${s.name} copied.`);
+                          void markShared(s, "link");
+                        } catch {
+                          toast.error("Could not copy. Select and copy the link manually: " + s.link);
+                        }
+                      }}
+                    >
+                      <Link2 /> Copy link
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <a href={whatsappLink(message, s.phone)} target="_blank" rel="noopener noreferrer" onClick={() => void markShared(s, "whatsapp")}>
+                        <WhatsAppIcon className="size-4" /> WhatsApp
+                      </a>
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <a href={`mailto:${s.email ?? ""}?subject=${encodeURIComponent(`Request for quotation ${enquiry.number}`)}&body=${encodeURIComponent(message)}`} onClick={() => void markShared(s, "email")}>
+                        <Mail /> Email
+                      </a>
+                    </Button>
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ul>
+        {can.manage && (
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="min-w-0 flex-1">
+              <MultiSelect options={supplierOptions} value={newSuppliers} onChange={setNewSuppliers} placeholder="Add more suppliers to compare…" searchPlaceholder="Search suppliers…" emptyText="No other active suppliers." />
+            </div>
+            <Button size="sm" variant="outline" disabled={!!busy || !newSuppliers.length} onClick={addSuppliers}>
+              {busy === "add" ? <Loader2 className="animate-spin" /> : <UserPlus />} Add {newSuppliers.length > 1 ? `${newSuppliers.length} suppliers` : "supplier"}
+            </Button>
+          </div>
+        )}
         <div className="flex flex-wrap gap-2">
           <DocActions actions={defs} run={(key, note) => callAction(rfqActionAction, id, key as never, { version, note })} />
           {can.createPos && (
@@ -143,8 +212,20 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, lines,
                   ))}
                 </select>
               </label>
+              <label className="block">
+                <span className={label}>Advance %</span>
+                <Input inputMode="decimal" placeholder="e.g. 30" value={head.advancePct} onChange={(e) => setHead({ ...head, advancePct: e.target.value })} />
+              </label>
+              <label className="block">
+                <span className={label}>Credit days</span>
+                <Input inputMode="numeric" placeholder="e.g. 30" value={head.creditDays} onChange={(e) => setHead({ ...head, creditDays: e.target.value })} />
+              </label>
+              <label className="block sm:col-span-2">
+                <span className={label}>Warranty</span>
+                <Input placeholder="e.g. 12 months from installation" value={head.warranty} onChange={(e) => setHead({ ...head, warranty: e.target.value })} />
+              </label>
               <label className="block sm:col-span-2 lg:col-span-4">
-                <span className={label}>Payment terms offered</span>
+                <span className={label}>Payment terms offered (other conditions)</span>
                 <Input value={head.paymentTerms} onChange={(e) => setHead({ ...head, paymentTerms: e.target.value })} />
               </label>
             </div>
@@ -188,6 +269,10 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, lines,
                         <label className="block">
                           <span className={label}>Discount %</span>
                           <Input aria-label={`${l.name} discount`} inputMode="decimal" value={x.discountPct} onChange={(e) => update({ discountPct: e.target.value })} />
+                        </label>
+                        <label className="col-span-2 block sm:col-span-6">
+                          <span className={label}>Payment terms for this item (only if different)</span>
+                          <Input aria-label={`${l.name} payment terms`} placeholder="e.g. 50% advance for this pump" value={x.paymentTerms} onChange={(e) => update({ paymentTerms: e.target.value })} />
                         </label>
                         <label className="block">
                           <span className={label}>GST</span>
@@ -244,6 +329,7 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, lines,
                         <th className="px-3 py-2 text-right font-medium">Rate</th>
                         <th className="px-3 py-2 text-right font-medium">Landed / unit</th>
                         <th className="px-3 py-2 text-right font-medium">Delivery</th>
+                        <th className="px-3 py-2 font-medium">Payment terms</th>
                         <th className="px-3 py-2 font-medium">Track record</th>
                         {can.award && <th className="px-3 py-2 text-right font-medium">Award qty</th>}
                       </tr>
@@ -268,6 +354,11 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, lines,
                           </td>
                           <td className="px-3 py-2 text-right font-medium tabular-nums">{formatINR(q.landedUnit)}</td>
                           <td className="px-3 py-2 text-right">{q.leadTimeDays != null ? `${q.leadTimeDays} days` : "—"}</td>
+                          <td className="px-3 py-2 text-xs">
+                            {q.terms ?? <span className="text-muted-foreground">Not stated</span>}
+                            {q.lineTerms && <span className="block font-medium text-amber-700">This item: {q.lineTerms}</span>}
+                            {q.warranty && <span className="block text-muted-foreground">Warranty: {q.warranty}</span>}
+                          </td>
                           <td className="px-3 py-2 text-xs">{q.reliability.onTimePct == null ? <span className="text-muted-foreground">No history</span> : `${q.reliability.onTimePct}% on time · ${q.reliability.rejectionPct ?? 0}% rejected`}</td>
                           {can.award && (
                             <td className="px-3 py-2 text-right">

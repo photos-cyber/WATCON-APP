@@ -20,6 +20,8 @@ export const DOC_TYPES = {
   SB: { label: "Supplier bill", prefix: "SB" },
   PAY: { label: "Supplier payment", prefix: "PAY" },
   RCPT: { label: "Client receipt", prefix: "RCPT" },
+  QT: { label: "Client quotation", prefix: "QT" },
+  PI: { label: "Proforma / advance request", prefix: "PI" },
   CPO: { label: "Client purchase order", prefix: "CPO" },
   SO: { label: "Sales order", prefix: "SO" },
   RAB: { label: "Running account bill", prefix: "RAB" },

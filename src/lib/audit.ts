@@ -2,6 +2,7 @@ import { db, type Prisma, type Tx } from "@/lib/db";
 
 /** Phase 1 entities plus every commercial document type (see modules/documents/registry). */
 export type AuditEntityType =
+  | "client_quotation"
   | "user"
   | "project"
   | "department"

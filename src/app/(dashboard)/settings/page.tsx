@@ -10,6 +10,8 @@ import { Pagination } from "@/components/tables/pagination";
 import { requireUser } from "@/lib/auth/session";
 import { formatDateTime } from "@/lib/format";
 import { EDITABLE_ROLE_KEYS, ROLE_LABELS, can } from "@/lib/permissions/definitions";
+import { BrandingForm } from "@/components/settings/branding-form";
+import { getBranding } from "@/modules/settings/branding";
 import { getCommercialAdmin } from "@/modules/settings/commercial";
 import { getOrganization, getRoleMatrix, listAuditLogs } from "@/modules/settings/service";
 
@@ -52,12 +54,15 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
 }
 
 async function CompanySection({ organizationId }: { organizationId: string }) {
-  const org = await getOrganization(organizationId);
+  const [org, branding] = await Promise.all([getOrganization(organizationId), getBranding(organizationId)]);
   return (
-    <section className="rounded-xl border bg-card p-5">
-      <h2 className="mb-4 text-sm font-semibold">Company profile</h2>
-      <CompanyForm initial={{ name: org.name, legalName: org.legalName ?? "", address: org.address ?? "", phone: org.phone ?? "", email: org.email ?? "", logoDataUrl: org.logoDataUrl }} />
-    </section>
+    <>
+      <section className="rounded-xl border bg-card p-5">
+        <h2 className="mb-4 text-sm font-semibold">Company profile</h2>
+        <CompanyForm initial={{ name: org.name, legalName: org.legalName ?? "", address: org.address ?? "", phone: org.phone ?? "", email: org.email ?? "", logoDataUrl: org.logoDataUrl }} />
+      </section>
+      <BrandingForm initial={branding} />
+    </>
   );
 }
 

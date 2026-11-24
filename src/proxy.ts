@@ -5,7 +5,9 @@ import { NextResponse, type NextRequest } from "next/server";
  * before rendering. The real session + permission checks happen server-side in the
  * Data Access Layer (lib/auth/session.ts) and in every service.
  */
-const PUBLIC_PATHS = ["/login", "/forgot-password", "/reset-password", "/api/health"];
+// "/quote" = supplier quote links; the secret token in the URL is checked server-side.
+// "/client-quote" = client quotation links (view / verified acceptance); token checked server-side.
+const PUBLIC_PATHS = ["/login", "/forgot-password", "/reset-password", "/api/health", "/quote", "/client-quote"];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;

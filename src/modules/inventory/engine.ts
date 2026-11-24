@@ -126,7 +126,17 @@ export async function postMovementTx(tx: Tx, m: EngineMovement) {
   const q = toMilli(m.quantity);
 
   if (m.direction === "OUT") {
-    if (onHand < q) throw new ValidationError(`Insufficient stock at ${location.name}. Available: ${fromMilli(onHand)}.`, { quantity: `Only ${fromMilli(onHand)} in stock at ${location.name}.` });
+    if (onHand < q) {
+      // Say where the item actually is, so the user can pick the right "from" location.
+      const elsewhere = await tx.$queryRaw<{ name: string; on_hand: string }[]>`
+        SELECT l.name, b.on_hand::text FROM stock_balances b JOIN stock_locations l ON l.id = b.location_id
+        WHERE b.item_brand_id = ${m.itemBrandId}::uuid AND b.location_id <> ${m.locationId}::uuid AND b.on_hand > 0 AND l.is_system = false
+        ORDER BY b.on_hand DESC LIMIT 3`;
+      const item = await tx.itemBrand.findUnique({ where: { id: m.itemBrandId }, select: { item: { select: { name: true } }, brand: { select: { name: true } } } });
+      const what = item ? `${item.item.name} – ${item.brand.name}` : "this item";
+      const hint = elsewhere.length ? ` It is in stock at ${elsewhere.map((e) => `${e.name} (${fromMilli(toMilli(e.on_hand))})`).join(", ")} — change the "from" location.` : " It is not in stock at any location yet.";
+      throw new ValidationError(`Insufficient stock of ${what} at ${location.name}: need ${fromMilli(q)}, available ${fromMilli(onHand)}.${hint}`, { quantity: `Only ${fromMilli(onHand)} in stock at ${location.name}.` });
+    }
     if (!RESERVATION_EXEMPT_TYPES.includes(m.type)) {
       const reserved = await reservedForOthers(tx, m.itemBrandId, m.locationId, m.projectId);
       if (onHand - reserved < q) {

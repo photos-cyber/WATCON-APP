@@ -10,6 +10,7 @@ import { NextStep, ProjectTrace } from "@/components/procurement/next-step";
 import { RfqWorkflow } from "@/components/procurement/rfq-workflow";
 import { PageHeader } from "@/components/shared/page-header";
 import { requirePagePermission } from "@/lib/auth/session";
+import { env } from "@/lib/env";
 import { formatDate, formatQty } from "@/lib/format";
 import { formatINR } from "@/lib/money";
 import { orNotFound } from "@/lib/pages";
@@ -17,6 +18,7 @@ import { entityActivity } from "@/modules/documents/activity";
 import { listAttachments } from "@/modules/documents/attachments";
 import { itemBrandOptions } from "@/modules/inventory/locations";
 import { todayString } from "@/modules/inventory/serialize";
+import { partyOptions } from "@/modules/parties/service";
 import { getRfq } from "@/modules/procurement/rfq";
 import { traceSalesOrders } from "@/modules/procurement/trace";
 
@@ -27,15 +29,18 @@ export default async function RfqPage({ params }: PageProps<"/rate-enquiries/[rf
   const { rfqId } = await params;
   const { rfq, comparison, can } = await orNotFound(getRfq(user, rfqId));
   const liveQuotes = rfq.quotations.filter((q) => q.status !== "SUPERSEDED");
-  const [files, activity, options, salesOrders, quoteFiles] = await Promise.all([
+  const [files, activity, options, salesOrders, quoteFiles, supplierOptions] = await Promise.all([
     listAttachments(user, "rfq", rfq.id),
     entityActivity(user, "rfq", rfq.id),
     itemBrandOptions(user),
     traceSalesOrders(user, { prIds: [rfq.prId], prLineIds: rfq.lines.map((l) => l.prLineId) }),
     Promise.all(liveQuotes.map((q) => listAttachments(user, "supplier_quotation", q.id))),
+    can.manage ? partyOptions(user, "supplier") : Promise.resolve([]),
   ]);
   const summary = `Rate enquiry ${rfq.number}: ${rfq.title}${rfq.project ? `\nProject: ${rfq.project.name}` : ""}${rfq.responseDue ? `\nPlease quote by ${formatDate(rfq.responseDue)}` : ""}\n\n${rfq.lines.map((l) => `• ${l.item.name}${l.itemBrand ? ` (${l.itemBrand.brand.name}${l.acceptableBrands ? ` / ${l.acceptableBrands}` : ""})` : ""} – ${formatQty(l.quantity)} ${l.unit}`).join("\n")}\n\nPlease share your best rate, GST, freight and delivery time.`;
   const quoted = new Set(liveQuotes.map((q) => q.partyId)).size;
+  const canManageRfq = can.manage;
+  const appUrl = env().APP_URL.replace(/\/$/, "");
 
   const step = (() => {
     switch (rfq.status) {
@@ -111,7 +116,19 @@ export default async function RfqPage({ params }: PageProps<"/rate-enquiries/[rf
             status={rfq.status}
             today={todayString()}
             can={can}
-            suppliers={rfq.suppliers.map((s) => ({ id: s.party.id, name: s.party.name, status: s.status }))}
+            suppliers={rfq.suppliers.map((s) => ({
+              id: s.party.id,
+              name: s.party.name,
+              status: s.status,
+              shared: !!s.sentAt,
+              opened: !!s.viewedAt,
+              phone: s.party.whatsappNumber ?? s.party.phone,
+              email: s.party.email,
+              // The link is a credential — only people who manage the enquiry get it.
+              link: canManageRfq ? `${appUrl}/quote/${s.accessToken}` : null,
+            }))}
+            enquiry={{ number: rfq.number, title: rfq.title, responseDue: rfq.responseDue ? formatDate(rfq.responseDue) : null }}
+            supplierOptions={supplierOptions.filter((s) => s.status === "ACTIVE" && !rfq.suppliers.some((x) => x.partyId === s.id)).map((s) => ({ value: s.id, label: s.name, hint: s.gstin ?? "Unregistered" }))}
             lines={rfq.lines.map((l) => ({ id: l.id, itemId: l.itemId, name: l.item.name, itemBrandId: l.itemBrandId, quantity: l.quantity, unit: l.unit, acceptableBrands: l.acceptableBrands }))}
             quotations={rfq.quotations.map((q) => ({ id: q.id, partyId: q.partyId, partyName: q.party.name, number: q.number, revision: q.revision, status: q.status, quoteDate: q.quoteDate.toISOString() }))}
             comparison={comparison.map((c) => ({ lineId: c.line.id, name: c.line.item.name, quantity: c.line.quantity, unit: c.line.unit, quotes: c.quotes }))}

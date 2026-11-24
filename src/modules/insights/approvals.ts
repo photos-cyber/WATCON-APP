@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { cmpMoney } from "@/lib/money";
 import { can, type Actor, type PermissionKey } from "@/lib/permissions/definitions";
 import { projectAccessWhere } from "@/lib/permissions/scopes";
-import { dec2, getCommercialSettings } from "@/modules/commercial/core";
+import { dec2, getCommercialSettings, segregationBlocks } from "@/modules/commercial/core";
 
 /**
  * Cross-module approvals inbox. A row is "yours" when you hold the approving permission and
@@ -111,7 +111,7 @@ export async function listApprovals(actor: Actor, opts: { projectId?: string } =
   const items: ApprovalItem[] = [];
   for (const { s, rows } of batches) {
     for (const r of rows) {
-      const own = settings.enforceSegregation && (r.createdById === actor.id || r.submittedById === actor.id);
+      const own = segregationBlocks(actor, settings.enforceSegregation, r.createdById, r.submittedById);
       const amount = r.amount ? dec2(r.amount) : null;
       const limit = limitFor(s.docType);
       const overLimit = !!(limit && amount && cmpMoney(amount, limit.maxAmount.toFixed(2)) > 0);
@@ -155,7 +155,7 @@ export type AmendmentRequestItem = {
 };
 
 /**
- * Pending sales-order amendment requests. Only a Super Admin decides them (and never their own);
+ * Pending sales-order amendment requests. Only a Super Admin decides them (including their own);
  * other users see the requests they raised as "waiting for Super Admin".
  */
 export async function listSoAmendmentRequests(actor: Actor, opts: { projectId?: string } = {}): Promise<AmendmentRequestItem[]> {
@@ -183,6 +183,6 @@ export async function listSoAmendmentRequests(actor: Actor, opts: { projectId?: 
     reason: r.reason,
     requestedBy: r.requestedBy.fullName,
     requestedAt: r.requestedAt.toISOString(),
-    mine: isSuper && r.requestedById !== actor.id,
+    mine: isSuper,
   }));
 }

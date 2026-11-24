@@ -7,7 +7,7 @@ import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { addMoney, addQty, cmpMoney, cmpQty, pctOf, qtyTimesRate, subMoney, subQty } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { dec2, dec3, dec4, getCommercialSettings, parseInput, projectRequiredScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { dec2, dec3, dec4, getCommercialSettings, parseInput, projectRequiredScoped, requirePermission, segregationBlocks, transition } from "@/modules/commercial/core";
 import { optMoney, qtyOrZero } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { RA_CERTIFIED, cpoLineBilled, lockClientPo, netRate } from "./shared";
@@ -178,7 +178,7 @@ export async function raBillAction(actor: Actor, id: string, action: RaAction, o
     case "approve": {
       requirePermission(actor, "rabill.approve", "You do not have permission to review running bills.");
       const settings = await getCommercialSettings(actor.organizationId);
-      if (settings.enforceSegregation && actor.id === r.createdById) throw new ForbiddenError("Separation of duties: you prepared this bill, so another reviewer must approve it.");
+      if (segregationBlocks(actor, settings.enforceSegregation, r.createdById)) throw new ForbiddenError("Separation of duties: you prepared this bill, so another reviewer must approve it.");
       return db.$transaction(async (tx) => {
         await transition(tx.raBill, w, ["INTERNAL_REVIEW"], { status: "SUBMITTED", engineerCertifiedById: actor.id, engineerCertifiedAt: new Date(), submittedById: actor.id, submittedAt: new Date(), statusNote: null }, "running bill");
         await log(tx, "Reviewed and submitted to client");
@@ -274,8 +274,8 @@ export async function getRaBill(actor: Actor, id: string) {
     can: {
       edit: can(actor, "rabill.manage") && r.status === "DRAFT",
       submitReview: can(actor, "rabill.manage") && r.status === "DRAFT",
-      approve: can(actor, "rabill.approve") && r.status === "INTERNAL_REVIEW" && !(settings.enforceSegregation && actor.id === r.createdById),
-      approveBlockedReason: r.status === "INTERNAL_REVIEW" && settings.enforceSegregation && actor.id === r.createdById ? "You prepared this bill; another reviewer must approve it." : null,
+      approve: can(actor, "rabill.approve") && r.status === "INTERNAL_REVIEW" && !segregationBlocks(actor, settings.enforceSegregation, r.createdById),
+      approveBlockedReason: r.status === "INTERNAL_REVIEW" && segregationBlocks(actor, settings.enforceSegregation, r.createdById) ?"You prepared this bill; another reviewer must approve it." : null,
       returnForCorrection: can(actor, "rabill.approve") && r.status === "INTERNAL_REVIEW",
       certify: can(actor, "rabill.certify") && ["SUBMITTED", "DISPUTED"].includes(r.status),
       dispute: can(actor, "rabill.certify") && r.status === "SUBMITTED",

@@ -79,6 +79,11 @@ export function toActionError(e: unknown): Extract<ActionResult, { ok: false }> 
   if (isUniqueViolation(e)) {
     return { ok: false, error: "A record with the same unique value already exists.", code: "CONFLICT" };
   }
+  // P2028 = interactive transaction timed out / could not start. Nothing was saved (rolled back).
+  if (typeof e === "object" && e !== null && "code" in e && (e as { code: unknown }).code === "P2028") {
+    console.error("[transaction-timeout]", e);
+    return { ok: false, error: "The database took too long to respond, so nothing was saved. Please try again in a moment." };
+  }
   console.error("[unexpected-error]", e);
   return { ok: false, error: "Something went wrong. Please try again." };
 }

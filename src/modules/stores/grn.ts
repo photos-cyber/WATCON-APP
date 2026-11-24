@@ -7,7 +7,7 @@ import { ForbiddenError, NotFoundError, ValidationError, isUniqueViolation } fro
 import { addQty, cmpQty, divRound, fmtQty, qtyUnits, subQty, toUnits, unitRate } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertProjectUsable, dec2, dec3, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { approvalHint, assertProjectUsable, dec2, dec3, getCommercialSettings, parseInput, projectScoped, requirePermission, segregationBlocks, transition } from "@/modules/commercial/core";
 import { qtyOrZero } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSystemLocations, postMovementTx, reverseMovementTx } from "@/modules/inventory/engine";
@@ -180,7 +180,7 @@ export async function postGrn(actor: Actor, id: string, version: number) {
   const grn = await loadGrn(actor, id);
   if (grn.status !== "SUBMITTED") throw new ValidationError(grn.status === "POSTED" ? "This receipt is already posted." : "Only submitted receipts can be posted.");
   const settings = await getCommercialSettings(actor.organizationId);
-  if (settings.enforceSegregation && (grn.createdById === actor.id || grn.submittedById === actor.id)) throw new ForbiddenError("Separation of duties: a receipt must be verified and posted by someone other than the person who recorded it.");
+  if (segregationBlocks(actor, settings.enforceSegregation, grn.createdById, grn.submittedById)) throw new ForbiddenError("Separation of duties: a receipt must be verified and posted by someone other than the person who recorded it.");
   const today = startOfToday();
   await db.$transaction(async (tx) => {
     await transition(tx.grn, { id, organizationId: actor.organizationId, version }, ["SUBMITTED"], { status: "POSTED", postedById: actor.id, postedAt: new Date() }, "receipt");

@@ -1,163 +1,301 @@
 import "server-only";
-import { db } from "@/lib/db";
+import type { PdfColumn, PdfDoc } from "@/components/documents/pdf/types";
 import { formatDate } from "@/lib/format";
 import { stateName } from "@/lib/gst";
-import { amountInWords, formatINR } from "@/lib/money";
+import { amountInWords } from "@/lib/money";
 import type { Actor } from "@/lib/permissions/definitions";
-import type { PdfDoc } from "@/components/documents/commercial-pdf";
-import { getCommercialSettings } from "@/modules/commercial/core";
+import { docState, isZero, loadPdfOrg, partyPanel, pct, projectLabel, qty, rate, rs, signDate, taxByRate, termsSection } from "@/modules/documents/pdf-kit";
+import { loadParty } from "@/modules/documents/pdf-models";
 import { getClientPo } from "./client-po";
 import { getClientInvoice } from "./invoice";
 import { getRaBill } from "./ra-bill";
 import { getSalesOrder } from "./sales-order";
 
-const rs = (v: string | null | undefined) => formatINR(v, { symbol: false }).replace(/^-?/, (m) => `${m}Rs. `);
-const q = (v: string) => (v.includes(".") ? v.replace(/\.?0+$/, "") : v);
-const human = (s: string) => s.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
-const partyBlock = (label: string, p: { name: string; address: string | null; city: string | null; gstin: string | null; stateCode: string | null; phone: string | null }) => ({ label, name: p.name, address: [p.address, p.city].filter(Boolean).join(", ") || null, gstin: p.gstin, state: p.stateCode ? `${p.stateCode} – ${stateName(p.stateCode)}` : null, phone: p.phone });
-
-async function orgHeader(actor: Actor): Promise<PdfDoc["org"]> {
-  const [org, settings] = await Promise.all([db.organization.findUniqueOrThrow({ where: { id: actor.organizationId } }), getCommercialSettings(actor.organizationId)]);
-  return { name: org.name, legalName: org.legalName, address: org.address, phone: org.phone, email: org.email, gstin: settings.gstin, logoDataUrl: org.logoDataUrl };
-}
-
-const priced = [
-  { key: "n", label: "#", w: "4%" },
-  { key: "item", label: "Description", w: "38%" },
-  { key: "hsn", label: "HSN/SAC", w: "9%" },
-  { key: "qty", label: "Qty", w: "11%", align: "right" as const },
-  { key: "rate", label: "Rate", w: "11%", align: "right" as const },
-  { key: "gst", label: "GST%", w: "7%", align: "right" as const },
-  { key: "amt", label: "Amount", w: "20%", align: "right" as const },
+const priced: PdfColumn[] = [
+  { key: "n", label: "S.No", width: 4.5, align: "center" },
+  { key: "item", label: "Description", width: 37 },
+  { key: "hsn", label: "HSN/SAC", width: 9 },
+  { key: "qty", label: "Qty", width: 8, align: "right" },
+  { key: "unit", label: "Unit", width: 6 },
+  { key: "rate", label: "Rate (₹)", width: 11, align: "right" },
+  { key: "gst", label: "GST", width: 6, align: "right" },
+  { key: "amt", label: "Amount (₹)", width: 13, align: "right" },
 ];
 
+const sections = (...s: (PdfDoc["sections"] extends (infer T)[] | undefined ? T | null | false : never)[]) => s.filter(Boolean) as NonNullable<PdfDoc["sections"]>;
+
+// ───────────── Client PO (contract) ─────────────
 export async function clientPoPdf(actor: Actor, id: string): Promise<PdfDoc> {
   const { cpo } = await getClientPo(actor, id);
+  const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, cpo.partyId)]);
   return {
-    title: "Client Purchase Order (Contract)",
-    number: `${cpo.number}${cpo.revision ? ` (Rev ${cpo.revision})` : ""}`,
+    docType: "CPO",
+    title: "Client Purchase Order",
+    number: cpo.number,
+    revision: cpo.revision || null,
     date: formatDate(cpo.poDate),
-    status: human(cpo.status),
-    org: await orgHeader(actor),
-    party: partyBlock("Client", cpo.party),
-    meta: [
-      { label: "Client PO no.", value: cpo.clientPoNumber },
-      { label: "Project", value: `${cpo.project.code} – ${cpo.project.name}` },
-      { label: "Period", value: `${formatDate(cpo.startDate)} → ${formatDate(cpo.endDate)}` },
-      { label: "Retention", value: `${q(cpo.retentionPct)}%` },
-      { label: "Advance", value: `${rs(cpo.advanceAmount)} (recovery ${q(cpo.advanceRecoveryPct)}%)` },
-      { label: "Payment terms", value: cpo.paymentTerms ?? "—" },
+    dateLabel: "PO date",
+    ...docState(cpo.status),
+    org,
+    panels: [
+      partyPanel("Client", party ?? cpo.party),
+      { title: "Contract", heading: `Client PO ${cpo.clientPoNumber}`, fields: [{ label: "Project", value: projectLabel(cpo.project), strong: true }, { label: "Period", value: `${formatDate(cpo.startDate)} – ${formatDate(cpo.endDate)}` }] },
     ],
+    facts: [
+      { label: "Contract value", value: rs(cpo.total), strong: true },
+      { label: "Retention", value: pct(cpo.retentionPct) },
+      { label: "Advance", value: isZero(cpo.advanceAmount) ? null : `${rs(cpo.advanceAmount)} (recovery ${pct(cpo.advanceRecoveryPct)})` },
+      { label: "Payment terms", value: cpo.paymentTerms },
+    ],
+    tableTitle: "Scope / bill of quantities",
     columns: priced,
-    rows: cpo.lines.map((l) => ({ n: String(l.lineNo), item: `${l.boqRef ? `${l.boqRef} – ` : ""}${l.description}`, hsn: l.hsnSac ?? "", qty: `${q(l.quantity)} ${l.unit}`, rate: rs(l.rate).replace("Rs. ", ""), gst: q(l.gstRate), amt: rs(l.total) })),
-    totals: [{ label: "Taxable value", value: rs(cpo.taxable) }, { label: "GST", value: rs(cpo.taxAmount) }, { label: "Contract value", value: rs(cpo.total), strong: true }],
+    rows: cpo.lines.map((l) => ({ n: String(l.lineNo), item: { text: l.description, sub: l.boqRef ? `BOQ ${l.boqRef}` : null }, hsn: l.hsnSac ?? "", qty: qty(l.quantity), unit: l.unit, rate: rate(l.rate), gst: pct(l.gstRate), amt: rate(l.taxable) })),
+    totals: [{ label: "Taxable value", value: rs(cpo.taxable) }, { label: "GST", value: rs(cpo.taxAmount) }, { label: "Contract value", value: rs(cpo.total), kind: "grand" }],
     amountInWords: amountInWords(cpo.total),
-    notes: [...(cpo.scope ? [{ label: "Scope", value: cpo.scope }] : []), ...(cpo.notes ? [{ label: "Notes", value: cpo.notes }] : [])],
-    signatures: ["Prepared by", "Approved by"],
+    taxSummary: taxByRate(cpo.lines),
+    sections: sections(cpo.scope ? { title: "Scope of work", body: cpo.scope } : null, termsSection("Notes", cpo.notes)),
+    signatures: [
+      { label: "Prepared by", name: cpo.createdBy.fullName, date: signDate(cpo.createdAt) },
+      { label: "Approved by", name: cpo.approvedBy?.fullName ?? null, date: signDate(cpo.approvedAt), note: cpo.approvedBy ? "Approved in ERP" : null, company: true },
+    ],
   };
 }
 
+// ───────────── Sales order ─────────────
 export async function salesOrderPdf(actor: Actor, id: string): Promise<PdfDoc> {
   const { so } = await getSalesOrder(actor, id);
+  const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, so.partyId)]);
   return {
+    docType: "SO",
     title: "Sales Order",
-    number: `${so.number}${so.revision ? ` (Rev ${so.revision})` : ""}`,
+    number: so.number,
+    revision: so.revision || null,
     date: formatDate(so.orderDate),
-    status: human(so.status),
-    org: await orgHeader(actor),
-    party: partyBlock("Client", so.party),
-    meta: [
-      { label: "Project", value: `${so.project.code} – ${so.project.name}` },
-      ...(so.clientPo ? [{ label: "Client PO", value: `${so.clientPo.clientPoNumber} (${so.clientPo.number})` }] : []),
-      { label: "Delivery by", value: formatDate(so.deliveryDate) },
-      { label: "Deliver to", value: so.deliveryAddress ?? so.project.siteAddress },
-      { label: "Payment terms", value: so.paymentTerms ?? "—" },
+    dateLabel: "Order date",
+    ...docState(so.status),
+    org,
+    panels: [
+      partyPanel("Client", party ?? so.party),
+      { title: "Project & delivery", heading: projectLabel(so.project), fields: [{ label: "Deliver to", value: so.deliveryAddress ?? so.project.siteAddress }, { label: "Client PO", value: so.clientPo ? `${so.clientPo.clientPoNumber} (${so.clientPo.number})` : null }] },
     ],
+    facts: [
+      { label: "Delivery by", value: formatDate(so.deliveryDate), strong: true },
+      { label: "Payment terms", value: so.paymentTerms },
+      { label: "Order value", value: rs(so.total) },
+    ],
+    tableTitle: "Order items",
     columns: priced,
-    rows: so.lines.map((l) => ({ n: String(l.lineNo), item: l.description, hsn: l.hsnSac ?? "", qty: `${q(l.quantity)} ${l.unit}`, rate: rs(l.rate).replace("Rs. ", ""), gst: q(l.gstRate), amt: rs(l.total) })),
-    totals: [{ label: "Taxable value", value: rs(so.taxable) }, { label: "GST", value: rs(so.taxAmount) }, { label: "Total", value: rs(so.total), strong: true }],
+    rows: so.lines.map((l) => ({ n: String(l.lineNo), item: l.description, hsn: l.hsnSac ?? "", qty: qty(l.quantity), unit: l.unit, rate: rate(l.rate), gst: pct(l.gstRate), amt: rate(l.taxable) })),
+    totals: [{ label: "Taxable value", value: rs(so.taxable) }, { label: "GST", value: rs(so.taxAmount) }, { label: "Order total", value: rs(so.total), kind: "grand" }],
     amountInWords: amountInWords(so.total),
-    notes: [...(so.deliverySchedule ? [{ label: "Delivery schedule", value: so.deliverySchedule }] : []), ...(so.billingSchedule ? [{ label: "Billing schedule", value: so.billingSchedule }] : []), ...(so.notes ? [{ label: "Notes", value: so.notes }] : [])],
-    signatures: ["Prepared by", "Approved by", "Client acceptance"],
+    taxSummary: taxByRate(so.lines),
+    sections: sections(termsSection("Delivery schedule", so.deliverySchedule), termsSection("Billing schedule", so.billingSchedule), termsSection("Notes", so.notes)),
+    signatures: [
+      { label: "Prepared by", name: so.createdBy.fullName, date: signDate(so.createdAt) },
+      { label: "Approved by", name: so.approvedBy?.fullName ?? null, date: signDate(so.approvedAt), note: so.approvedBy ? "Approved in ERP" : null, company: true },
+      { label: "Client acceptance", note: "Sign & stamp" },
+    ],
   };
 }
 
+// ───────────── Running account bill ─────────────
 export async function raBillPdf(actor: Actor, id: string): Promise<PdfDoc> {
   const { bill } = await getRaBill(actor, id);
+  const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, bill.partyId)]);
+  const deductions = [
+    { label: `Less retention (${pct(bill.retentionPct)})`, v: bill.retentionAmount },
+    { label: "Less advance recovery", v: bill.advanceRecovery },
+    { label: "Less other deductions", v: bill.otherDeductions },
+  ].filter((d) => !isZero(d.v));
   return {
-    title: `Running Account Bill – RA-${bill.raNumber}`,
+    docType: "RAB",
+    title: `Running Account Bill`,
     number: bill.number,
     date: formatDate(bill.billDate),
-    status: human(bill.status),
-    org: await orgHeader(actor),
-    party: partyBlock("Client", bill.party),
-    meta: [
-      { label: "Project", value: `${bill.project.code} – ${bill.project.name}` },
-      { label: "Client PO", value: `${bill.clientPo.clientPoNumber} (${bill.clientPo.number})` },
-      { label: "Period", value: `${formatDate(bill.periodFrom)} → ${formatDate(bill.periodTo)}` },
-      ...(bill.clientCertRef ? [{ label: "Client certificate", value: `${bill.clientCertRef} · ${formatDate(bill.clientCertDate)}` }] : []),
+    dateLabel: "Bill date",
+    ...docState(bill.status),
+    org,
+    orientation: "landscape",
+    panels: [
+      partyPanel("Client", party ?? bill.party),
+      {
+        title: "Contract",
+        heading: `RA bill no. ${bill.raNumber}`,
+        fields: [
+          { label: "Project", value: projectLabel(bill.project), strong: true },
+          { label: "Client PO", value: `${bill.clientPo.clientPoNumber} (${bill.clientPo.number})` },
+          { label: "Period", value: `${formatDate(bill.periodFrom)} – ${formatDate(bill.periodTo)}` },
+          { label: "Client certificate", value: bill.clientCertRef ? `${bill.clientCertRef} · ${formatDate(bill.clientCertDate)}` : null },
+        ],
+      },
     ],
+    tableTitle: "Measurement & billing (quantities)",
     columns: [
-      { key: "item", label: "Contract item", w: "30%" },
-      { key: "contract", label: "Contract qty", w: "11%", align: "right" },
-      { key: "prev", label: "Previous", w: "10%", align: "right" },
-      { key: "claim", label: "This bill", w: "10%", align: "right" },
-      { key: "cert", label: "Certified", w: "10%", align: "right" },
-      { key: "rate", label: "Rate", w: "11%", align: "right" },
-      { key: "amt", label: "Amount", w: "18%", align: "right" },
+      { key: "n", label: "S.No", width: 4, align: "center" },
+      { key: "item", label: "Contract item", width: 30 },
+      { key: "unit", label: "Unit", width: 5 },
+      { key: "contract", label: "Contract qty", width: 8.5, align: "right" },
+      { key: "prev", label: "Previous", width: 8, align: "right" },
+      { key: "claim", label: "This bill", width: 8, align: "right" },
+      { key: "cum", label: "Cumulative", width: 8.5, align: "right" },
+      { key: "cert", label: "Certified", width: 8, align: "right" },
+      { key: "rate", label: "Rate (₹)", width: 9, align: "right" },
+      { key: "amt", label: "Amount (₹)", width: 11, align: "right" },
     ],
-    rows: bill.lines.map((l) => ({ item: `${l.clientPoLine.lineNo}. ${l.clientPoLine.description}${l.measurementRef ? `\nMB: ${l.measurementRef}` : ""}`, contract: `${q(l.contractQty)} ${l.clientPoLine.unit}`, prev: q(l.prevCertifiedQty), claim: q(l.claimedQty), cert: l.certifiedQty ?? "—", rate: rs(l.rate).replace("Rs. ", ""), amt: rs(l.certifiedAmount ?? l.claimedAmount) })),
+    rows: bill.lines.map((l) => ({
+      n: String(l.clientPoLine.lineNo),
+      item: { text: l.clientPoLine.description, sub: l.measurementRef ? `MB ref: ${l.measurementRef}` : null },
+      unit: l.clientPoLine.unit,
+      contract: qty(l.contractQty),
+      prev: qty(l.prevCertifiedQty),
+      claim: qty(l.claimedQty),
+      cum: qty(l.cumulativeQty),
+      cert: l.certifiedQty ? qty(l.certifiedQty) : "—",
+      rate: rate(l.rate),
+      amt: rate(l.certifiedAmount ?? l.claimedAmount),
+    })),
     totals: [
-      { label: bill.certified ? "Certified value" : "Claimed value", value: rs(bill.gross) },
+      { label: bill.certified ? "Certified value (this bill)" : "Claimed value (this bill)", value: rs(bill.gross) },
       { label: "GST", value: rs(bill.gstAmount) },
-      { label: `Less retention (${q(bill.retentionPct)}%)`, value: `-${rs(bill.retentionAmount)}` },
-      { label: "Less advance recovery", value: `-${rs(bill.advanceRecovery)}` },
-      { label: "Less other deductions", value: `-${rs(bill.otherDeductions)}` },
-      { label: "Net payable", value: rs(bill.netPayable), strong: true },
+      ...deductions.map((d) => ({ label: d.label, value: `- ${rs(d.v)}`, kind: "deduction" as const })),
+      { label: "Net payable", value: rs(bill.netPayable), kind: "net" },
     ],
     amountInWords: amountInWords(bill.netPayable),
-    notes: [...(bill.deductionNotes ? [{ label: "Deductions", value: bill.deductionNotes }] : []), ...(bill.remarks ? [{ label: "Remarks", value: bill.remarks }] : [])],
-    signatures: ["Prepared by", "Site engineer", "Client certification"],
+    sections: sections(bill.deductionNotes ? { title: "Deductions", body: bill.deductionNotes } : null, bill.remarks ? { title: "Remarks", body: bill.remarks } : null),
+    signatures: [
+      { label: "Prepared by", name: bill.createdBy.fullName, date: signDate(bill.createdAt) },
+      { label: "Reviewed (site engineer)", name: bill.engineerCertifiedBy?.fullName ?? null, date: signDate(bill.engineerCertifiedAt), company: true },
+      { label: "Client certification", name: bill.certifiedBy?.fullName ?? null, date: signDate(bill.clientCertDate), note: bill.clientCertRef ? `Certificate ${bill.clientCertRef}` : "Name, sign & stamp" },
+    ],
   };
 }
 
+// ───────────── Tax invoice ─────────────
 export async function clientInvoicePdf(actor: Actor, id: string): Promise<PdfDoc> {
   const { invoice: inv } = await getClientInvoice(actor, id);
+  const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, inv.partyId)]);
   const intra = inv.taxMode === "INTRA";
-  const ded = [inv.retentionAmount, inv.advanceRecovery, inv.otherDeductions].some((v) => v !== "0.00");
+  const deductions = [
+    { label: "Less retention", v: inv.retentionAmount },
+    { label: "Less advance recovery", v: inv.advanceRecovery },
+    { label: "Less other deductions", v: inv.otherDeductions },
+  ].filter((d) => !isZero(d.v));
   return {
-    title: inv.status === "DRAFT" ? "Tax Invoice (DRAFT – not valid)" : "Tax Invoice",
+    docType: inv.kind === "PROFORMA" ? "PI" : "INV",
+    title: inv.kind === "PROFORMA" ? "Proforma Invoice" : "Tax Invoice",
     number: inv.number,
     date: formatDate(inv.invoiceDate),
-    status: human(inv.status),
-    org: await orgHeader(actor),
-    party: partyBlock("Bill to", inv.party),
-    meta: [
-      { label: "Project / site", value: `${inv.project.code} – ${inv.project.name}` },
-      { label: "Place of supply", value: inv.placeOfSupply ? `${inv.placeOfSupply} – ${stateName(inv.placeOfSupply)}` : "—" },
-      { label: "Due date", value: formatDate(inv.dueDate) },
-      ...(inv.clientPo ? [{ label: "Client PO", value: `${inv.clientPo.clientPoNumber} dt ${formatDate(inv.clientPo.poDate)}` }] : []),
-      ...(inv.raBill ? [{ label: "Running bill", value: `RA-${inv.raBill.raNumber} (${formatDate(inv.raBill.periodFrom)} – ${formatDate(inv.raBill.periodTo)})${inv.raBill.clientCertRef ? `, cert ${inv.raBill.clientCertRef}` : ""}` }] : []),
-      ...(inv.so ? [{ label: "Sales order", value: inv.so.number }] : []),
+    dateLabel: "Invoice date",
+    ...docState(inv.status, { label: inv.kind === "PROFORMA" ? "Advance request – not a tax invoice" : inv.status === "DRAFT" ? "Draft – not a valid tax invoice" : undefined }),
+    org,
+    showBank: inv.status !== "DRAFT" && inv.status !== "CANCELLED",
+    panels: [
+      partyPanel("Bill to", party ?? inv.party),
+      {
+        title: "Supply details",
+        heading: projectLabel(inv.project),
+        fields: [
+          { label: "Place of supply", value: inv.placeOfSupply ? `${stateName(inv.placeOfSupply)} (${inv.placeOfSupply})` : null, strong: true },
+          { label: "Client PO", value: inv.clientPo ? `${inv.clientPo.clientPoNumber} dt ${formatDate(inv.clientPo.poDate)}` : null },
+          { label: "Running bill", value: inv.raBill ? `RA-${inv.raBill.raNumber} (${formatDate(inv.raBill.periodFrom)} – ${formatDate(inv.raBill.periodTo)})${inv.raBill.clientCertRef ? `, cert ${inv.raBill.clientCertRef}` : ""}` : null },
+          { label: "Sales order", value: inv.so?.number },
+        ],
+      },
     ],
+    facts: [
+      { label: "Due date", value: formatDate(inv.dueDate), strong: true },
+      { label: "Tax type", value: intra ? "CGST + SGST" : "IGST" },
+      { label: deductions.length ? "Net receivable" : "Invoice total", value: rs(deductions.length ? inv.netReceivable : inv.total), strong: true },
+    ],
+    tableTitle: "Particulars",
     columns: priced,
-    rows: inv.lines.map((l) => ({ n: String(l.lineNo), item: l.description, hsn: l.hsnSac ?? "", qty: `${q(l.quantity)} ${l.unit ?? ""}`, rate: rs(l.rate).replace("Rs. ", ""), gst: q(l.gstRate), amt: rs(l.taxable) })),
+    rows: inv.lines.map((l) => ({ n: String(l.lineNo), item: l.description, hsn: l.hsnSac ?? "", qty: qty(l.quantity), unit: l.unit ?? "", rate: rate(l.rate), gst: pct(l.gstRate), amt: rate(l.taxable) })),
     totals: [
       { label: "Taxable value", value: rs(inv.taxable) },
       ...(intra ? [{ label: "CGST", value: rs(inv.cgst) }, { label: "SGST", value: rs(inv.sgst) }] : [{ label: "IGST", value: rs(inv.igst) }]),
-      ...(inv.roundOff !== "0.00" ? [{ label: "Round off", value: rs(inv.roundOff) }] : []),
-      { label: "Invoice total", value: rs(inv.total), strong: true },
-      ...(ded
-        ? [
-            { label: "Less retention", value: `-${rs(inv.retentionAmount)}` },
-            { label: "Less advance recovery", value: `-${rs(inv.advanceRecovery)}` },
-            { label: "Less other deductions", value: `-${rs(inv.otherDeductions)}` },
-            { label: "Net receivable", value: rs(inv.netReceivable), strong: true },
-          ]
-        : []),
+      ...(isZero(inv.roundOff) ? [] : [{ label: "Round off", value: rs(inv.roundOff) }]),
+      { label: "Invoice total", value: rs(inv.total), kind: "grand" as const },
+      ...deductions.map((d) => ({ label: d.label, value: `- ${rs(d.v)}`, kind: "deduction" as const })),
+      ...(deductions.length ? [{ label: "Net receivable", value: rs(inv.netReceivable), kind: "net" as const }] : []),
     ],
     amountInWords: amountInWords(inv.total),
-    notes: inv.notes ? [{ label: "Notes", value: inv.notes }] : [],
-    signatures: ["For the company – authorised signatory"],
+    taxSummary: taxByRate(inv.lines),
+    sections: sections(termsSection("Notes", inv.notes)),
+    signatures: [
+      { label: "Prepared by", name: inv.createdBy.fullName, date: signDate(inv.createdAt) },
+      { label: "Authorised signatory", name: inv.issuedBy?.fullName ?? null, date: signDate(inv.issuedAt), company: true },
+    ],
+  };
+}
+
+// ───────────── Client quotation ─────────────
+export async function quotationPdf(actor: Actor, id: string): Promise<PdfDoc> {
+  const { getQuotation } = await import("./quotation");
+  const { q, displayStatus } = await getQuotation(actor, id);
+  const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, q.partyId)]);
+  const intra = q.taxMode === "INTRA";
+  const { TRIGGERS } = await import("@/modules/commercial/payment-terms");
+  const trig = (t: string) => (TRIGGERS as Record<string, string>)[t] ?? t;
+  const st = docState(q.status, { label: displayStatus === "VIEWED" ? "Viewed" : displayStatus === "EXPIRED" ? "Expired" : undefined });
+  return {
+    docType: "QT",
+    title: "Quotation",
+    number: q.number,
+    revision: q.revision || null,
+    date: formatDate(q.quoteDate),
+    dateLabel: "Date",
+    ...st,
+    // A quotation is an offer: approved / sent / accepted versions are final; drafts are marked.
+    watermark: displayStatus === "EXPIRED" ? "EXPIRED" : st.watermark,
+    final: ["APPROVED", "SENT", "ACCEPTED", "CONVERTED"].includes(q.status) && displayStatus !== "EXPIRED",
+    org,
+    panels: [
+      partyPanel("Quotation to", party ?? q.party),
+      { title: "Project", heading: projectLabel(q.project), lines: [q.project.siteAddress], fields: [{ label: "Subject", value: q.subject, strong: true }] },
+    ],
+    facts: [
+      { label: "Valid until", value: formatDate(q.validUntil), strong: true },
+      { label: "Tax", value: intra ? "CGST + SGST" : "IGST" },
+      { label: "Place of supply", value: q.placeOfSupply ? `${stateName(q.placeOfSupply)} (${q.placeOfSupply})` : null },
+      { label: "Quotation value", value: rs(q.total), strong: true },
+    ],
+    tableTitle: "Items & services",
+    columns: [
+      { key: "n", label: "S.No", width: 4.5, align: "center" },
+      { key: "item", label: "Description", width: 34 },
+      { key: "hsn", label: "HSN/SAC", width: 9 },
+      { key: "qty", label: "Qty", width: 7.5, align: "right" },
+      { key: "unit", label: "Unit", width: 6 },
+      { key: "rate", label: "Rate (₹)", width: 10.5, align: "right" },
+      { key: "disc", label: "Disc", width: 5.5, align: "right" },
+      { key: "gst", label: "GST", width: 5.5, align: "right" },
+      { key: "amt", label: "Amount (₹)", width: 12.5, align: "right" },
+    ],
+    rows: q.lines.map((l) => ({ n: String(l.lineNo), item: { text: l.description, sub: l.brand ? `Brand: ${l.brand}` : null }, hsn: l.hsnSac ?? "", qty: qty(l.quantity), unit: l.unit, rate: rate(l.rate), disc: isZero(l.discountPct) ? "—" : pct(l.discountPct), gst: pct(l.gstRate), amt: rate(l.taxable) })),
+    totals: [
+      { label: "Taxable value", value: rs(q.taxable) },
+      { label: intra ? "CGST + SGST" : "IGST", value: rs(q.taxAmount) },
+      ...(isZero(q.roundOff) ? [] : [{ label: "Round off", value: rs(q.roundOff) }]),
+      { label: "Quotation total", value: rs(q.total), kind: "grand" as const },
+    ],
+    amountInWords: amountInWords(q.total),
+    taxSummary: taxByRate(q.lines),
+    sections: sections(
+      {
+        title: "Payment terms",
+        items: [
+          ...q.milestones.map((m) => `${m.label} — ${m.basis === "PERCENT" && m.percent ? `${m.percent}% · ` : ""}${rs(m.amount)} (${trig(m.trigger).toLowerCase()}${m.dueDate ? `, ${formatDate(m.dueDate)}` : ""}${m.days !== null ? `, ${m.days} days` : ""})`),
+          ...(q.paymentTermsText ? [q.paymentTermsText] : []),
+        ],
+      },
+      termsSection("Delivery terms", q.deliveryTerms),
+      termsSection("Terms & conditions", q.terms),
+      q.status === "ACCEPTED" || q.status === "CONVERTED" ? { title: "Acceptance", body: `Accepted by ${q.acceptedByName ?? "the client"}${q.acceptedByRole ? `, ${q.acceptedByRole}` : ""} on ${formatDate(q.acceptedAt)} (${q.acceptanceMethod === "CLIENT_LINK_OTP" ? "verified online" : "recorded by staff"}).` } : null,
+    ),
+    signatures: [
+      { label: "Prepared by", name: q.createdBy.fullName, date: signDate(q.createdAt) },
+      { label: "For the company", name: q.approvedBy?.fullName ?? null, date: signDate(q.approvedAt), note: q.approvedBy ? "Approved in ERP" : null, company: true },
+      { label: "Client acceptance", name: q.acceptedByName ?? null, date: signDate(q.acceptedAt), note: q.acceptedByName ? null : "Name, sign, stamp & date" },
+    ],
   };
 }

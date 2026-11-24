@@ -13,6 +13,7 @@ import type { EntityAccess } from "@/modules/documents/access";
 import { refreshSoFulfilment } from "@/modules/stores/challan";
 import { soQtyByLine } from "./client-po";
 import { loadClient, lockClientPo, optDate, optId } from "./shared";
+import { advanceProjectStatus } from "@/modules/projects/lifecycle";
 
 /**
  * Sales orders — the driver of each project.
@@ -227,14 +228,18 @@ export async function createSalesOrder(actor: Actor, input: unknown) {
   requirePermission(actor, "so.manage");
   const data = parseInput(soSchema, input);
   const project = await assertProjectUsable(actor, data.projectId);
-  return db.$transaction(async (tx) => {
-    if (data.clientPoId) await lockClientPo(tx, data.clientPoId);
-    const { header, lines, party } = await buildSo(tx, actor, data);
-    const number = await nextDocNumber(tx, actor.organizationId, "SO", header.orderDate);
-    const so = await tx.salesOrder.create({ data: { organizationId: actor.organizationId, number, ...header, createdById: actor.id, lines: { create: lines.map(({ id: _id, ...l }) => l) } } });
-    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "so.created", entityType: "sales_order", entityId: so.id, projectId: so.projectId, summary: `Created sales order ${number} for ${party.name} (${project.code}) – ₹${header.total}` }, tx);
-    return so;
-  });
+  return db.$transaction((tx) => createSalesOrderTx(tx, actor, data, project.code));
+}
+
+/** Creates a draft sales order inside the caller's transaction (also used by quotation → SO). */
+export async function createSalesOrderTx(tx: Tx, actor: Actor, input: unknown, projectCode: string, auditSuffix = "") {
+  const data = parseInput(soSchema, input);
+  if (data.clientPoId) await lockClientPo(tx, data.clientPoId);
+  const { header, lines, party } = await buildSo(tx, actor, data);
+  const number = await nextDocNumber(tx, actor.organizationId, "SO", header.orderDate);
+  const so = await tx.salesOrder.create({ data: { organizationId: actor.organizationId, number, ...header, createdById: actor.id, lines: { create: lines.map(({ id: _id, ...l }) => l) } } });
+  await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "so.created", entityType: "sales_order", entityId: so.id, projectId: so.projectId, summary: `Created sales order ${number} for ${party.name} (${projectCode}) – ₹${header.total}${auditSuffix}` }, tx);
+  return so;
 }
 
 export async function updateSalesOrder(actor: Actor, id: string, version: number, input: unknown) {
@@ -290,6 +295,7 @@ export async function salesOrderAction(actor: Actor, id: string, action: SoActio
           await transition(tx.salesOrder, w, ["PENDING_APPROVAL"], { status: "APPROVED", approvedById: actor.id, approvedAt: new Date(), statusNote: null }, "sales order");
           await log(tx, "Approved", ` (₹${dec2(so.total)}) — now locked; changes need an amendment request`);
           await syncRequirementsFromSo(tx, actor.organizationId, actor.id, so.projectId);
+          await advanceProjectStatus(tx, so.projectId, actor.id);
         } else {
           await transition(tx.salesOrder, w, ["PENDING_APPROVAL"], { status: "REJECTED", statusNote: opts.note }, "sales order");
           await log(tx, "Rejected");
@@ -303,6 +309,7 @@ export async function salesOrderAction(actor: Actor, id: string, action: SoActio
         await tx.soAmendmentRequest.updateMany({ where: { soId: id, status: "PENDING" }, data: { status: "WITHDRAWN", decisionNote: "Sales order closed", decidedAt: new Date() } });
         await log(tx, "Closed");
         await syncRequirementsFromSo(tx, actor.organizationId, actor.id, so.projectId);
+        await advanceProjectStatus(tx, so.projectId, actor.id);
       });
     case "cancel": {
       requirePermission(actor, "so.approve");
@@ -411,7 +418,6 @@ export async function decideSoAmendment(actor: Actor, requestId: string, decisio
   if (actor.role !== "SUPER_ADMIN") throw new ForbiddenError("Only a Super Admin can approve or reject sales-order amendments.");
   const req = await db.soAmendmentRequest.findFirst({ where: { id: requestId, organizationId: actor.organizationId } });
   if (!req) throw new NotFoundError("Amendment request");
-  if (req.requestedById === actor.id) throw new ForbiddenError("You raised this request, so another Super Admin must decide it.");
   if (req.status !== "PENDING") throw new ConflictError("This request has already been decided or withdrawn.");
   if (decision === "reject" && !note?.trim()) throw new ValidationError("Give a reason for rejecting.", { note: "Reason required." });
 
@@ -518,7 +524,7 @@ export async function getSalesOrder(actor: Actor, id: string) {
       approve: so.status === "PENDING_APPROVAL" && hint.canApprove,
       approveBlockedReason: so.status === "PENDING_APPROVAL" ? hint.reason : null,
       requestAmendment: can(actor, "so.manage") && locked && !pending,
-      decideAmendment: actor.role === "SUPER_ADMIN" && !!pending && pending.requestedById !== actor.id,
+      decideAmendment: actor.role === "SUPER_ADMIN" && !!pending,
       withdrawAmendment: !!pending && (pending.requestedById === actor.id || actor.role === "SUPER_ADMIN"),
       close: can(actor, "so.approve") && locked,
       cancel: can(actor, "so.approve") && !anyDelivered && ["DRAFT", "PENDING_APPROVAL", "REJECTED", "APPROVED"].includes(so.status),

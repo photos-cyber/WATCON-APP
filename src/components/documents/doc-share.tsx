@@ -1,28 +1,21 @@
 "use client";
 
-import { FileDown, Mail, Printer } from "lucide-react";
+import { Mail } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Button } from "@/components/ui/button";
 import { whatsappLink } from "@/lib/whatsapp";
+import { PdfButtons } from "./pdf-buttons";
 
 /**
- * PDF / print / share for a commercial document. WhatsApp and email open the user's own app
- * with a prefilled message — the app never claims anything was sent (attach the PDF manually).
+ * Preview / download / print / share for a commercial document. WhatsApp and email open the
+ * user's own app with a prefilled message — the app never claims anything was sent (attach the
+ * downloaded PDF manually).
  */
 export function DocShare({ type, id, summary, phone, email, subject }: { type: string; id: string; summary: string; phone?: string | null; email?: string | null; subject: string }) {
-  const pdf = `/api/documents/pdf?type=${type}&id=${id}`;
+  // Grouped so the PDF / share buttons wrap together, apart from the workflow actions.
   return (
-    <>
-      <Button asChild size="sm" variant="outline">
-        <a href={`${pdf}&inline=1`} target="_blank" rel="noopener">
-          <Printer /> Print
-        </a>
-      </Button>
-      <Button asChild size="sm" variant="outline">
-        <a href={pdf} download>
-          <FileDown /> PDF
-        </a>
-      </Button>
+    <div className="flex flex-wrap items-center gap-2">
+      <PdfButtons href={`/api/documents/pdf?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`} />
       <Button asChild size="sm" variant="outline" title="Opens WhatsApp with a prefilled message. Attach the downloaded PDF before sending.">
         <a href={whatsappLink(summary, phone)} target="_blank" rel="noopener noreferrer">
           <WhatsAppIcon className="size-4" /> WhatsApp
@@ -33,6 +26,6 @@ export function DocShare({ type, id, summary, phone, email, subject }: { type: s
           <Mail /> Email
         </a>
       </Button>
-    </>
+    </div>
   );
 }

@@ -71,6 +71,16 @@ export const DOC_STATUS: Record<string, { label: string; tone: Tone }> = {
   AWAITING_DELIVERY: { label: "Awaiting delivery", tone: "info" },
   DELAYED: { label: "Delayed", tone: "bad" },
   DAMAGED: { label: "Damaged / rejected", tone: "bad" },
+  // Client quotations
+  VIEWED: { label: "Viewed by client", tone: "violet" },
+  ACCEPTED: { label: "Accepted", tone: "good" },
+  EXPIRED: { label: "Expired", tone: "bad" },
+  CONVERTED: { label: "Converted to SO", tone: "good" },
+  // Payment milestones
+  NOT_DUE: { label: "Not due yet", tone: "muted" },
+  DUE: { label: "Due to invoice", tone: "warn" },
+  PART_INVOICED: { label: "Part invoiced", tone: "info" },
+  PART_PAID: { label: "Part paid", tone: "warn" },
   MATCHED: { label: "Matched", tone: "good" },
   EXCEPTION: { label: "Exceptions", tone: "bad" },
   NOT_MATCHED: { label: "Not matched", tone: "neutral" },

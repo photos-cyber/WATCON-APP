@@ -2,7 +2,14 @@
 
 import { runAction } from "@/lib/actions";
 import { setApprovalLimit, updateCommercialSettings, updateSeries } from "./commercial";
+import { updateBranding } from "./branding";
 import { updateCompany, updateRolePermissions } from "./service";
+
+export async function updateBrandingAction(input: unknown) {
+  return runAction(async (actor) => {
+    await updateBranding(actor, input);
+  }, ["/settings"]);
+}
 
 export async function updateCompanyAction(input: unknown) {
   return runAction(async (actor) => {

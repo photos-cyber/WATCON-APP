@@ -66,6 +66,8 @@ export type CommercialSettings = {
   receiptTolerancePct: string;
   rateTolerancePct: string;
   poTerms: string | null;
+  /** PROFORMA (advance request, not a tax invoice) or TAX_INVOICE for advance milestones. */
+  advanceDocument: "PROFORMA" | "TAX_INVOICE";
 };
 
 export async function getCommercialSettings(organizationId: string, client: Tx | typeof db = db): Promise<CommercialSettings> {
@@ -80,15 +82,25 @@ export async function getCommercialSettings(organizationId: string, client: Tx |
     receiptTolerancePct: s?.receiptTolerancePct?.toFixed(2) ?? "0.00",
     rateTolerancePct: s?.rateTolerancePct?.toFixed(2) ?? "0.00",
     poTerms: s?.poTerms ?? null,
+    advanceDocument: s?.advanceDocument === "TAX_INVOICE" ? "TAX_INVOICE" : "PROFORMA",
   };
 }
 
 // ─────────────────────────── Approvals ───────────────────────────
 
 /**
+ * Separation of duties: true when the actor is one of the given people (creator / submitter /
+ * uploader) and segregation is enforced. Super Admins are exempt and may act on their own documents.
+ */
+export function segregationBlocks(actor: Pick<Actor, "id" | "role">, enforceSegregation: boolean, ...personIds: (string | null | undefined)[]): boolean {
+  if (!enforceSegregation || actor.role === "SUPER_ADMIN") return false;
+  return personIds.some((id) => !!id && id === actor.id);
+}
+
+/**
  * Approval guard: permission + separation of duties (approver ≠ creator / submitter, when
  * enforced) + the role's approval ceiling for this document type. Super Admins have no
- * ceiling but are still subject to separation of duties.
+ * ceiling and are exempt from separation of duties.
  */
 export async function assertCanApprove(
   actor: Actor,
@@ -97,7 +109,7 @@ export async function assertCanApprove(
 ) {
   requirePermission(actor, opts.permission, `You do not have permission to approve ${opts.what}.`);
   const settings = await getCommercialSettings(actor.organizationId, client);
-  if (settings.enforceSegregation && (actor.id === opts.createdById || actor.id === opts.submittedById)) {
+  if (segregationBlocks(actor, settings.enforceSegregation, opts.createdById, opts.submittedById)) {
     throw new ForbiddenError(`Separation of duties: you cannot approve ${opts.what} that you created or submitted. Ask another approver.`);
   }
   if (actor.role !== "SUPER_ADMIN" && opts.amount) {
@@ -111,7 +123,7 @@ export async function assertCanApprove(
 /** Whether an approve button should be shown (UI hint; the server re-checks with assertCanApprove). */
 export function approvalHint(actor: Actor, permission: PermissionKey, doc: { createdById?: string | null; submittedById?: string | null }, enforceSegregation: boolean) {
   if (!can(actor, permission)) return { canApprove: false, reason: null as string | null };
-  if (enforceSegregation && (actor.id === doc.createdById || actor.id === doc.submittedById)) return { canApprove: false, reason: "You created or submitted this document; another approver must approve it." };
+  if (segregationBlocks(actor, enforceSegregation, doc.createdById, doc.submittedById)) return { canApprove: false, reason: "You created or submitted this document; another approver must approve it." };
   return { canApprove: true, reason: null };
 }
 

@@ -4,7 +4,7 @@ import { runAction } from "@/lib/actions";
 import { saveRequirement, setPlanningAttributes, setRequirementStatus } from "@/modules/planning/service";
 import { createPo, poAction, updatePo, type PoAction } from "./po";
 import { createPr, createPrFromMrp, prAction, updatePr, type PrAction } from "./pr";
-import { createPosFromAward, createRfq, proposeAward, recordQuotation, rfqAction, type RfqAction } from "./rfq";
+import { addRfqSuppliers, createPosFromAward, createRfq, markRfqSupplierShared, proposeAward, recordQuotation, rfqAction, type RfqAction } from "./rfq";
 
 const P = ["/material-planning", "/purchase-requisitions", "/rate-enquiries", "/purchase-orders", "/projects", "/site-receipts", "/approvals", "/dashboard"];
 type Opts = { version: number; note?: string | null; via?: string | null };
@@ -54,6 +54,14 @@ export async function rfqActionAction(id: string, action: RfqAction, opts: Opts)
   return runAction(async (a) => {
     await rfqAction(a, String(id), action, { version: Number(opts.version), note: opts.note ?? null, via: opts.via ?? null });
   }, P);
+}
+export async function markRfqSupplierSharedAction(rfqId: string, partyId: string, via: string) {
+  return runAction(async (a) => {
+    await markRfqSupplierShared(a, String(rfqId), String(partyId), String(via));
+  }, P);
+}
+export async function addRfqSuppliersAction(id: string, input: unknown) {
+  return runAction(async (a) => addRfqSuppliers(a, String(id), input), P);
 }
 export async function recordQuotationAction(input: unknown) {
   return runAction(async (a) => ({ id: (await recordQuotation(a, input)).id }), P);

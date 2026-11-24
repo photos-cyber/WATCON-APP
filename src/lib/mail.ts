@@ -2,6 +2,24 @@ import { env } from "@/lib/env";
 
 export type MailMessage = { to: string; subject: string; text: string };
 
+/** True only when real email delivery (SMTP) is configured. */
+export function emailDeliveryConfigured() {
+  return env().MAIL_TRANSPORT === "smtp";
+}
+
+/**
+ * Sends and reports honestly: `delivered` is true only when the SMTP server accepted the message.
+ * With the console transport nothing leaves the server, so `delivered` is false (dev: logged).
+ */
+export async function sendMailReported(message: MailMessage): Promise<{ delivered: boolean; reason?: string }> {
+  if (!emailDeliveryConfigured()) {
+    await sendMail(message);
+    return { delivered: false, reason: "Email is not configured on this server (MAIL_TRANSPORT=smtp and SMTP settings are needed)." };
+  }
+  await sendMail(message);
+  return { delivered: true };
+}
+
 /**
  * Outgoing mail. `console` transport writes the message to the server log
  * (development only); `smtp` uses nodemailer with the SMTP_* settings.

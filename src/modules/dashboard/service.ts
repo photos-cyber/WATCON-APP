@@ -66,7 +66,7 @@ export async function getDashboard(actor: Actor) {
       totalDepartments: departmentCount,
       totalMembers: memberCount,
     },
-    recentProjects: recentProjects.map((p) => ({ ...p, counts: counts.get(p.id) ?? { total: 0, completed: 0, cancelled: 0, open: 0, progress: 0 } })),
+    recentProjects: recentProjects.map((p) => ({ ...p, counts: counts.get(p.id) ?? { total: 0, completed: 0, cancelled: 0, open: 0, progress: 0, taskProgress: 0, progressBasis: "tasks" as const, delivery: null } })),
     myTasks,
     overdueTasks,
     activity,

@@ -9,6 +9,7 @@ import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
 import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
 import { gstRateField, optMoney, optPct, projectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
+import { milestonesSchema } from "@/modules/commercial/payment-terms";
 import type { EntityAccess } from "@/modules/documents/access";
 import { startOfToday } from "@/modules/tasks/rules";
 import { createPo } from "./po";
@@ -36,7 +37,7 @@ export const rfqSchema = z.object({
   taxTerms: optionalText("Tax terms", 300),
   validityDays: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : Number(v))).pipe(z.union([z.null(), z.number().int().min(1).max(365)])),
   specifications: optionalText("Specifications", 5000),
-  supplierIds: z.array(uuid).min(1, "Invite at least one supplier.").max(50),
+  supplierIds: z.array(uuid).min(1, "Invite at least one supplier."),
   lines: z
     .array(z.object({ itemId: uuid, itemBrandId: optId, acceptableBrands: optionalText("Acceptable brands", 300), quantity: qtyField, specifications: optionalText("Specifications", 500), prLineId: optId }))
     .min(1, "Add at least one material.")
@@ -55,8 +56,12 @@ export const quotationSchema = z.object({
   deliveryDays: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : Number(v))).pipe(z.union([z.null(), z.number().int().min(0).max(365)])),
   remarks: optionalText("Remarks", 1000),
   replacesId: optId,
+  advancePct: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : String(v).trim())).pipe(z.union([z.null(), z.string().regex(/^\d{1,3}(\.\d{1,2})?$/, "Percent.").refine((v) => Number(v) <= 100, "Max 100%.")])),
+  creditDays: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : Number(v))).pipe(z.union([z.null(), z.number().int().min(0).max(365)])),
+  warranty: optionalText("Warranty", 300),
+  paymentMilestones: milestonesSchema.optional().nullable().transform((v) => (v && v.length ? v : null)),
   lines: z
-    .array(z.object({ rfqLineId: uuid, itemBrandId: uuid, quantity: qtyField, rate: rateField, discountPct: optPct, gstRate: gstRateField, leadTimeDays: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : Number(v))).pipe(z.union([z.null(), z.number().int().min(0).max(365)])), remarks: optionalText("Remarks", 300) }))
+    .array(z.object({ rfqLineId: uuid, itemBrandId: uuid, quantity: qtyField, rate: rateField, discountPct: optPct, gstRate: gstRateField, leadTimeDays: z.union([z.string(), z.number(), z.null()]).optional().transform((v) => (v === null || v === undefined || String(v).trim() === "" ? null : Number(v))).pipe(z.union([z.null(), z.number().int().min(0).max(365)])), remarks: optionalText("Remarks", 300), paymentTerms: optionalText("Item payment terms", 300) }))
     .min(1, "Quote at least one line.")
     .max(200),
 });
@@ -118,6 +123,27 @@ export async function createRfq(actor: Actor, input: unknown) {
     });
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "rfq.created", entityType: "rfq", entityId: rfq.id, projectId: rfq.projectId, summary: `Created rate enquiry ${number} – ${data.title} (${data.lines.length} items, ${data.supplierIds.length} suppliers)` }, tx);
     return rfq;
+  });
+}
+
+const addSuppliersSchema = z.object({ supplierIds: z.array(uuid).min(1, "Choose at least one supplier.") });
+
+/** Invite more suppliers to an open enquiry (any number, until the award is sent for approval). */
+export async function addRfqSuppliers(actor: Actor, id: string, input: unknown) {
+  requirePermission(actor, "rfq.manage");
+  const data = parseInput(addSuppliersSchema, input);
+  const rfq = await loadRfq(actor, id);
+  if (!["DRAFT", "SENT", "RESPONSES_IN"].includes(rfq.status)) throw new ValidationError("Suppliers can only be added while the enquiry is open (before the award is sent for approval).");
+  const already = new Set(rfq.suppliers.map((s) => s.partyId));
+  const ids = [...new Set(data.supplierIds)].filter((p) => !already.has(p));
+  if (!ids.length) throw new ValidationError("These suppliers are already on the enquiry.", { supplierIds: "Already invited." });
+  return db.$transaction(async (tx) => {
+    const parties = await tx.party.findMany({ where: { id: { in: ids }, organizationId: actor.organizationId, isSupplier: true, status: "ACTIVE" }, select: { id: true, name: true } });
+    if (parties.length !== ids.length) throw new ValidationError("Every invited party must be an active supplier.", { supplierIds: "Invalid supplier." });
+    await tx.rfqSupplier.createMany({ data: ids.map((partyId) => ({ rfqId: id, partyId })), skipDuplicates: true });
+    await tx.rfq.update({ where: { id }, data: { version: { increment: 1 } } });
+    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "rfq.suppliers_added", entityType: "rfq", entityId: id, projectId: rfq.projectId, summary: `Added ${parties.length} supplier(s) to ${rfq.number}: ${parties.map((p) => p.name).join(", ")}` }, tx);
+    return { added: parties.length };
   });
 }
 
@@ -188,11 +214,25 @@ export async function recordQuotation(actor: Actor, input: unknown) {
   const rfq = await loadRfq(actor, data.rfqId);
   if (!["SENT", "RESPONSES_IN", "DRAFT"].includes(rfq.status)) throw new ValidationError("Quotations can only be recorded while the enquiry is open.");
   if (!rfq.suppliers.some((s) => s.partyId === data.partyId)) throw new ValidationError("This supplier was not invited to the enquiry.", { partyId: "Not invited." });
+  return db.$transaction((tx) => persistQuotation(tx, { organizationId: actor.organizationId, rfq, data, createdById: actor.id, actorId: actor.id, viaPortal: false }));
+}
+
+type QuotationData = z.infer<typeof quotationSchema>;
+
+/**
+ * Saves a quotation (or a revision superseding the supplier's current one). Shared by manual
+ * entry and the supplier's own quote link. Caller checks permission / token and that the
+ * enquiry is open and the supplier invited.
+ */
+export async function persistQuotation(
+  tx: Tx,
+  { organizationId, rfq, data, createdById, actorId, viaPortal }: { organizationId: string; rfq: { id: string; number: string; status: string; projectId: string | null; lines: { id: string; itemId: string }[] }; data: QuotationData; createdById: string; actorId: string | null; viaPortal: boolean },
+) {
   const rfqLines = new Map(rfq.lines.map((l) => [l.id, l]));
-  return db.$transaction(async (tx) => {
+  {
     const party = await tx.party.findUniqueOrThrow({ where: { id: data.partyId } });
-    const settings = await getCommercialSettings(actor.organizationId, tx);
-    const ibs = await tx.itemBrand.findMany({ where: { id: { in: data.lines.map((l) => l.itemBrandId) }, organizationId: actor.organizationId }, select: { id: true, itemId: true } });
+    const settings = await getCommercialSettings(organizationId, tx);
+    const ibs = await tx.itemBrand.findMany({ where: { id: { in: data.lines.map((l) => l.itemBrandId) }, organizationId }, select: { id: true, itemId: true } });
     const ibMap = new Map(ibs.map((i) => [i.id, i]));
     data.lines.forEach((l, i) => {
       const rl = rfqLines.get(l.rfqLineId);
@@ -209,10 +249,11 @@ export async function recordQuotation(actor: Actor, input: unknown) {
     } else if (await tx.supplierQuotation.count({ where: { rfqId: data.rfqId, partyId: data.partyId, status: { in: ["RECEIVED", "AWARDED"] } } })) {
       throw new ValidationError("A quotation from this supplier is already recorded. Use “Revise” to enter a revised quotation.");
     }
-    const number = await nextDocNumber(tx, actor.organizationId, "SQ", toDbDate(data.quoteDate)!);
+    const number = await nextDocNumber(tx, organizationId, "SQ", toDbDate(data.quoteDate)!);
     const q = await tx.supplierQuotation.create({
       data: {
-        organizationId: actor.organizationId,
+        organizationId,
+        viaPortal,
         number,
         rfqId: data.rfqId,
         partyId: data.partyId,
@@ -227,20 +268,52 @@ export async function recordQuotation(actor: Actor, input: unknown) {
         deliveryDays: data.deliveryDays,
         taxMode: taxModeFor(settings.stateCode, party.stateCode),
         remarks: data.remarks,
-        createdById: actor.id,
-        lines: { create: data.lines.map((l) => ({ rfqLineId: l.rfqLineId, itemBrandId: l.itemBrandId, itemId: ibMap.get(l.itemBrandId)!.itemId, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, leadTimeDays: l.leadTimeDays, remarks: l.remarks })) },
+        advancePct: data.advancePct,
+        creditDays: data.creditDays,
+        warranty: data.warranty,
+        paymentMilestones: (data.paymentMilestones ?? undefined) as Prisma.InputJsonValue | undefined,
+        createdById,
+        lines: { create: data.lines.map((l) => ({ rfqLineId: l.rfqLineId, itemBrandId: l.itemBrandId, itemId: ibMap.get(l.itemBrandId)!.itemId, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, leadTimeDays: l.leadTimeDays, remarks: l.remarks, paymentTerms: l.paymentTerms })) },
       },
     });
     await tx.rfqSupplier.updateMany({ where: { rfqId: data.rfqId, partyId: data.partyId }, data: { status: "RESPONDED" } });
     if (rfq.status === "SENT" || rfq.status === "DRAFT") await tx.rfq.update({ where: { id: rfq.id }, data: { status: "RESPONSES_IN", version: { increment: 1 } } });
-    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: data.replacesId ? "rfq.quotation_revised" : "rfq.quotation_recorded", entityType: "rfq", entityId: rfq.id, projectId: rfq.projectId, summary: `${data.replacesId ? `Revised quotation (rev ${revision})` : "Recorded quotation"} ${number} from ${party.name} on ${rfq.number}` }, tx);
+    const how = viaPortal ? " (submitted by the supplier via their quote link)" : "";
+    await writeAudit({ organizationId, actorId, action: data.replacesId ? "rfq.quotation_revised" : "rfq.quotation_recorded", entityType: "rfq", entityId: rfq.id, projectId: rfq.projectId, summary: `${data.replacesId ? `Revised quotation (rev ${revision})` : "Recorded quotation"} ${number} from ${party.name} on ${rfq.number}${how}` }, tx);
     return q;
+  }
+}
+
+/** Records that a supplier's quote link was shared (WhatsApp / email / copied). */
+export async function markRfqSupplierShared(actor: Actor, rfqId: string, partyId: string, via: string) {
+  requirePermission(actor, "rfq.manage");
+  const rfq = await loadRfq(actor, rfqId);
+  if (!rfq.suppliers.some((s) => s.partyId === partyId)) throw new NotFoundError("Supplier");
+  await db.$transaction(async (tx) => {
+    await tx.rfqSupplier.updateMany({ where: { rfqId, partyId, sentAt: null }, data: { sentAt: new Date(), sentVia: via.slice(0, 30) } });
+    if (rfq.status === "DRAFT") await tx.rfq.update({ where: { id: rfqId }, data: { status: "SENT", version: { increment: 1 } } });
   });
 }
 
 // ─────────────────────────── Comparison & award ───────────────────────────
 
+/** One line describing a supplier's payment terms (structured first, then free text). */
+export function supplierTermsSummary(q: { advancePct: Prisma.Decimal | null; creditDays: number | null; paymentTerms: string | null; paymentMilestones: Prisma.JsonValue | null; warranty?: string | null }) {
+  const parts: string[] = [];
+  const ms = Array.isArray(q.paymentMilestones) ? (q.paymentMilestones as { label: string; basis: string; value: string }[]) : [];
+  if (ms.length) parts.push(ms.map((m) => `${m.basis === "PERCENT" ? `${m.value}%` : `₹${m.value}`} ${m.label.toLowerCase()}`).join(", "));
+  else if (q.advancePct && Number(q.advancePct) > 0) parts.push(`${Number(q.advancePct)}% advance`);
+  if (q.creditDays !== null && q.creditDays !== undefined) parts.push(q.creditDays === 0 ? "payment on delivery" : `${q.creditDays} days credit`);
+  if (q.paymentTerms) parts.push(q.paymentTerms);
+  return parts.join(" · ") || null;
+}
+
 export type ComparisonQuote = {
+  terms: string | null;
+  lineTerms: string | null;
+  advancePct: string | null;
+  creditDays: number | null;
+  warranty: string | null;
   quotationId: string;
   quotationLineId: string;
   partyId: string;
@@ -325,6 +398,11 @@ export async function getRfq(actor: Actor, id: string) {
         landedTotal: landed,
         landedUnit: unitRate(landed, dec3(ql.quantity)),
         leadTimeDays: ql.leadTimeDays ?? q.deliveryDays,
+        terms: supplierTermsSummary(q),
+        lineTerms: ql.paymentTerms ?? null,
+        advancePct: q.advancePct ? dec2(q.advancePct) : null,
+        creditDays: q.creditDays,
+        warranty: q.warranty,
         validUntil: q.validUntil?.toISOString() ?? null,
         expired: !!q.validUntil && q.validUntil.getTime() < today.getTime(),
         awardedQty: dec3(ql.awardedQty),
@@ -419,7 +497,11 @@ export async function createPosFromAward(actor: Actor, rfqId: string) {
       deliveryAddress: rfq.deliveryAddress,
       orderDate: startOfToday().toISOString().slice(0, 10),
       expectedDate: rfq.requiredBy ? rfq.requiredBy.toISOString().slice(0, 10) : null,
-      paymentTerms: q.paymentTerms,
+      paymentTerms: supplierTermsSummary(q)?.slice(0, 500) ?? null,
+      advancePct: q.advancePct ? dec2(q.advancePct) : null,
+      creditDays: q.creditDays,
+      warranty: q.warranty,
+      paymentMilestones: q.paymentMilestones,
       charges: dec2(q.freight),
       chargesGstRate: dec2(q.freightGstRate),
       rfqId: rfq.id,

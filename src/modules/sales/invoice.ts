@@ -86,6 +86,8 @@ export async function createClientInvoice(actor: Actor, input: unknown) {
       const so = await tx.salesOrder.findFirst({ where: { AND: [{ id: data.soId }, projectRequiredScoped(actor) as Prisma.SalesOrderWhereInput] }, include: { clientPo: { select: { placeOfSupply: true } } } });
       if (!so) throw new NotFoundError("Sales order");
       if (!["APPROVED", "PARTIALLY_FULFILLED", "FULFILLED", "CLOSED"].includes(so.status)) throw new ValidationError("Only an approved sales order can be invoiced.");
+      // One billing basis per order: with a payment schedule, bill through its milestones (prevents double billing).
+      if (await tx.paymentMilestone.count({ where: { soId: so.id } })) throw new ValidationError(`${so.number} is billed by its payment milestones. Use “Raise invoice” on the sales order's payment schedule.`);
       if (so.clientPoId) await lockClientPo(tx, so.clientPoId);
       const soLines = await tx.$queryRaw<{ id: string; line_no: number; delivered_qty: string; returned_qty: string; invoiced_qty: string }[]>`SELECT id::text, line_no, delivered_qty::text, returned_qty::text, invoiced_qty::text FROM so_lines WHERE so_id = ${so.id}::uuid FOR UPDATE`;
       const full = await tx.soLine.findMany({ where: { soId: so.id } });
@@ -206,9 +208,11 @@ export async function clientInvoiceAction(actor: Actor, id: string, action: Invo
     // invoice cannot also issue it.
     await assertCanApprove(actor, { permission: "invoice.approve", docType: "INVOICE", amount: dec2(inv.total), createdById: inv.createdById, what: "an invoice" });
     return db.$transaction(async (tx) => {
-      const number = await nextDocNumber(tx, actor.organizationId, "INV", inv.invoiceDate);
+      // Proformas (advance requests) have their own PI series and never consume a tax-invoice number.
+      const proforma = inv.kind === "PROFORMA";
+      const number = await nextDocNumber(tx, actor.organizationId, proforma ? "PI" : "INV", inv.invoiceDate);
       await transition(tx.clientInvoice, w, ["DRAFT"], { status: "ISSUED", number, issuedById: actor.id, issuedAt: new Date() }, "invoice");
-      await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "invoice.issued", entityType: "client_invoice", entityId: id, projectId: inv.projectId, summary: `Issued tax invoice ${number} – ₹${dec2(inv.total)} (net receivable ₹${dec2(inv.netReceivable)})` }, tx);
+      await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "invoice.issued", entityType: "client_invoice", entityId: id, projectId: inv.projectId, summary: `Issued ${proforma ? "proforma / advance request" : "tax invoice"} ${number} – ₹${dec2(inv.total)} (net receivable ₹${dec2(inv.netReceivable)})` }, tx);
       return { number };
     });
   }

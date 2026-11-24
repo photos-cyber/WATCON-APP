@@ -59,6 +59,7 @@ export function navGroups(user: NavUser): Group[] {
     {
       label: "Sales & Billing",
       items: [
+        ...item(has("so.view"), { href: "/quotations", label: "Quotations", icon: FileText }),
         ...item(has("so.view"), { href: "/sales-orders", label: "Sales Orders", icon: FileText }),
         ...item(has("cpo.view"), { href: "/client-pos", label: "Client POs", icon: FileSignature }),
         ...item(has("rabill.view"), { href: "/running-bills", label: "Running Bills", icon: FileSpreadsheet }),

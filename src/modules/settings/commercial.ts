@@ -24,6 +24,7 @@ const settingsSchema = z
     receiptTolerancePct: pct,
     rateTolerancePct: pct,
     poTerms: z.string().trim().max(5000).optional().nullable().transform((v) => (v ? v : null)),
+    advanceDocument: z.enum(["PROFORMA", "TAX_INVOICE"]).optional().default("PROFORMA"),
   })
   .superRefine((v, ctx) => {
     if (v.gstin && (!GSTIN_RE.test(v.gstin) || !gstinChecksumValid(v.gstin))) ctx.addIssue({ code: "custom", path: ["gstin"], message: "Enter a valid GSTIN." });

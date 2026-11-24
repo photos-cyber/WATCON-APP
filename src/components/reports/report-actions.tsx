@@ -1,7 +1,8 @@
 "use client";
 
 import { callAction } from "@/lib/call-action";
-import { FileDown, Loader2, Printer } from "lucide-react";
+import { Loader2, Printer } from "lucide-react";
+import { PdfButtons } from "@/components/documents/pdf-buttons";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Field } from "@/components/forms/field";
@@ -52,12 +53,7 @@ export function ReportActions({ params, size = "sm", compact = false }: { params
             {compact && <span className="sr-only">Print</span>}
           </a>
         </Button>
-        <Button variant="outline" size={size} asChild>
-          <a href={`/api/reports/pdf?${qs}`} download>
-            <FileDown /> {!compact && "Export PDF"}
-            {compact && <span className="sr-only">Export PDF</span>}
-          </a>
-        </Button>
+        <PdfButtons href={`/api/reports/pdf?${qs}`} size={size} compact={compact} print={false} />
         <Button variant="outline" size={size} onClick={openShare} disabled={loading}>
           {loading ? <Loader2 className="animate-spin" /> : <WhatsAppIcon />} {!compact && "WhatsApp"}
           {compact && <span className="sr-only">Share on WhatsApp</span>}

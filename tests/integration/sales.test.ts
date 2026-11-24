@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { createParty } from "@/modules/parties/service";
+import { taskCountsByProject } from "@/modules/projects/service";
 import { clientPoAction, createClientPo, getClientPo, updateClientPo } from "@/modules/sales/client-po";
 import { clientInvoiceAction, createClientInvoice, getClientInvoice } from "@/modules/sales/invoice";
 import { certifyRaBill, createRaBill, getRaBill, raBillAction } from "@/modules/sales/ra-bill";
 import { createSalesOrder, decideSoAmendment, getSalesOrder, requestSoAmendment, salesOrderAction, updateSalesOrder, withdrawSoAmendment } from "@/modules/sales/sales-order";
 import { challanAction, createChallan } from "@/modules/stores/challan";
 import { commercialFixture, day, errorOf, type CFx } from "./commercial-helpers";
-import { actorFor, createUser } from "./helpers";
 
 let fx: CFx;
 beforeEach(async () => {
@@ -169,13 +169,10 @@ describe("sales orders drive the project", () => {
     const r = await requestSoAmendment(fx.actors.admin, so.id, proposal);
     expect((await errorOf(requestSoAmendment(fx.roles.pm.actor, so.id, proposal))).message).toMatch(/already a pending amendment/);
     expect((await errorOf(decideSoAmendment(fx.actors.admin, r.id, "approve"))).message).toMatch(/Only a Super Admin/);
-    // A Super Admin cannot approve their own request.
-    const sa2 = await createUser(fx.org.id, "SUPER_ADMIN", { fullName: "Second Super" });
-    const sa2Actor = await actorFor(sa2.id);
+    // A Super Admin may approve their own request (Super Admins are exempt from separation of duties).
     await withdrawSoAmendment(fx.actors.admin, r.id);
     const own = await requestSoAmendment(fx.actors.superAdmin, so.id, proposal);
-    expect((await errorOf(decideSoAmendment(fx.actors.superAdmin, own.id, "approve"))).message).toMatch(/another Super Admin/);
-    const res = await decideSoAmendment(sa2Actor, own.id, "approve");
+    const res = await decideSoAmendment(fx.actors.superAdmin, own.id, "approve");
     expect(res).toEqual({ applied: true, revision: 1 });
     const after = await db.salesOrder.findUniqueOrThrow({ where: { id: so.id }, include: { lines: { orderBy: { lineNo: "asc" } } } });
     expect(after.revision).toBe(1);
@@ -214,6 +211,35 @@ describe("sales orders drive the project", () => {
     expect((await db.soLine.findUniqueOrThrow({ where: { id: lineId } })).invoicedQty.toFixed(3)).toBe("0.000");
     const view = await getSalesOrder(fx.actors.admin, so.id);
     expect(view.fulfilment[0]!.delivered).toBe("25");
+  });
+
+  it("project progress follows sales-order delivery and status moves Planning → Active → Completed", async () => {
+    await db.project.update({ where: { id: fx.p1.id }, data: { status: "PLANNING" } });
+    const so = await approvedSo([cementLine("40")]);
+    const lineId = so.lines[0]!.id;
+    expect((await db.project.findUniqueOrThrow({ where: { id: fx.p1.id } })).status).toBe("ACTIVE");
+    let counts = (await taskCountsByProject(fx.actors.admin, [fx.p1.id])).get(fx.p1.id)!;
+    expect([counts.progressBasis, counts.progress]).toEqual(["delivery", 0]);
+
+    const deliver = async (qty: string) => {
+      const c = await createChallan(fx.roles.sk.actor, { type: "CLIENT_DELIVERY", soId: so.id, partyId: so.partyId, fromLocationId: fx.warehouse.id, dispatchDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: qty, soLineId: lineId }] });
+      await challanAction(fx.roles.sk.actor, c.id, "dispatch", { version: (await db.challan.findUniqueOrThrow({ where: { id: c.id } })).version });
+    };
+    await deliver("10");
+    counts = (await taskCountsByProject(fx.actors.admin, [fx.p1.id])).get(fx.p1.id)!;
+    expect(counts.progress).toBe(25);
+    expect((await db.project.findUniqueOrThrow({ where: { id: fx.p1.id } })).status).toBe("ACTIVE");
+
+    await deliver("30");
+    counts = (await taskCountsByProject(fx.actors.admin, [fx.p1.id])).get(fx.p1.id)!;
+    expect(counts.progress).toBe(100);
+    expect((await db.project.findUniqueOrThrow({ where: { id: fx.p1.id } })).status).toBe("COMPLETED");
+  });
+
+  it("manual On hold is never overridden by automation", async () => {
+    await db.project.update({ where: { id: fx.p1.id }, data: { status: "ON_HOLD" } });
+    await approvedSo([cementLine("5")]);
+    expect((await db.project.findUniqueOrThrow({ where: { id: fx.p1.id } })).status).toBe("ON_HOLD");
   });
 
   it("uses IGST for an inter-state client", async () => {

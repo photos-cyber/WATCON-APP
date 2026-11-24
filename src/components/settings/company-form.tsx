@@ -58,7 +58,7 @@ export function CompanyForm({ initial }: { initial: Company }) {
       <Field id="c-email" label="Email" error={errors.email}>
         <Input id="c-email" type="email" value={v.email} onChange={set("email")} />
       </Field>
-      <Field id="c-logo" label="Logo (used on printed reports and PDFs)" help="PNG or JPEG, up to 256 KB." error={errors.logoDataUrl} className="sm:col-span-2">
+      <Field id="c-logo" label="Logo (used on printed reports and PDFs)" help="PNG or JPEG, up to 256 KB. A wide logo on a transparent or white background prints best. Without an upload, PDFs use the standard WATCON logo." error={errors.logoDataUrl} className="sm:col-span-2">
         <div className="flex items-center gap-3">
           {v.logoDataUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- data URL preview

@@ -7,7 +7,7 @@ import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { activeDriver, driverFor, maxUploadBytes } from "@/lib/storage";
 import { ALLOWED_TYPES, safeFileName, sniffMime } from "@/lib/storage/sniff";
-import { getCommercialSettings, parseInput } from "@/modules/commercial/core";
+import { getCommercialSettings, parseInput, segregationBlocks } from "@/modules/commercial/core";
 import { resolveAccess } from "./access";
 import { ATTACHMENT_CATEGORIES } from "./categories";
 
@@ -180,7 +180,8 @@ export async function listAttachments(actor: Actor, entityType: string, entityId
     canVerify: can(actor, "attachments.verify"),
     canDelete: access.canUpload && !access.locked,
     locked: access.locked,
-    enforceSegregation: settings.enforceSegregation,
+    // The panel uses this to hide "verify" on your own uploads; Super Admins are exempt.
+    enforceSegregation: settings.enforceSegregation && actor.role !== "SUPER_ADMIN",
     maxUploadMb: Math.round(maxUploadBytes() / 1048576),
   };
 }
@@ -211,7 +212,7 @@ export async function verifyAttachment(actor: Actor, id: string, input: unknown)
   if (!row) throw new NotFoundError("File");
   const access = await accessOrThrow(actor, row.entityType, row.entityId);
   const settings = await getCommercialSettings(actor.organizationId);
-  if (settings.enforceSegregation && row.uploadedById === actor.id) throw new ForbiddenError("Separation of duties: you cannot verify evidence you uploaded.");
+  if (segregationBlocks(actor, settings.enforceSegregation, row.uploadedById)) throw new ForbiddenError("Separation of duties: you cannot verify evidence you uploaded.");
   await db.$transaction(async (tx) => {
     await tx.attachment.update({ where: { id }, data: { verificationStatus: data.status, verificationNote: data.note, verifiedById: actor.id, verifiedAt: new Date() } });
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: `attachment.${data.status.toLowerCase()}`, entityType: "attachment", entityId: id, projectId: access.projectId, summary: `${data.status === "VERIFIED" ? "Verified" : "Rejected"} ${row.fileName} on ${access.label}${data.note ? ` – ${data.note}` : ""}` }, tx);

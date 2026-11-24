@@ -12,6 +12,7 @@ import { qtyField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSiteLocation, ensureSystemLocations, postMovementTx } from "@/modules/inventory/engine";
 import { startOfToday } from "@/modules/tasks/rules";
+import { advanceProjectStatus } from "@/modules/projects/lifecycle";
 
 /**
  * Delivery challans.
@@ -213,7 +214,10 @@ export async function refreshSoFulfilment(tx: Tx, soId: string) {
   const any = so.lines.some((l) => cmpQty(net(l), "0") > 0);
   const all = so.lines.every((l) => cmpQty(net(l), dec3(l.quantity)) >= 0);
   const status = all ? "FULFILLED" : any ? "PARTIALLY_FULFILLED" : "APPROVED";
-  if (status !== so.status) await tx.salesOrder.update({ where: { id: soId }, data: { status, version: { increment: 1 } } });
+  if (status !== so.status) {
+    await tx.salesOrder.update({ where: { id: soId }, data: { status, version: { increment: 1 } } });
+    await advanceProjectStatus(tx, so.projectId, null);
+  }
 }
 
 /** Internal challans: derive receipt status from line counters (called by GRN posting / reversal). */

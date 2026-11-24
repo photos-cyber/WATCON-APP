@@ -21,6 +21,11 @@ import { entityActivity } from "@/modules/documents/activity";
 import { listAttachments } from "@/modules/documents/attachments";
 import { procurementForSalesOrder, visibleTraced } from "@/modules/procurement/trace";
 import { getSalesOrder } from "@/modules/sales/sales-order";
+import { SoBilling } from "@/components/sales/so-billing";
+import { db } from "@/lib/db";
+import { todayString } from "@/modules/inventory/serialize";
+import { getSoBilling } from "@/modules/sales/milestone-billing";
+import { listPaymentTemplates } from "@/modules/sales/quotation";
 
 export const metadata: Metadata = { title: "Sales order" };
 
@@ -32,10 +37,13 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
   const { soId } = await params;
   const { so, fulfilment, pendingRequest, can } = await orNotFound(getSalesOrder(user, soId));
   const itemBrandIds = [...new Set(so.lines.map((l) => l.itemBrandId).filter((x): x is string => !!x))];
-  const [files, activity, procurement] = await Promise.all([
+  const [files, activity, procurement, billing, templates, sourceQuote] = await Promise.all([
     listAttachments(user, "sales_order", so.id),
     entityActivity(user, "sales_order", so.id),
     procurementForSalesOrder(user.organizationId, so.projectId, itemBrandIds).then((d) => visibleTraced(user, d)),
+    getSoBilling(user, so.id),
+    listPaymentTemplates(user),
+    db.clientQuotation.findUnique({ where: { convertedSoId: so.id }, select: { id: true, number: true, status: true } }),
   ]);
   const intra = so.taxMode === "INTRA";
   const locked = ["APPROVED", "PARTIALLY_FULFILLED", "FULFILLED"].includes(so.status);
@@ -215,6 +223,7 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
             </Section>
           )}
 
+          <SoBilling soId={so.id} billing={billing} today={todayString()} savedTemplates={templates} />
           <Section title="Revision history & amendments" id="amendments">
             <RevisionHistory requests={views.filter((v) => v.id !== pendingView?.id)} hasPending={Boolean(pendingView)} />
           </Section>
@@ -223,6 +232,7 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
         <div className="space-y-4">
           <RelatedDocs
             docs={[
+              ...(sourceQuote ? [{ type: "Quotation", id: sourceQuote.id, number: sourceQuote.number, status: sourceQuote.status, href: `/quotations/${sourceQuote.id}` }] : []),
               ...(so.clientPo ? [{ type: "Client PO", id: so.clientPo.id, number: so.clientPo.number, href: `/client-pos/${so.clientPo.id}` }] : []),
               ...procurement,
               ...so.challans.map((c) => ({ type: "Delivery challan", id: c.id, number: c.number, status: c.status, href: `/challans/${c.id}`, meta: formatDate(c.dispatchDate) })),
