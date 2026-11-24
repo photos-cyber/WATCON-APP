@@ -4,7 +4,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'docs/audit';E=OUT/'evidence'
 def read(path):
     raw=Path(path).read_bytes()
-    return raw.decode('utf-16') if raw.startswith(b'\xff\xfe') else raw.decode('utf-8-sig')
+    text=raw.decode('utf-16') if raw.startswith(b'\xff\xfe') else raw.decode('utf-8-sig')
+    return re.sub(r'\r+\n','\n',text).replace('\r','\n')
 def data(name,default=None):
     p=E/name
     return json.loads(read(p)) if p.exists() else default
@@ -13,9 +14,11 @@ def write(name,body):
     if p.exists():
         old=read(p)
         prefix=old.split(marker,1)[0] if marker in old else old.rstrip()+'\n\n---\n\n'
+        if name=='SECURITY_AUDIT.md' and 'Historical audit retained' not in prefix:
+            prefix='> Historical audit retained below. The 18 November counts are historical; use the 24 November update later in this file and COMPLETE_APP_AUDIT.md for current results.\n\n'+prefix
         body=prefix+marker+'\n'+body
     else: body=marker+'\n'+body
-    p.write_text(body,encoding='utf-8')
+    p.write_text(body,encoding='utf-8',newline='\n')
 def category(name):
     name=name.lower()
     for cat,words in [('Security',['auth','password','permission','role','session','unauthor','scope','segregation','origin','access','isolat','filenames','forg','xss']),('Inventory',['stock','inventory','grn','receipt','reservation','challan','consumption','oversell','warehouse','location','receiving']),('Financial accuracy',['money','gst','invoice','bill','payment','settlement','round','tds','financial','ledger','amount','tax','contract']),('Database integrity',['concurr','duplicate','unique','counter','idempot','transaction','revision','archive']),('UI/UX',['mobile','desktop','navigation','viewport','search','filter','pagination']),('Documentation',['manual','help','glossary','article']),('Performance',['latency','load test','benchmark','performance'])]:

@@ -1,7 +1,7 @@
 <!-- AUDIT-2026-11-24 -->
 # Bug report
 
-No production code was deployed. Fixed means a local code change with the stated regression evidence, not a production repair.
+This audit did not push or deploy code. Concurrent owner changes and commits were preserved. Fixed means a local code change with the stated regression evidence, not a production repair.
 
 ## B01: High — Fixed locally
 
@@ -68,6 +68,18 @@ Evidence: scripts/audit-procurement-ui.mjs and accessibility snapshot.
 RA claims are limited by contract quantities and certification, without a mandatory delivered-challan link. Confirm whether measured work may be billed independently of delivery. No eligibility rule was silently changed.
 
 Evidence: src/modules/sales/ra-bill.ts and running-bill service tests.
+
+## B12: Medium — Fixed locally
+
+Dynamic filesystem storage paths caused Turbopack to trace the entire project into server output. Runtime data paths are now explicitly excluded from static tracing without changing storage behavior.
+
+Evidence: filesystem-storage.test.ts and final production build.
+
+## B13: Medium — Fixed locally
+
+Windows standalone image optimization could not load Sharp because adjacent native DLLs were omitted from tracing. The platform image-library folder is now explicitly included, with a real optimized-logo request in the standalone regression.
+
+Evidence: next.config.ts and scripts/audit-built-help.mjs.
 
 ## Test infrastructure incident
 

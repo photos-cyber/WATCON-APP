@@ -17,372 +17,398 @@ TC-0015,Functionality,local,"upload content sniffing detects allowed types from 
 TC-0016,Functionality,local,upload content sniffing sanitises file names,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0017,Security,local,roles & permissions every role exists in the catalogue defaults and no super-admin-only grant leaks,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
 TC-0018,Security,local,roles & permissions role defaults follow job functions,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0019,Database integrity,local,uses unique article identifiers and keeps manuals free of business records,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0020,Security,local,limits module instructions and role guides to the reader's grants,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0021,Functionality,local,quantity arithmetic is exact to three decimals,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0022,Functionality,local,quantity arithmetic never lets a balance go negative,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0023,Functionality,local,quantity arithmetic derives direction from the movement type,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0024,Functionality,local,movement dates rejects future dates and back-dating before the latest movement,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0025,Functionality,local,period summary summarises all time,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0026,Functionality,local,period summary carries earlier movements into the opening balance,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0027,Inventory,local,inventory validation normalises item codes and requires name and unit,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0028,Inventory,local,"inventory validation validates movements (positive quantity, mandatory adjustment reason)",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0029,Inventory,local,inventory validation treats a blank or zero opening quantity as none,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0030,Inventory,local,inventory validation formats inventory business codes,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0031,Financial accuracy,local,"payment milestones default 50/40/10 on ₹10,00,000",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0032,Financial accuracy,local,payment milestones puts the paisa remainder on the last percentage milestone so the schedule adds up exactly,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0033,Financial accuracy,local,payment milestones supports fixed-amount milestones and mixed schedules,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0034,Financial accuracy,local,"payment milestones rejects schedules that do not cover the total, or exceed it",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0035,Financial accuracy,local,payment milestones allows partial schedules when full coverage is not required,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0036,Financial accuracy,local,payment milestones every built-in template is a valid full schedule,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0037,Functionality,local,"commercial PDF layout po-single-item: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0038,Financial accuracy,local,"commercial PDF layout po-multi-item-freight-roundoff: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0039,Functionality,local,"commercial PDF layout po-60-items: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0040,Functionality,local,"commercial PDF layout po-draft-missing-optional: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0041,Functionality,local,"commercial PDF layout po-interstate-large: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0042,Functionality,local,"commercial PDF layout po-long-terms: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0043,Financial accuracy,local,"commercial PDF layout invoice-igst-bank: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0044,Financial accuracy,local,"commercial PDF layout invoice-draft-no-signature: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0045,Financial accuracy,local,"commercial PDF layout ra-bill-landscape: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0046,Inventory,local,"commercial PDF layout grn-discrepancies: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0047,Inventory,local,"commercial PDF layout challan-issue: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0048,Financial accuracy,local,"commercial PDF layout payment-voucher: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0049,Functionality,local,"commercial PDF layout credit-note-cancelled: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0050,Functionality,local,commercial PDF layout 100 lines paginate without a blank trailing page,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0051,Functionality,local,task report PDF renders landscape A4 with the shared letterhead and paginates 150 tasks,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0052,Documentation,local,PDF formatting helpers formats INR with Indian grouping,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0053,Financial accuracy,local,PDF formatting helpers amount in words includes paise and matches the figure,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0054,Documentation,local,"PDF formatting helpers marks drafts, pending, cancelled and final documents correctly",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0055,Documentation,local,PDF formatting helpers builds safe file names from the real document number,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0056,Documentation,local,PDF formatting helpers splits one-clause-per-line terms into numbered items,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0057,Functionality,local,can() super admin always passes,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0058,Security,local,"can() super-admin-only permissions are never granted to other roles, even if stored",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0059,Security,local,can() default grants match the role matrix,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0060,Security,local,can() no default grant includes a super-admin-only permission,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0061,Security,local,scopes users only see tasks assigned to or owned by them,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0062,Security,local,scopes admins see their project scope; view_all widens to the organization,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0063,Security,local,scopes without tasks.manage nothing is manageable,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0064,Security,local,scopes admins may only manage non-administrator accounts,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0065,Functionality,local,applyTaskTransition completing forces 100% and sets completedAt,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0066,Functionality,local,applyTaskTransition reaching 100% auto-completes,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0067,Functionality,local,applyTaskTransition raising progress on a To Do task starts it,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0068,Functionality,local,applyTaskTransition rejects an explicit To Do with progress,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0069,Functionality,local,applyTaskTransition reopening requires progress below 100,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0070,Functionality,local,applyTaskTransition blocked/cancelled tasks cannot reach 100% without a status change,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0071,Functionality,local,applyTaskTransition validates progress bounds,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0072,Security,local,applyTaskTransition keeps the original completion time when already completed,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0073,Functionality,local,completionRate excludes cancelled tasks from the denominator,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0074,Functionality,local,overdue only open tasks with a past due date are overdue,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0075,Functionality,local,overdue uses the business time zone for 'today',Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0076,Security,local,upload origin accepts same-host http and https only,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0077,Security,local,"upload origin rejects missing, null and malformed origins without throwing",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0078,Functionality,local,business codes formats with zero padding and grows past the width,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0079,Functionality,local,project validation accepts minimal input and defaults optional fields,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0080,Functionality,local,"project validation requires name, address and description; rejects bad dates and ordering",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0081,Functionality,local,task validation owner must be an assignee,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0082,Database integrity,local,task validation due date cannot precede start date; progress within 0-100; no duplicates,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0083,Functionality,local,task validation list query ignores junk values instead of failing,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0084,Security,local,member & password validation enforces password policy,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0085,Security,local,member & password validation normalises email/username and limits roles,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0086,Security,local,task filters always starts with the visibility scope and AND-s every filter,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0087,UI/UX,local,task filters sorts multi-value columns by maintained keys with nulls last and a stable tie-breaker,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0088,Functionality,local,whatsapp normalises numbers,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0089,Functionality,local,whatsapp builds wa.me links with encoded text,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0090,Functionality,local,whatsapp caps message length and points to the PDF,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
-TC-0091,Database integrity,local,"projects: edit & archive persists edits, enforces who may edit, and archives without deleting",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0092,Functionality,local,"departments: edit renames a department, sets a head (auto-membership) and rejects non-managers",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0093,UI/UX,local,tasks: server-side pagination returns disjoint pages with a correct total,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0094,Functionality,local,health probe reports ok when the database answers,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0095,Security,local,login logs in with email or username and creates a hashed session,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0096,Security,local,login returns the same generic error for unknown accounts and wrong passwords (no enumeration),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0097,Functionality,local,login blocks deactivated accounts,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0098,Functionality,local,"login locks an account out for the attacking IP only, so an attacker cannot lock the real user out",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0099,Functionality,local,login caps distributed guessing across IPs per account,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0100,Functionality,local,login parallel login bursts cannot exceed the per-account+IP limit,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0101,Security,local,"sessions rejects expired sessions and sessions of deactivated users, and logout revokes",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0102,Security,local,sessions enforces the absolute session lifetime,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0103,Security,local,password reset & change does not reveal whether an email exists and issues a single-use token,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0104,Security,local,password reset & change resets the password once and revokes sessions,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0105,Security,local,password reset & change a self-service request cannot cancel an admin-issued link; requests are capped per email,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0106,Security,local,password reset & change throttles wrong current-password guesses,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0107,Security,local,password reset & change change password requires the current password,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0108,Inventory,local,"ABC Hotel: partial supplier receipts, bill, deliveries, certified RA, invoice and two-sided settlement reconcile",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0109,Security,local,hides restricted commercial filenames and totals in both document browsers,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0110,Inventory,local,location-aware stock engine keeps per-location balances and the company total consistent,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0111,Inventory,local,location-aware stock engine refuses to take more than a location holds even if the company total is enough,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0112,Inventory,local,location-aware stock engine manual Phase 2 movements still default to the Central Warehouse,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0113,Inventory,local,location-aware stock engine site consumption is idempotent and attributed to the project,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0114,Inventory,local,location-aware stock engine an engineer outside the project cannot record consumption there,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0115,Inventory,local,location-aware stock engine reversals post an opposite entry once and never edit history,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0116,Inventory,local,reservations protects reserved stock from other projects and is consumed by the owning project,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0117,Inventory,local,"reservations cannot over-promise, even with two concurrent reservations",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0118,Inventory,local,reservations released reservations free the stock,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0119,Functionality,local,"attachments stores, lists and serves files with integrity metadata",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0120,Functionality,local,"attachments denies people who cannot see the project (404, not 403)",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0121,Functionality,local,attachments rejects disguised executables and oversized files,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0122,Functionality,local,"attachments keeps versions, enforces separation of duties on verification, retains verified evidence",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0123,Financial accuracy,local,"parties, numbering and approvals prevents case-insensitive duplicate names and duplicate GSTINs",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0124,Database integrity,local,"parties, numbering and approvals allocates unique FY numbers under concurrency",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0125,Functionality,local,"parties, numbering and approvals separation of duties and approval limits",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0126,Financial accuracy,local,project workspace & insights computes project financial KPIs from approved documents,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0127,Functionality,local,project workspace & insights never shows another project's records,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0128,Functionality,local,project workspace & insights approvals inbox separates own documents from actionable ones,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0129,UI/UX,local,"project workspace & insights lists, filters and counts project documents and guides the order flow",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0130,Functionality,local,project workspace & insights exports CSV safely,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0131,Database integrity,local,items master creates items with generated or manual codes and rejects duplicate codes,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0132,UI/UX,local,"items master edits, deactivates, searches and filters items",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0133,Database integrity,local,brands master creates brands with unique (case-insensitive) names and edits them,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0134,Database integrity,local,brands master associates multiple brands with an item and blocks duplicate links,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0135,Inventory,local,brand-wise stock keeps each item–brand balance independent,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0136,Inventory,local,"brand-wise stock calculates opening, inward, outward and closing (all-time and by period)",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0137,Inventory,local,brand-wise stock prevents negative stock for outward and adjustments,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0138,Inventory,local,brand-wise stock requires a reason for adjustments and records them in the audit log,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0139,Inventory,local,brand-wise stock rejects future dates and back-dating before the latest movement,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0140,Inventory,local,brand-wise stock blocks posting and linking for inactive items or brands,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0141,Inventory,local,brand-wise stock only removes brand links that have no stock history,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0142,Database integrity,local,duplicate posting & concurrency posts a retried submission only once,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0143,Database integrity,local,duplicate posting & concurrency posts concurrent identical submissions only once,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0144,Inventory,local,duplicate posting & concurrency never oversells under concurrent outward postings,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0145,Database integrity,local,duplicate posting & concurrency serialises concurrent inward and outward on one position,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0146,Security,local,permissions lets ADMIN manage and post but not adjust; USER has no inventory access,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0147,Security,local,permissions isolates organizations,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0148,Security,local,permissions grants new permissions' defaults to existing roles without undoing customisations,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0149,Database integrity,local,"departments & members creates members in multiple departments with one primary, prevents duplicates",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0150,Security,local,departments & members enforces role boundaries,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0151,Security,local,departments & members deactivation revokes sessions; reset links are admin-only,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0152,Functionality,local,departments & members an admin cannot change a super admin's department memberships,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0153,Functionality,local,departments & members changing a member's email invalidates outstanding reset links,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0154,Security,local,departments & members super-admin-only permissions can never be granted to other roles,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0155,Security,local,"reports only includes tasks the requester may see, and enforces report permissions",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0156,Financial accuracy,local,supplier bills computes GST and TDS server-side and derives the project from the PO,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0157,Financial accuracy,local,supplier bills requires a project for bills without a purchase order,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0158,Financial accuracy,local,"supplier bills rejects a duplicate supplier invoice number (normalised), but allows it again once the first is cancelled",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0159,Financial accuracy,local,supplier bills 3-way match: billing more than was received is an exception that needs an override with a reason,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0160,Financial accuracy,local,supplier bills flags rate variance and GSTIN mismatch in plain words,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0161,Security,local,supplier bills enforces separation of duties and approval permission,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0162,Financial accuracy,local,supplier bills two bills approved at the same time can never bill more than was received,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0163,Financial accuracy,local,supplier bills 2-way match bills against the ordered quantity before anything is received,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0164,Financial accuracy,local,"payments, advances and notes partial payments move the bill to partially paid, then paid; overpayment is refused",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0165,Financial accuracy,local,"payments, advances and notes records an advance and allocates it to a bill later; cannot allocate more than is unallocated",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0166,Financial accuracy,local,"payments, advances and notes a payment belongs to one project and can only settle that project's bills",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0167,Inventory,local,"payments, advances and notes concurrent allocations to the same bill can never exceed what is outstanding",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0168,Inventory,local,"payments, advances and notes is idempotent on double submit, and cancelling a payment reverses its allocations",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0169,Inventory,local,"payments, advances and notes reversing one allocation frees the amount back to the payment as an advance",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0170,Financial accuracy,local,"payments, advances and notes an approved credit note reduces what is outstanding; cancelling it restores the amount",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0171,Inventory,local,"payments, advances and notes client receipts with TDS settle issued invoices and the linked running bill",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0172,Financial accuracy,local,purchase orders computes GST server-side and enforces separation of duties on approval,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0173,Financial accuracy,local,purchase orders uses IGST for an inter-state supplier,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0174,Inventory,local,purchase orders blocks receipts against unapproved orders (unless the exception is switched on),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0175,Inventory,local,"site receipts (GRN) and stock posting partial deliveries, multiple GRNs, stock lands at the SITE only on posting, rejected never enters stock",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0176,Inventory,local,site receipts (GRN) and stock posting two people receiving the same PO at once cannot exceed the ordered quantity,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0177,Inventory,local,site receipts (GRN) and stock posting posting the same receipt twice (double click / two verifiers) posts once,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0178,Inventory,local,site receipts (GRN) and stock posting a repeated save from a phone returns the same receipt,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0179,Inventory,local,site receipts (GRN) and stock posting the receiver cannot verify their own receipt; outsiders cannot record receipts for the project,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0180,Inventory,local,"site receipts (GRN) and stock posting reverses a posted receipt, but not once the stock has been consumed",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0181,Functionality,local,"PO amendments, cancellation and closure an approved PO is amended (snapshot + re-approval), never edited in place; received quantities are protected",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0182,Functionality,local,"PO amendments, cancellation and closure a partially received PO cannot be cancelled, but can be short-closed (releasing the requisition)",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0183,Inventory,local,transfers & challans dispatch puts stock in transit; partial receipt; discrepancy write-off; nothing counted twice,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0184,Inventory,local,transfers & challans return to store: site → transit → warehouse receipt posts back into the warehouse,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0185,Functionality,local,material planning → requisition → RFQ → award → POs avoids double ordering and drives the full sourcing workflow,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0186,Inventory,local,"rejects unrelated brands, locations and requisitions on an enquiry",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0187,Functionality,local,"every procurement document belongs to one project requisitions, enquiries and purchase orders cannot be saved without a project",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0188,Functionality,local,every procurement document belongs to one project a PO delivers to its project's site store by default,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0189,Inventory,local,challan rules client deliveries require the project's approved sales order,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0190,Inventory,local,challan rules a supplier return against a PO is linked to the PO line automatically and cannot exceed what was accepted,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0191,Functionality,local,"client quotations prices server-side, splits the 50/40/10 schedule to the paisa and rejects incomplete schedules",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0192,Functionality,local,"client quotations client acceptance needs the emailed one-time code; email failure is reported, not faked",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0193,Database integrity,local,client quotations revision keeps the previous version; only approved / sent quotations can be accepted by staff,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0194,Financial accuracy,local,quotation → sales order → milestone billing converts idempotently and bills milestones without double billing,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0195,Functionality,local,quotation & proforma PDFs render from real records on the WATCON layout,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0196,Security,local,client POs approves with separation of duties and keeps the original value; amendments snapshot a revision,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0197,Functionality,local,client POs enforces separation of duties for an approver who submitted,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0198,Functionality,local,client POs sales orders cannot exceed what is left on the client PO,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0199,Financial accuracy,local,"running bills prevents over-billing, including two bills raced at once",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0200,Financial accuracy,local,"running bills certification ≤ claimed, retention and capped advance recovery, then one invoice only",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0201,Functionality,local,"sales orders drive the project is locked once approved; amendment requests need another Super Admin; approval applies, syncs requirements",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0202,Functionality,local,sales orders drive the project rejection leaves the order unchanged; reducing below delivered is refused at approval,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0203,Functionality,local,sales orders drive the project project progress follows sales-order delivery and status moves Planning → Active → Completed,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0204,Documentation,local,sales orders drive the project manual On hold is never overridden by automation,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0205,Financial accuracy,local,sales orders drive the project uses IGST for an inter-state client,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0206,Financial accuracy,local,sales orders drive the project refuses to invoice a client with no state (place of supply),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0207,Financial accuracy,local,sales orders drive the project the person who drafted an invoice cannot issue it; another approver can,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0208,Functionality,local,sales orders drive the project cancelling an approved order cancels its requirement (never deletes it),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0209,Functionality,local,"task creation & multi-assignment creates ONE task visible to every assignee, both departments, the project and the global register",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0210,Security,local,"task creation & multi-assignment validates owner ∈ assignees, dates, active departments/members and project access",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0211,Functionality,local,task creation & multi-assignment keeps task history when a department is deactivated,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0212,Security,local,authorization (IDOR) a user cannot see or update a task they are not assigned to,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0213,Security,local,"authorization (IDOR) assignees cannot edit, reassign or cancel tasks",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0214,Functionality,local,status & progress assignee updates progress; admin sees it; activity is recorded,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0215,Database integrity,local,status & progress detects concurrent updates with optimistic versioning,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0216,Functionality,local,"status & progress records edit, reassignment, department and due-date changes",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0217,Functionality,local,status & progress adds comments visible to the team,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0218,UI/UX,local,combined filters & sorting combines project + department + member + status + due range + overdue,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0219,Database integrity,local,projects generates unique codes under concurrency and keeps status history append-only,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0220,Security,local,projects dashboard metrics are scoped per user,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
-TC-0221,Security,local,includes every accessible project in accounts rather than silently truncating at 1000,Named assertions must pass,passed,Assertions passed,evidence/accounts-completeness.json
-TC-0222,Financial accuracy,local,Delivered-challan eligibility enforced for every RA claim,Named assertions must pass,failed,"RA uses contract-quantity ceilings and certification, without mandatory delivery-challan linkage; business-owner decision required",src/modules/sales/ra-bill.ts buildLines and running-bill service tests
-TC-0223,Functionality,local,1-2. Super Admin logs in and creates an Admin,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0224,Functionality,local,3. invalid department and duplicate names are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0225,Functionality,local,4. creates team members with multiple departments,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0226,Functionality,local,5-6. creates a project (validation first) and posts status paragraphs,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0227,Functionality,local,7-9. creates a task from the project page with multiple departments and members,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0228,Functionality,local,"10-12. assigned user logs in, sees the task and updates progress",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0229,Functionality,local,"13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0230,Functionality,local,18b. inactive accounts cannot sign in; expired/forged sessions are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0231,Functionality,local,concurrent updates: a stale form is rejected instead of overwriting,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-retest.json
-TC-0232,UI/UX,local,Desktop Dashboard opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0233,UI/UX,local,Desktop Projects opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0234,UI/UX,local,Desktop Tasks opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0235,UI/UX,local,Desktop Departments opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0236,UI/UX,local,Desktop Team Members opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0237,UI/UX,local,Desktop Items opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0238,UI/UX,local,Desktop Brands opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0239,UI/UX,local,Desktop Suppliers opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0240,UI/UX,local,Desktop Clients opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0241,UI/UX,local,Desktop Material Planning opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0242,UI/UX,local,Desktop Requisitions opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0243,UI/UX,local,Desktop Rate Enquiries opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0244,UI/UX,local,Desktop Purchase Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0245,Inventory,local,Desktop Site receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0246,Inventory,local,Desktop Inventory opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0247,Financial accuracy,local,Desktop Supplier Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0248,UI/UX,local,Desktop Quotations opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0249,UI/UX,local,Desktop Client POs opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0250,UI/UX,local,Desktop Sales Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0251,Inventory,local,Desktop Challans opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0252,Financial accuracy,local,Desktop Running Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0253,Financial accuracy,local,Desktop Client Invoices opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0254,Inventory,local,Desktop Payments & Receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0255,UI/UX,local,Desktop Credit / Debit Notes opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0256,UI/UX,local,Desktop Project Accounts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0257,UI/UX,local,Desktop Reports opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0258,UI/UX,local,Desktop Documents opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0259,UI/UX,local,Desktop Approvals opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0260,UI/UX,local,Desktop Administration opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0261,UI/UX,local,Mobile /projects/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0262,UI/UX,local,Mobile /purchase-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0263,UI/UX,local,Mobile /sales-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0264,Financial accuracy,local,Mobile /supplier-bills/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0265,Financial accuracy,local,Mobile /payments/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0266,UI/UX,local,Help search finds troubleshooting,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0267,Security,local,Authenticated pdf manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0268,Security,local,Authenticated quick manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0269,Security,local,Authenticated docx manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
-TC-0270,Security,local,SUPER_ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0271,Security,local,ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0272,Security,local,USER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0273,Security,local,PROJECT_MANAGER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0274,Security,local,SITE_ENGINEER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0275,Security,local,PURCHASE supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0276,Security,local,STOREKEEPER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0277,Security,local,ACCOUNTS supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0278,Security,local,VIEWER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0279,Functionality,local,Local normal logout,Named assertions must pass,passed,passed,evidence/local-ui-results.json
-TC-0280,Security,local,Signed-out manual access blocked,Named assertions must pass,passed,HTTP 401,evidence/local-ui-results.json
-TC-0281,Functionality,local,UI procurement: create fictional project,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0282,Functionality,local,UI procurement: create purchase order,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0283,Functionality,local,UI procurement: submit and approve PO,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0284,Functionality,local,UI procurement: enter and submit actual receipt,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0285,Functionality,local,UI procurement: verify receipt and post stock,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0286,Functionality,local,UI procurement: record and approve supplier bill,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0287,Functionality,local,"UI procurement: reconcile persisted PO, GRN, stock and bill",Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0288,Functionality,local,UI procurement: allocate supplier payment,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0289,Functionality,local,UI procurement: sign in,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0290,Functionality,local,UI sales: create and approve sales order,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0291,Functionality,local,UI sales: dispatch client-delivery challan,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0292,Functionality,local,UI sales: create and issue client invoice,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0293,Functionality,local,UI sales: receive and allocate client payment,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0294,Functionality,local,UI sales: verify persisted settlements and delivered stock,Named assertions must pass,passed,passed,evidence/procurement-ui.json
-TC-0295,Functionality,production,Production read-only GET /projects,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0296,Functionality,production,Production read-only GET /tasks,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0297,Functionality,production,Production read-only GET /departments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0298,Functionality,production,Production read-only GET /team-members,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0299,Functionality,production,Production read-only GET /items,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0300,Functionality,production,Production read-only GET /brands,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0301,Functionality,production,Production read-only GET /parties?type=supplier,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0302,Functionality,production,Production read-only GET /parties?type=client,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0303,Functionality,production,Production read-only GET /rate-enquiries,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0304,Functionality,production,Production read-only GET /purchase-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0305,Functionality,production,Production read-only GET /client-pos,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0306,Functionality,production,Production read-only GET /sales-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0307,Functionality,production,Production read-only GET /stock,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0308,Functionality,production,Production read-only GET /site-receipts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0309,Functionality,production,Production read-only GET /supplier-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0310,Functionality,production,Production read-only GET /challans,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0311,Functionality,production,Production read-only GET /running-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0312,Functionality,production,Production read-only GET /client-invoices,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0313,Functionality,production,Production read-only GET /payments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0314,Functionality,production,Production read-only GET /accounts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0315,Functionality,production,Production read-only GET /reports,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0316,Functionality,production,Production read-only GET /documents,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0317,Functionality,production,Production read-only GET /approvals,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0318,Functionality,production,Production read-only GET /material-planning,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0319,Functionality,production,Production read-only GET /purchase-requisitions,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0320,Functionality,production,Production read-only GET /quotations,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0321,Functionality,production,Production read-only GET /notes,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0322,Functionality,production,Production read-only GET /settings,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
-TC-0323,Security,production,Production signed-out API /api/attachments/00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0324,Security,production,Production signed-out API /api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0325,Security,production,Production signed-out API /api/reports/pdf,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0326,Security,production,Production signed-out API /api/reports/csv/accounts,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
-TC-0327,UI/UX,production,Production viewport live-mobile-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-mobile-po-geometry.json
-TC-0328,UI/UX,production,Production viewport live-tablet-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-tablet-po-geometry.json
-TC-0329,UI/UX,production,Production viewport live-sales-form-desktop.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-sales-form-desktop.json
-TC-0330,Security,production,Production normal Super Admin sign-in and sign-out,Named assertions must pass,passed,passed,Live browser observed login → dashboard and account menu → Sign out → login
-TC-0331,Documentation,local,PDF page bounds challan-issue.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0332,Documentation,local,PDF page bounds credit-note-cancelled.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0333,Documentation,local,PDF page bounds grn-discrepancies.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0334,Documentation,local,PDF page bounds invoice-draft-no-signature.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0335,Documentation,local,PDF page bounds invoice-igst-bank.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0336,Documentation,local,PDF page bounds payment-voucher.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0337,Documentation,local,PDF page bounds po-100-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0338,Documentation,local,PDF page bounds po-60-items.pdf,Named assertions must pass,passed,3 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0339,Documentation,local,PDF page bounds po-99-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0340,Documentation,local,PDF page bounds po-draft-missing-optional.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0341,Documentation,local,PDF page bounds po-interstate-large.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0342,Documentation,local,PDF page bounds po-long-terms.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0343,Documentation,local,PDF page bounds po-multi-item-freight-roundoff.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0344,Documentation,local,PDF page bounds po-single-item.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0345,Documentation,local,PDF page bounds ra-bill-landscape.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0346,Documentation,local,PDF page bounds task-report.pdf,Named assertions must pass,passed,8 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0347,Documentation,local,PDF page bounds client_invoice.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0348,Documentation,local,PDF page bounds client_po.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0349,Documentation,local,PDF page bounds purchase_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0350,Documentation,local,PDF page bounds ra_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0351,Documentation,local,PDF page bounds sales_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0352,Documentation,local,PDF page bounds supplier_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0353,Documentation,local,PDF page bounds QUICK_START_GUIDE.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0354,Documentation,local,PDF page bounds WATCON_USER_GUIDE.pdf,Named assertions must pass,passed,78 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
-TC-0355,Security,local,Production login and direct access for all non-Super-Admin roles,Named assertions must pass,blocked,Only production Super Admin credentials supplied; all nine roles tested locally on one representative page,Owner follow-up required
-TC-0356,Financial accuracy,local,Production dashboard totals against source database,Named assertions must pass,blocked,No authorized production DB read-only connection or reconciled ledger export supplied,Owner follow-up required
-TC-0357,Inventory,local,Production inventory balances against stock ledger,Named assertions must pass,blocked,No production read-only ledger export or DB access supplied,Owner follow-up required
-TC-0358,Database integrity,local,Backup restore and recovery drill,Named assertions must pass,blocked,No backup artifact or isolated managed restore target supplied,Owner follow-up required
-TC-0359,Security,local,SMTP delivery and password-reset mailbox round trip,Named assertions must pass,blocked,No test mailbox or SMTP delivery evidence supplied; reset-token services tested locally,Owner follow-up required
-TC-0360,Performance,local,Production server logs and deployment revision matching,Named assertions must pass,blocked,No Vercel logs or deployment source revision access supplied,Owner follow-up required
-TC-0361,Functionality,local,Live external supplier and client acceptance email delivery,Named assertions must pass,blocked,No isolated external-party accounts supplied,Owner follow-up required
-TC-0362,Functionality,local,All commercial CRUD workflows through UI,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0363,Security,local,All commercial API authorization combinations for every role,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0364,Financial accuracy,local,Statutory GST return and e-invoice validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0365,Financial accuracy,local,Full labour and overhead profitability,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0366,Documentation,local,Every PDF builder with long tables and long fields,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0367,UI/UX,local,Cross-browser Firefox and WebKit workflows,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0368,UI/UX,local,Real iOS and Android device testing,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0369,UI/UX,local,Screen-reader and keyboard accessibility of every form,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0370,Performance,local,Load test with simultaneous HTTP users and large data,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0371,Performance,local,5000-record performance benchmark in this audit,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0372,Database integrity,local,Network interruption during every save and upload,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0373,Functionality,local,WhatsApp recipient handoff and PDF attachment on real device,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0374,Security,local,Malware scanning and XLSX container validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0375,Functionality,local,Full project closure with expenses and all reversal branches,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
-TC-0376,Documentation,local,Word manual render and visual layout check,Named assertions must pass,blocked,"Word automation renderer could not complete; OOXML file generated, PDF manual separately verified",evidence/word-render.txt
-TC-0377,Security,local,Dependency advisory @prisma/client,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0378,Security,local,Dependency advisory @prisma/config,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0379,Security,local,Dependency advisory @ts-morph/common,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0380,Security,local,Dependency advisory effect,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0381,Security,local,Dependency advisory minimatch,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0382,Security,local,Dependency advisory prisma,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
-TC-0383,Security,local,Dependency advisory shadcn,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0384,Security,local,Dependency advisory ts-morph,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
-TC-0385,Functionality,local,TypeScript,Named assertions must pass,passed,Recorded tool output,evidence/typecheck-final.txt
-TC-0386,Functionality,local,ESLint,Named assertions must pass,passed,Recorded tool output,evidence/lint-final.txt
-TC-0387,Functionality,local,Production build,Named assertions must pass,passed,Recorded tool output,evidence/build-final.txt
+TC-0019,Functionality,local,keeps runtime filesystem uploads readable without bundling the user-data volume,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0020,Database integrity,local,uses unique article identifiers and keeps manuals free of business records,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0021,Security,local,limits module instructions and role guides to the reader's grants,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0022,Functionality,local,quantity arithmetic is exact to three decimals,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0023,Functionality,local,quantity arithmetic never lets a balance go negative,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0024,Functionality,local,quantity arithmetic derives direction from the movement type,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0025,Functionality,local,movement dates rejects future dates and back-dating before the latest movement,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0026,Functionality,local,period summary summarises all time,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0027,Functionality,local,period summary carries earlier movements into the opening balance,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0028,Inventory,local,inventory validation normalises item codes and requires name and unit,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0029,Inventory,local,"inventory validation validates movements (positive quantity, mandatory adjustment reason)",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0030,Inventory,local,inventory validation treats a blank or zero opening quantity as none,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0031,Inventory,local,inventory validation formats inventory business codes,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0032,Financial accuracy,local,"payment milestones default 50/40/10 on ₹10,00,000",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0033,Financial accuracy,local,payment milestones puts the paisa remainder on the last percentage milestone so the schedule adds up exactly,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0034,Financial accuracy,local,payment milestones supports fixed-amount milestones and mixed schedules,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0035,Financial accuracy,local,"payment milestones rejects schedules that do not cover the total, or exceed it",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0036,Financial accuracy,local,payment milestones allows partial schedules when full coverage is not required,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0037,Financial accuracy,local,payment milestones every built-in template is a valid full schedule,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0038,Functionality,local,"commercial PDF layout po-single-item: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0039,Financial accuracy,local,"commercial PDF layout po-multi-item-freight-roundoff: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0040,Functionality,local,"commercial PDF layout po-60-items: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0041,Functionality,local,"commercial PDF layout po-draft-missing-optional: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0042,Functionality,local,"commercial PDF layout po-interstate-large: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0043,Functionality,local,"commercial PDF layout po-long-terms: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0044,Financial accuracy,local,"commercial PDF layout invoice-igst-bank: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0045,Financial accuracy,local,"commercial PDF layout invoice-draft-no-signature: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0046,Financial accuracy,local,"commercial PDF layout ra-bill-landscape: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0047,Inventory,local,"commercial PDF layout grn-discrepancies: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0048,Inventory,local,"commercial PDF layout challan-issue: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0049,Financial accuracy,local,"commercial PDF layout payment-voucher: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0050,Functionality,local,"commercial PDF layout credit-note-cancelled: A4, expected page count",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0051,Functionality,local,commercial PDF layout 100 lines paginate without a blank trailing page,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0052,Functionality,local,task report PDF renders landscape A4 with the shared letterhead and paginates 150 tasks,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0053,Documentation,local,PDF formatting helpers formats INR with Indian grouping,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0054,Financial accuracy,local,PDF formatting helpers amount in words includes paise and matches the figure,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0055,Documentation,local,"PDF formatting helpers marks drafts, pending, cancelled and final documents correctly",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0056,Documentation,local,PDF formatting helpers builds safe file names from the real document number,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0057,Documentation,local,PDF formatting helpers splits one-clause-per-line terms into numbered items,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0058,Functionality,local,can() super admin always passes,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0059,Security,local,"can() super-admin-only permissions are never granted to other roles, even if stored",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0060,Security,local,can() default grants match the role matrix,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0061,Security,local,can() no default grant includes a super-admin-only permission,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0062,Security,local,scopes users only see tasks assigned to or owned by them,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0063,Security,local,scopes admins see their project scope; view_all widens to the organization,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0064,Security,local,scopes without tasks.manage nothing is manageable,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0065,Security,local,scopes admins may only manage non-administrator accounts,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0066,Functionality,local,applyTaskTransition completing forces 100% and sets completedAt,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0067,Functionality,local,applyTaskTransition reaching 100% auto-completes,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0068,Functionality,local,applyTaskTransition raising progress on a To Do task starts it,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0069,Functionality,local,applyTaskTransition rejects an explicit To Do with progress,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0070,Functionality,local,applyTaskTransition reopening requires progress below 100,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0071,Functionality,local,applyTaskTransition blocked/cancelled tasks cannot reach 100% without a status change,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0072,Functionality,local,applyTaskTransition validates progress bounds,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0073,Security,local,applyTaskTransition keeps the original completion time when already completed,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0074,Functionality,local,completionRate excludes cancelled tasks from the denominator,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0075,Functionality,local,overdue only open tasks with a past due date are overdue,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0076,Functionality,local,overdue uses the business time zone for 'today',Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0077,Security,local,upload origin accepts same-host http and https only,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0078,Security,local,"upload origin rejects missing, null and malformed origins without throwing",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0079,Functionality,local,business codes formats with zero padding and grows past the width,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0080,Functionality,local,project validation accepts minimal input and defaults optional fields,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0081,Functionality,local,"project validation requires name, address and description; rejects bad dates and ordering",Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0082,Functionality,local,task validation owner must be an assignee,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0083,Database integrity,local,task validation due date cannot precede start date; progress within 0-100; no duplicates,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0084,Functionality,local,task validation list query ignores junk values instead of failing,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0085,Security,local,member & password validation enforces password policy,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0086,Security,local,member & password validation normalises email/username and limits roles,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0087,Security,local,task filters always starts with the visibility scope and AND-s every filter,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0088,UI/UX,local,task filters sorts multi-value columns by maintained keys with nulls last and a stable tie-breaker,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0089,Functionality,local,whatsapp normalises numbers,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0090,Functionality,local,whatsapp builds wa.me links with encoded text,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0091,Functionality,local,whatsapp caps message length and points to the PDF,Named assertions must pass,passed,Assertions passed,evidence/unit-final.json
+TC-0092,Database integrity,local,"projects: edit & archive persists edits, enforces who may edit, and archives without deleting",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0093,Functionality,local,"departments: edit renames a department, sets a head (auto-membership) and rejects non-managers",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0094,UI/UX,local,tasks: server-side pagination returns disjoint pages with a correct total,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0095,Functionality,local,health probe reports ok when the database answers,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0096,Security,local,login logs in with email or username and creates a hashed session,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0097,Security,local,login returns the same generic error for unknown accounts and wrong passwords (no enumeration),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0098,Functionality,local,login blocks deactivated accounts,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0099,Functionality,local,"login locks an account out for the attacking IP only, so an attacker cannot lock the real user out",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0100,Functionality,local,login caps distributed guessing across IPs per account,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0101,Functionality,local,login parallel login bursts cannot exceed the per-account+IP limit,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0102,Security,local,"sessions rejects expired sessions and sessions of deactivated users, and logout revokes",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0103,Security,local,sessions enforces the absolute session lifetime,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0104,Security,local,password reset & change does not reveal whether an email exists and issues a single-use token,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0105,Security,local,password reset & change resets the password once and revokes sessions,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0106,Security,local,password reset & change a self-service request cannot cancel an admin-issued link; requests are capped per email,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0107,Security,local,password reset & change throttles wrong current-password guesses,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0108,Security,local,password reset & change change password requires the current password,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0109,Inventory,local,"ABC Hotel: partial supplier receipts, bill, deliveries, certified RA, invoice and two-sided settlement reconcile",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0110,Security,local,hides restricted commercial filenames and totals in both document browsers,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0111,Inventory,local,location-aware stock engine keeps per-location balances and the company total consistent,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0112,Inventory,local,location-aware stock engine refuses to take more than a location holds even if the company total is enough,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0113,Inventory,local,location-aware stock engine manual Phase 2 movements still default to the Central Warehouse,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0114,Inventory,local,location-aware stock engine site consumption is idempotent and attributed to the project,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0115,Inventory,local,location-aware stock engine an engineer outside the project cannot record consumption there,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0116,Inventory,local,location-aware stock engine reversals post an opposite entry once and never edit history,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0117,Inventory,local,reservations protects reserved stock from other projects and is consumed by the owning project,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0118,Inventory,local,"reservations cannot over-promise, even with two concurrent reservations",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0119,Inventory,local,reservations released reservations free the stock,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0120,Functionality,local,"attachments stores, lists and serves files with integrity metadata",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0121,Functionality,local,"attachments denies people who cannot see the project (404, not 403)",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0122,Functionality,local,attachments rejects disguised executables and oversized files,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0123,Functionality,local,"attachments keeps versions, enforces separation of duties on verification, retains verified evidence",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0124,Financial accuracy,local,"parties, numbering and approvals prevents case-insensitive duplicate names and duplicate GSTINs",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0125,Database integrity,local,"parties, numbering and approvals allocates unique FY numbers under concurrency",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0126,Functionality,local,"parties, numbering and approvals separation of duties and approval limits",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0127,Financial accuracy,local,project workspace & insights computes project financial KPIs from approved documents,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0128,Functionality,local,project workspace & insights never shows another project's records,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0129,Functionality,local,project workspace & insights approvals inbox separates own documents from actionable ones,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0130,UI/UX,local,"project workspace & insights lists, filters and counts project documents and guides the order flow",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0131,Functionality,local,project workspace & insights exports CSV safely,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0132,Database integrity,local,items master creates items with generated or manual codes and rejects duplicate codes,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0133,UI/UX,local,"items master edits, deactivates, searches and filters items",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0134,Database integrity,local,brands master creates brands with unique (case-insensitive) names and edits them,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0135,Database integrity,local,brands master associates multiple brands with an item and blocks duplicate links,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0136,Inventory,local,brand-wise stock keeps each item–brand balance independent,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0137,Inventory,local,"brand-wise stock calculates opening, inward, outward and closing (all-time and by period)",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0138,Inventory,local,brand-wise stock prevents negative stock for outward and adjustments,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0139,Inventory,local,brand-wise stock requires a reason for adjustments and records them in the audit log,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0140,Inventory,local,brand-wise stock rejects future dates and back-dating before the latest movement,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0141,Inventory,local,brand-wise stock blocks posting and linking for inactive items or brands,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0142,Inventory,local,brand-wise stock only removes brand links that have no stock history,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0143,Database integrity,local,duplicate posting & concurrency posts a retried submission only once,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0144,Database integrity,local,duplicate posting & concurrency posts concurrent identical submissions only once,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0145,Inventory,local,duplicate posting & concurrency never oversells under concurrent outward postings,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0146,Database integrity,local,duplicate posting & concurrency serialises concurrent inward and outward on one position,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0147,Security,local,permissions lets ADMIN manage and post but not adjust; USER has no inventory access,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0148,Security,local,permissions isolates organizations,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0149,Security,local,permissions grants new permissions' defaults to existing roles without undoing customisations,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0150,Database integrity,local,"departments & members creates members in multiple departments with one primary, prevents duplicates",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0151,Security,local,departments & members enforces role boundaries,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0152,Security,local,departments & members deactivation revokes sessions; reset links are admin-only,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0153,Functionality,local,departments & members an admin cannot change a super admin's department memberships,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0154,Functionality,local,departments & members changing a member's email invalidates outstanding reset links,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0155,Security,local,departments & members super-admin-only permissions can never be granted to other roles,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0156,Security,local,"reports only includes tasks the requester may see, and enforces report permissions",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0157,Financial accuracy,local,supplier bills computes GST and TDS server-side and derives the project from the PO,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0158,Financial accuracy,local,supplier bills requires a project for bills without a purchase order,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0159,Financial accuracy,local,"supplier bills rejects a duplicate supplier invoice number (normalised), but allows it again once the first is cancelled",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0160,Financial accuracy,local,supplier bills 3-way match: billing more than was received is an exception that needs an override with a reason,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0161,Financial accuracy,local,supplier bills flags rate variance and GSTIN mismatch in plain words,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0162,Security,local,supplier bills enforces separation of duties and approval permission,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0163,Financial accuracy,local,supplier bills two bills approved at the same time can never bill more than was received,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0164,Financial accuracy,local,supplier bills 2-way match bills against the ordered quantity before anything is received,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0165,Financial accuracy,local,"payments, advances and notes partial payments move the bill to partially paid, then paid; overpayment is refused",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0166,Financial accuracy,local,"payments, advances and notes records an advance and allocates it to a bill later; cannot allocate more than is unallocated",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0167,Financial accuracy,local,"payments, advances and notes a payment belongs to one project and can only settle that project's bills",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0168,Inventory,local,"payments, advances and notes concurrent allocations to the same bill can never exceed what is outstanding",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0169,Inventory,local,"payments, advances and notes is idempotent on double submit, and cancelling a payment reverses its allocations",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0170,Inventory,local,"payments, advances and notes reversing one allocation frees the amount back to the payment as an advance",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0171,Financial accuracy,local,"payments, advances and notes an approved credit note reduces what is outstanding; cancelling it restores the amount",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0172,Inventory,local,"payments, advances and notes client receipts with TDS settle issued invoices and the linked running bill",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0173,Financial accuracy,local,purchase orders computes GST server-side and enforces separation of duties on approval,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0174,Financial accuracy,local,purchase orders uses IGST for an inter-state supplier,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0175,Inventory,local,purchase orders blocks receipts against unapproved orders (unless the exception is switched on),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0176,Inventory,local,"site receipts (GRN) and stock posting partial deliveries, multiple GRNs, stock lands at the SITE only on posting, rejected never enters stock",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0177,Inventory,local,site receipts (GRN) and stock posting two people receiving the same PO at once cannot exceed the ordered quantity,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0178,Inventory,local,site receipts (GRN) and stock posting posting the same receipt twice (double click / two verifiers) posts once,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0179,Inventory,local,site receipts (GRN) and stock posting a repeated save from a phone returns the same receipt,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0180,Inventory,local,site receipts (GRN) and stock posting the receiver cannot verify their own receipt; outsiders cannot record receipts for the project,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0181,Inventory,local,"site receipts (GRN) and stock posting reverses a posted receipt, but not once the stock has been consumed",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0182,Functionality,local,"PO amendments, cancellation and closure an approved PO is amended (snapshot + re-approval), never edited in place; received quantities are protected",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0183,Functionality,local,"PO amendments, cancellation and closure a partially received PO cannot be cancelled, but can be short-closed (releasing the requisition)",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0184,Inventory,local,transfers & challans dispatch puts stock in transit; partial receipt; discrepancy write-off; nothing counted twice,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0185,Inventory,local,transfers & challans return to store: site → transit → warehouse receipt posts back into the warehouse,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0186,Functionality,local,material planning → requisition → RFQ → award → POs avoids double ordering and drives the full sourcing workflow,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0187,Inventory,local,"rejects unrelated brands, locations and requisitions on an enquiry",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0188,Functionality,local,"every procurement document belongs to one project requisitions, enquiries and purchase orders cannot be saved without a project",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0189,Functionality,local,every procurement document belongs to one project a PO delivers to its project's site store by default,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0190,Inventory,local,challan rules client deliveries require the project's approved sales order,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0191,Inventory,local,challan rules a supplier return against a PO is linked to the PO line automatically and cannot exceed what was accepted,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0192,Functionality,local,"client quotations prices server-side, splits the 50/40/10 schedule to the paisa and rejects incomplete schedules",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0193,Functionality,local,"client quotations client acceptance needs the emailed one-time code; email failure is reported, not faked",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0194,Database integrity,local,client quotations revision keeps the previous version; only approved / sent quotations can be accepted by staff,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0195,Financial accuracy,local,quotation → sales order → milestone billing converts idempotently and bills milestones without double billing,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0196,Functionality,local,quotation & proforma PDFs render from real records on the WATCON layout,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0197,Security,local,client POs approves with separation of duties and keeps the original value; amendments snapshot a revision,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0198,Functionality,local,client POs enforces separation of duties for an approver who submitted,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0199,Functionality,local,client POs sales orders cannot exceed what is left on the client PO,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0200,Financial accuracy,local,"running bills prevents over-billing, including two bills raced at once",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0201,Financial accuracy,local,"running bills certification ≤ claimed, retention and capped advance recovery, then one invoice only",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0202,Functionality,local,"sales orders drive the project is locked once approved; amendment requests need another Super Admin; approval applies, syncs requirements",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0203,Functionality,local,sales orders drive the project rejection leaves the order unchanged; reducing below delivered is refused at approval,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0204,Functionality,local,sales orders drive the project project progress follows sales-order delivery and status moves Planning → Active → Completed,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0205,Documentation,local,sales orders drive the project manual On hold is never overridden by automation,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0206,Financial accuracy,local,sales orders drive the project uses IGST for an inter-state client,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0207,Financial accuracy,local,sales orders drive the project refuses to invoice a client with no state (place of supply),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0208,Financial accuracy,local,sales orders drive the project the person who drafted an invoice cannot issue it; another approver can,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0209,Functionality,local,sales orders drive the project cancelling an approved order cancels its requirement (never deletes it),Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0210,Functionality,local,"task creation & multi-assignment creates ONE task visible to every assignee, both departments, the project and the global register",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0211,Security,local,"task creation & multi-assignment validates owner ∈ assignees, dates, active departments/members and project access",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0212,Functionality,local,task creation & multi-assignment keeps task history when a department is deactivated,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0213,Security,local,authorization (IDOR) a user cannot see or update a task they are not assigned to,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0214,Security,local,"authorization (IDOR) assignees cannot edit, reassign or cancel tasks",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0215,Functionality,local,status & progress assignee updates progress; admin sees it; activity is recorded,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0216,Database integrity,local,status & progress detects concurrent updates with optimistic versioning,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0217,Functionality,local,"status & progress records edit, reassignment, department and due-date changes",Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0218,Functionality,local,status & progress adds comments visible to the team,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0219,UI/UX,local,combined filters & sorting combines project + department + member + status + due range + overdue,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0220,Database integrity,local,projects generates unique codes under concurrency and keeps status history append-only,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0221,Security,local,projects dashboard metrics are scoped per user,Named assertions must pass,passed,Assertions passed,evidence/integration-verified.json
+TC-0222,Security,local,includes every accessible project in accounts rather than silently truncating at 1000,Named assertions must pass,passed,Assertions passed,evidence/accounts-completeness.json
+TC-0223,Financial accuracy,local,Delivered-challan eligibility enforced for every RA claim,Named assertions must pass,failed,"RA uses contract-quantity ceilings and certification, without mandatory delivery-challan linkage; business-owner decision required",src/modules/sales/ra-bill.ts buildLines and running-bill service tests
+TC-0224,Functionality,local,1-2. Super Admin logs in and creates an Admin,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0225,Functionality,local,3. invalid department and duplicate names are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0226,Functionality,local,4. creates team members with multiple departments,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0227,Functionality,local,5-6. creates a project (validation first) and posts status paragraphs,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0228,Functionality,local,7-9. creates a task from the project page with multiple departments and members,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0229,Functionality,local,"10-12. assigned user logs in, sees the task and updates progress",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0230,Functionality,local,"13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp",Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0231,Functionality,local,18b. inactive accounts cannot sign in; expired/forged sessions are rejected,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0232,Functionality,local,concurrent updates: a stale form is rejected instead of overwriting,Named assertions must pass,passed,Chromium production-build UI assertions passed,evidence/e2e-current.json
+TC-0233,UI/UX,local,Desktop Dashboard opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0234,UI/UX,local,Desktop Projects opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0235,UI/UX,local,Desktop Tasks opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0236,UI/UX,local,Desktop Departments opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0237,UI/UX,local,Desktop Team Members opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0238,UI/UX,local,Desktop Items opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0239,UI/UX,local,Desktop Brands opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0240,UI/UX,local,Desktop Suppliers opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0241,UI/UX,local,Desktop Clients opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0242,UI/UX,local,Desktop Material Planning opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0243,UI/UX,local,Desktop Requisitions opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0244,UI/UX,local,Desktop Rate Enquiries opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0245,UI/UX,local,Desktop Purchase Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0246,Inventory,local,Desktop Site receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0247,Inventory,local,Desktop Inventory opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0248,Financial accuracy,local,Desktop Supplier Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0249,UI/UX,local,Desktop Quotations opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0250,UI/UX,local,Desktop Client POs opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0251,UI/UX,local,Desktop Sales Orders opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0252,Inventory,local,Desktop Challans opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0253,Financial accuracy,local,Desktop Running Bills opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0254,Financial accuracy,local,Desktop Client Invoices opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0255,Inventory,local,Desktop Payments & Receipts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0256,UI/UX,local,Desktop Credit / Debit Notes opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0257,UI/UX,local,Desktop Project Accounts opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0258,UI/UX,local,Desktop Reports opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0259,UI/UX,local,Desktop Documents opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0260,UI/UX,local,Desktop Approvals opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0261,UI/UX,local,Desktop Administration opens,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0262,UI/UX,local,Mobile /projects/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0263,UI/UX,local,Mobile /purchase-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0264,UI/UX,local,Mobile /sales-orders/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0265,Financial accuracy,local,Mobile /supplier-bills/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0266,Financial accuracy,local,Mobile /payments/new fits viewport,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0267,UI/UX,local,Help search finds troubleshooting,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0268,Security,local,Authenticated pdf manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0269,Security,local,Authenticated quick manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0270,Security,local,Authenticated docx manual download,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0271,Security,local,SUPER_ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0272,Security,local,SUPER_ADMIN Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 200,evidence/local-ui-results.json
+TC-0273,Security,local,ADMIN supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0274,Security,local,ADMIN Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0275,Security,local,USER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0276,Security,local,USER Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0277,Security,local,PROJECT_MANAGER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0278,Security,local,PROJECT_MANAGER Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0279,Security,local,SITE_ENGINEER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0280,Security,local,SITE_ENGINEER Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0281,Security,local,PURCHASE supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0282,Security,local,PURCHASE Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0283,Security,local,STOREKEEPER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0284,Security,local,STOREKEEPER Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0285,Security,local,ACCOUNTS supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0286,Security,local,ACCOUNTS Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0287,Security,local,VIEWER supplier-bill page permission,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0288,Security,local,VIEWER Super-Admin-only help and manual access,Named assertions must pass,passed,HTTP 404,evidence/local-ui-results.json
+TC-0289,Functionality,local,Local normal logout,Named assertions must pass,passed,passed,evidence/local-ui-results.json
+TC-0290,Security,local,Signed-out manual access blocked,Named assertions must pass,passed,HTTP 401,evidence/local-ui-results.json
+TC-0291,Documentation,local,Production build: Super Admin opens help through Administration,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0292,Documentation,local,Production build: searchable help,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0293,Documentation,local,Production build: pdf manual download,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0294,Documentation,local,Production build: quick manual download,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0295,Documentation,local,Production build: docx manual download,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0296,Documentation,local,Standalone saved-document PDF: purchase_order,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0297,Documentation,local,Standalone saved-document PDF: client_po,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0298,Documentation,local,Standalone saved-document PDF: sales_order,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0299,Documentation,local,Standalone saved-document PDF: ra_bill,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0300,Documentation,local,Standalone saved-document PDF: client_invoice,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0301,Documentation,local,Standalone saved-document PDF: supplier_bill,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0302,Documentation,local,Standalone build: company logo optimization with native image libraries,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0303,Security,local,Production build: invalid manual format cannot select a file path,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0304,Security,local,Production build: employee help and manual restricted by owner policy,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0305,Security,local,Production build: anonymous manual denied,Named assertions must pass,passed,passed,evidence/built-help.json
+TC-0306,Security,local,Standalone traces exclude local data and audit tooling,Named assertions must pass,passed,passed,evidence/trace-isolation.json
+TC-0307,Functionality,local,UI procurement: create fictional project,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0308,Functionality,local,UI procurement: create purchase order,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0309,Functionality,local,UI procurement: submit and approve PO,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0310,Functionality,local,UI procurement: enter and submit actual receipt,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0311,Functionality,local,UI procurement: verify receipt and post stock,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0312,Functionality,local,UI procurement: record and approve supplier bill,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0313,Functionality,local,"UI procurement: reconcile persisted PO, GRN, stock and bill",Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0314,Functionality,local,UI procurement: allocate supplier payment,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0315,Functionality,local,UI procurement: sign in,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0316,Functionality,local,UI sales: create and approve sales order,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0317,Functionality,local,UI sales: dispatch client-delivery challan,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0318,Functionality,local,UI sales: create and issue client invoice,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0319,Functionality,local,UI sales: receive and allocate client payment,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0320,Functionality,local,UI sales: verify persisted settlements and delivered stock,Named assertions must pass,passed,passed,evidence/procurement-ui.json
+TC-0321,Functionality,production,Production read-only GET /projects,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0322,Functionality,production,Production read-only GET /tasks,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0323,Functionality,production,Production read-only GET /departments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0324,Functionality,production,Production read-only GET /team-members,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0325,Functionality,production,Production read-only GET /items,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0326,Functionality,production,Production read-only GET /brands,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0327,Functionality,production,Production read-only GET /parties?type=supplier,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0328,Functionality,production,Production read-only GET /parties?type=client,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0329,Functionality,production,Production read-only GET /rate-enquiries,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0330,Functionality,production,Production read-only GET /purchase-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0331,Functionality,production,Production read-only GET /client-pos,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0332,Functionality,production,Production read-only GET /sales-orders,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0333,Functionality,production,Production read-only GET /stock,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0334,Functionality,production,Production read-only GET /site-receipts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0335,Functionality,production,Production read-only GET /supplier-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0336,Functionality,production,Production read-only GET /challans,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0337,Functionality,production,Production read-only GET /running-bills,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0338,Functionality,production,Production read-only GET /client-invoices,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0339,Functionality,production,Production read-only GET /payments,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0340,Functionality,production,Production read-only GET /accounts,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0341,Functionality,production,Production read-only GET /reports,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0342,Functionality,production,Production read-only GET /documents,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0343,Functionality,production,Production read-only GET /approvals,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0344,Functionality,production,Production read-only GET /material-planning,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0345,Functionality,production,Production read-only GET /purchase-requisitions,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0346,Functionality,production,Production read-only GET /quotations,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0347,Functionality,production,Production read-only GET /notes,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0348,Functionality,production,Production read-only GET /settings,Named assertions must pass,passed,"HTTP 200; route render only, no CRUD assertion",evidence/live-readonly-route-checks.json
+TC-0349,Security,production,Production signed-out API /api/attachments/00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0350,Security,production,Production signed-out API /api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0351,Security,production,Production signed-out API /api/reports/pdf,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0352,Security,production,Production signed-out API /api/reports/csv/accounts,Named assertions must pass,passed,HTTP 401,evidence/live-unauthenticated.json
+TC-0353,UI/UX,production,Production viewport live-mobile-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-mobile-po-geometry.json
+TC-0354,UI/UX,production,Production viewport live-tablet-po-geometry.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-tablet-po-geometry.json
+TC-0355,UI/UX,production,Production viewport live-sales-form-desktop.json,Named assertions must pass,passed,No document horizontal overflow in checked form,evidence/live-sales-form-desktop.json
+TC-0356,Security,production,Production normal Super Admin sign-in and sign-out,Named assertions must pass,passed,passed,Live browser observed login → dashboard and account menu → Sign out → login
+TC-0357,Documentation,local,PDF page bounds challan-issue.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0358,Documentation,local,PDF page bounds credit-note-cancelled.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0359,Documentation,local,PDF page bounds grn-discrepancies.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0360,Documentation,local,PDF page bounds invoice-draft-no-signature.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0361,Documentation,local,PDF page bounds invoice-igst-bank.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0362,Documentation,local,PDF page bounds payment-voucher.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0363,Documentation,local,PDF page bounds po-100-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0364,Documentation,local,PDF page bounds po-60-items.pdf,Named assertions must pass,passed,3 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0365,Documentation,local,PDF page bounds po-99-items.pdf,Named assertions must pass,passed,5 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0366,Documentation,local,PDF page bounds po-draft-missing-optional.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0367,Documentation,local,PDF page bounds po-interstate-large.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0368,Documentation,local,PDF page bounds po-long-terms.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0369,Documentation,local,PDF page bounds po-multi-item-freight-roundoff.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0370,Documentation,local,PDF page bounds po-single-item.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0371,Documentation,local,PDF page bounds ra-bill-landscape.pdf,Named assertions must pass,passed,2 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0372,Documentation,local,PDF page bounds task-report.pdf,Named assertions must pass,passed,8 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0373,Documentation,local,PDF page bounds client_invoice.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0374,Documentation,local,PDF page bounds client_po.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0375,Documentation,local,PDF page bounds purchase_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0376,Documentation,local,PDF page bounds ra_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0377,Documentation,local,PDF page bounds sales_order.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0378,Documentation,local,PDF page bounds supplier_bill.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0379,Documentation,local,PDF page bounds QUICK_START_GUIDE.pdf,Named assertions must pass,passed,1 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0380,Documentation,local,PDF page bounds WATCON_USER_GUIDE.pdf,Named assertions must pass,passed,81 pages; text/page bounds checked; visual sampling recorded separately,evidence/pdf-qa.json
+TC-0381,Security,local,Production login and direct access for all non-Super-Admin roles,Named assertions must pass,blocked,Only production Super Admin credentials supplied; all nine roles tested locally on one representative page,Owner follow-up required
+TC-0382,Financial accuracy,local,Production dashboard totals against source database,Named assertions must pass,blocked,No authorized production DB read-only connection or reconciled ledger export supplied,Owner follow-up required
+TC-0383,Inventory,local,Production inventory balances against stock ledger,Named assertions must pass,blocked,No production read-only ledger export or DB access supplied,Owner follow-up required
+TC-0384,Database integrity,local,Backup restore and recovery drill,Named assertions must pass,blocked,No backup artifact or isolated managed restore target supplied,Owner follow-up required
+TC-0385,Security,local,SMTP delivery and password-reset mailbox round trip,Named assertions must pass,blocked,No test mailbox or SMTP delivery evidence supplied; reset-token services tested locally,Owner follow-up required
+TC-0386,Performance,local,Production server logs and deployment revision matching,Named assertions must pass,blocked,No Vercel logs or deployment source revision access supplied,Owner follow-up required
+TC-0387,Functionality,local,Live external supplier and client acceptance email delivery,Named assertions must pass,blocked,No isolated external-party accounts supplied,Owner follow-up required
+TC-0388,Functionality,local,All commercial CRUD workflows through UI,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0389,Security,local,All commercial API authorization combinations for every role,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0390,Financial accuracy,local,Statutory GST return and e-invoice validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0391,Financial accuracy,local,Full labour and overhead profitability,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0392,Documentation,local,Every PDF builder with long tables and long fields,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0393,UI/UX,local,Cross-browser Firefox and WebKit workflows,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0394,UI/UX,local,Real iOS and Android device testing,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0395,UI/UX,local,Screen-reader and keyboard accessibility of every form,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0396,Performance,local,Load test with simultaneous HTTP users and large data,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0397,Performance,local,5000-record performance benchmark in this audit,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0398,Database integrity,local,Network interruption during every save and upload,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0399,Functionality,local,WhatsApp recipient handoff and PDF attachment on real device,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0400,Security,local,Malware scanning and XLSX container validation,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0401,Functionality,local,Full project closure with expenses and all reversal branches,Named assertions must pass,not executed,Not executed in this audit,Coverage gap; no passing credit
+TC-0402,Documentation,local,Word manual render and visual layout check,Named assertions must pass,blocked,"Word automation renderer could not complete; OOXML file generated, PDF manual separately verified",evidence/WORD_RENDER_LIMITATION.md
+TC-0403,Security,local,Dependency advisory @prisma/client,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0404,Security,local,Dependency advisory @prisma/config,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0405,Security,local,Dependency advisory @ts-morph/common,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0406,Security,local,Dependency advisory effect,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0407,Security,local,Dependency advisory minimatch,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0408,Security,local,Dependency advisory prisma,Named assertions must pass,failed,high; automatic fix available: False,evidence/dependencies.json
+TC-0409,Security,local,Dependency advisory shadcn,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0410,Security,local,Dependency advisory ts-morph,Named assertions must pass,failed,moderate; automatic fix available: False,evidence/dependencies.json
+TC-0411,Functionality,local,TypeScript,Named assertions must pass,passed,Recorded tool output,evidence/typecheck-final.txt
+TC-0412,Functionality,local,ESLint,Named assertions must pass,passed,Recorded tool output,evidence/lint-final.txt
+TC-0413,Functionality,local,Production build,Named assertions must pass,passed,Recorded tool output,evidence/build-final-standalone.txt

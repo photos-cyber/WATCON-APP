@@ -11,7 +11,7 @@
     {
       "name": "Production build: pdf manual download",
       "status": "passed",
-      "bytes": 1536193
+      "bytes": 1539564
     },
     {
       "name": "Production build: quick manual download",
@@ -21,7 +21,35 @@
     {
       "name": "Production build: docx manual download",
       "status": "passed",
-      "bytes": 1386578
+      "bytes": 1387965
+    },
+    {
+      "name": "Standalone saved-document PDF: purchase_order",
+      "status": "passed"
+    },
+    {
+      "name": "Standalone saved-document PDF: client_po",
+      "status": "passed"
+    },
+    {
+      "name": "Standalone saved-document PDF: sales_order",
+      "status": "passed"
+    },
+    {
+      "name": "Standalone saved-document PDF: ra_bill",
+      "status": "passed"
+    },
+    {
+      "name": "Standalone saved-document PDF: client_invoice",
+      "status": "passed"
+    },
+    {
+      "name": "Standalone saved-document PDF: supplier_bill",
+      "status": "passed"
+    },
+    {
+      "name": "Standalone build: company logo optimization with native image libraries",
+      "status": "passed"
     },
     {
       "name": "Production build: invalid manual format cannot select a file path",

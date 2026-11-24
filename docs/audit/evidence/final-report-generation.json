@@ -1,0 +1,56 @@
+﻿{
+  "modules": 31,
+  "operations": 391,
+  "routes": 95,
+  "models": 74,
+  "cases": 413,
+  "counts": {
+    "passed": 382,
+    "failed": 9,
+    "blocked": 8,
+    "not executed": 14
+  },
+  "scores": {
+    "Functionality": {
+      "passed": 128,
+      "applicable": 132,
+      "score": 97.0
+    },
+    "Security": {
+      "passed": 71,
+      "applicable": 83,
+      "score": 85.5
+    },
+    "Database integrity": {
+      "passed": 14,
+      "applicable": 16,
+      "score": 87.5
+    },
+    "Financial accuracy": {
+      "passed": 50,
+      "applicable": 54,
+      "score": 92.6
+    },
+    "Inventory": {
+      "passed": 44,
+      "applicable": 45,
+      "score": 97.8
+    },
+    "UI/UX": {
+      "passed": 34,
+      "applicable": 37,
+      "score": 91.9
+    },
+    "Performance": {
+      "passed": 0,
+      "applicable": 3,
+      "score": 0.0
+    },
+    "Documentation": {
+      "passed": 41,
+      "applicable": 43,
+      "score": 95.3
+    }
+  },
+  "readiness": 81.0
+}
