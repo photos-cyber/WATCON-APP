@@ -1,0 +1,15 @@
+{
+  "status": 200,
+  "body": {
+    "status": "ok",
+    "db": "up",
+    "latencyMs": 597
+  },
+  "headers": {
+    "x-frame-options": "DENY",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "permissions-policy": "camera=(), microphone=(), geolocation=(self)"
+  }
+}

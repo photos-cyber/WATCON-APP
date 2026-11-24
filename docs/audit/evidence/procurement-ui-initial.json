@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "name": "UI procurement: sign in",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: create fictional project",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement workflow next step",
+      "status": "failed",
+      "error": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Select item – brand', exact: true })\u001b[22m\n"
+    }
+  ],
+  "ids": {
+    "project": "a9ccfef6-70b9-461d-b369-ff3c08d6d0e4"
+  }
+}

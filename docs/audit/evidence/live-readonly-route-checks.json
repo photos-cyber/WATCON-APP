@@ -1,0 +1,226 @@
+[
+  {
+    "path": "/projects",
+    "status": 200,
+    "redirected": false,
+    "title": "Projects · Watcon Enterprise",
+    "ms": 1763,
+    "errorBoundary": false
+  },
+  {
+    "path": "/tasks",
+    "status": 200,
+    "redirected": false,
+    "title": "Tasks · Watcon Enterprise",
+    "ms": 705,
+    "errorBoundary": false
+  },
+  {
+    "path": "/departments",
+    "status": 200,
+    "redirected": false,
+    "title": "Departments · Watcon Enterprise",
+    "ms": 1470,
+    "errorBoundary": false
+  },
+  {
+    "path": "/team-members",
+    "status": 200,
+    "redirected": false,
+    "title": "Team Members · Watcon Enterprise",
+    "ms": 1795,
+    "errorBoundary": false
+  },
+  {
+    "path": "/items",
+    "status": 200,
+    "redirected": false,
+    "title": "Items · Watcon Enterprise",
+    "ms": 645,
+    "errorBoundary": false
+  },
+  {
+    "path": "/brands",
+    "status": 200,
+    "redirected": false,
+    "title": "Brands · Watcon Enterprise",
+    "ms": 597,
+    "errorBoundary": false
+  },
+  {
+    "path": "/parties?type=supplier",
+    "status": 200,
+    "redirected": false,
+    "title": "Clients &amp; suppliers · Watcon Enterprise",
+    "ms": 481,
+    "errorBoundary": false
+  },
+  {
+    "path": "/parties?type=client",
+    "status": 200,
+    "redirected": false,
+    "title": "Clients &amp; suppliers · Watcon Enterprise",
+    "ms": 517,
+    "errorBoundary": false
+  },
+  {
+    "path": "/rate-enquiries",
+    "status": 200,
+    "redirected": false,
+    "title": "Watcon Enterprise",
+    "ms": 453,
+    "errorBoundary": false
+  },
+  {
+    "path": "/purchase-orders",
+    "status": 200,
+    "redirected": false,
+    "title": "Purchase orders · Watcon Enterprise",
+    "ms": 325,
+    "errorBoundary": false
+  },
+  {
+    "path": "/client-pos",
+    "status": 200,
+    "redirected": false,
+    "title": "Client POs · Watcon Enterprise",
+    "ms": 524,
+    "errorBoundary": false
+  },
+  {
+    "path": "/sales-orders",
+    "status": 200,
+    "redirected": false,
+    "title": "Sales orders · Watcon Enterprise",
+    "ms": 552,
+    "errorBoundary": false
+  },
+  {
+    "path": "/stock",
+    "status": 200,
+    "redirected": false,
+    "title": "Inventory · Watcon Enterprise",
+    "ms": 512,
+    "errorBoundary": false
+  },
+  {
+    "path": "/site-receipts",
+    "status": 200,
+    "redirected": false,
+    "title": "Site receipts · Watcon Enterprise",
+    "ms": 538,
+    "errorBoundary": false
+  },
+  {
+    "path": "/supplier-bills",
+    "status": 200,
+    "redirected": false,
+    "title": "Supplier bills · Watcon Enterprise",
+    "ms": 549,
+    "errorBoundary": false
+  },
+  {
+    "path": "/challans",
+    "status": 200,
+    "redirected": false,
+    "title": "Challans · Watcon Enterprise",
+    "ms": 517,
+    "errorBoundary": false
+  },
+  {
+    "path": "/running-bills",
+    "status": 200,
+    "redirected": false,
+    "title": "Running bills · Watcon Enterprise",
+    "ms": 329,
+    "errorBoundary": false
+  },
+  {
+    "path": "/client-invoices",
+    "status": 200,
+    "redirected": false,
+    "title": "Client invoices · Watcon Enterprise",
+    "ms": 317,
+    "errorBoundary": false
+  },
+  {
+    "path": "/payments",
+    "status": 200,
+    "redirected": false,
+    "title": "Payments &amp; receipts · Watcon Enterprise",
+    "ms": 323,
+    "errorBoundary": false
+  },
+  {
+    "path": "/accounts",
+    "status": 200,
+    "redirected": false,
+    "title": "Accounts · Watcon Enterprise",
+    "ms": 492,
+    "errorBoundary": false
+  },
+  {
+    "path": "/reports",
+    "status": 200,
+    "redirected": false,
+    "title": "Reports · Watcon Enterprise",
+    "ms": 283,
+    "errorBoundary": false
+  },
+  {
+    "path": "/documents",
+    "status": 200,
+    "redirected": false,
+    "title": "Documents · Watcon Enterprise",
+    "ms": 410,
+    "errorBoundary": false
+  },
+  {
+    "path": "/approvals",
+    "status": 200,
+    "redirected": false,
+    "title": "Approvals · Watcon Enterprise",
+    "ms": 435,
+    "errorBoundary": false
+  },
+  {
+    "path": "/material-planning",
+    "status": 200,
+    "redirected": false,
+    "title": "Material planning · Watcon Enterprise",
+    "ms": 435,
+    "errorBoundary": false
+  },
+  {
+    "path": "/purchase-requisitions",
+    "status": 200,
+    "redirected": false,
+    "title": "Purchase requisitions · Watcon Enterprise",
+    "ms": 407,
+    "errorBoundary": false
+  },
+  {
+    "path": "/quotations",
+    "status": 200,
+    "redirected": false,
+    "title": "Quotations · Watcon Enterprise",
+    "ms": 334,
+    "errorBoundary": false
+  },
+  {
+    "path": "/notes",
+    "status": 200,
+    "redirected": false,
+    "title": "Credit &amp; debit notes · Watcon Enterprise",
+    "ms": 332,
+    "errorBoundary": false
+  },
+  {
+    "path": "/settings",
+    "status": 200,
+    "redirected": false,
+    "title": "Settings · Watcon Enterprise",
+    "ms": 418,
+    "errorBoundary": false
+  }
+]

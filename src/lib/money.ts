@@ -14,7 +14,7 @@ const pow = (n: number) => TEN ** BigInt(n);
 
 export const SCALE = { money: 2, qty: 3, rate: 4, pct: 2 } as const;
 
-/** Parses "12.5" / "-3" / 7 into a BigInt at the given scale. Throws on bad input or too many decimals. */
+/** Parses "12.5" / "-3" / 7 into a BigInt at the given scale. Throws on bad input; extra decimals are rounded half-up. */
 export function toUnits(value: string | number | bigint | null | undefined, scale: number): bigint {
   if (value === null || value === undefined || value === "") return ZERO;
   if (typeof value === "bigint") return value * pow(scale);
@@ -22,8 +22,9 @@ export function toUnits(value: string | number | bigint | null | undefined, scal
   const m = /^([+-]?)(\d*)(?:\.(\d*))?$/.exec(s);
   if (!m || (m[2] === "" && (m[3] ?? "") === "")) throw new Error(`Invalid number: ${s}`);
   const frac = m[3] ?? "";
-  if (frac.length > scale && /[1-9]/.test(frac.slice(scale))) throw new Error(`Too many decimal places (max ${scale}): ${s}`);
-  const units = BigInt(m[2] || "0") * pow(scale) + BigInt((frac.slice(0, scale) || "").padEnd(scale, "0") || "0");
+  // Any number of decimals is accepted; extra digits are rounded half-up to `scale`.
+  let units = BigInt(m[2] || "0") * pow(scale) + BigInt((frac.slice(0, scale) || "").padEnd(scale, "0") || "0");
+  if (frac.length > scale && /^[5-9]/.test(frac.slice(scale))) units += BigInt(1);
   return m[1] === "-" ? -units : units;
 }
 

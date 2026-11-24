@@ -1,0 +1,30 @@
+{
+  "project": "ABC Hotel Swimming Pool Installation",
+  "stock": "0.000",
+  "financials": {
+    "contractValue": "17700.00",
+    "billed": "17700.00",
+    "billedTaxable": "15000.00",
+    "certified": "15000.00",
+    "received": "17700.00",
+    "receivable": "0.00",
+    "committed": "11800.00",
+    "receivedValue": "10000.00",
+    "supplierBilled": "11800.00",
+    "supplierBilledTaxable": "10000.00",
+    "paid": "11800.00",
+    "payable": "0.00",
+    "materialCost": "10000.00",
+    "margin": "5000.00",
+    "marginPct": "33.33"
+  },
+  "ids": {
+    "project": "982a26e4-b011-42af-b6cc-0f337c03add6",
+    "po": "829af07a-6687-4f4d-890e-d6f9ee2649bd",
+    "so": "6c6aff4c-e026-438d-b244-0a6e613e1f0e",
+    "cpo": "25586334-6840-420d-8f4b-ad4f06044726",
+    "ra": "2970d572-2ab3-473b-91fa-53f4a4499baf",
+    "invoice": "adf4ad66-0f54-4710-a953-7757780aeafd",
+    "bill": "48aeb438-b44f-4237-9729-3205caba7ef1"
+  }
+}

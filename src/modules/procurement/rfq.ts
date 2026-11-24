@@ -4,7 +4,7 @@ import { writeAudit } from "@/lib/audit";
 import { db, type Prisma, type Tx } from "@/lib/db";
 import { nextDocNumber } from "@/lib/doc-numbering";
 import { NotFoundError, ValidationError } from "@/lib/errors";
-import { addMoney, addQty, cmpMoney, cmpQty, divRound, fmtMoney, lineAmounts, money, qtyUnits, subQty, taxModeFor, unitRate } from "@/lib/money";
+import { addMoney, addQty, cmpMoney, cmpQty, divRound, fmtMoney, lineAmounts, money, qtyUnits, SCALE, subQty, taxModeFor, toUnits, unitRate } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
 import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
@@ -412,16 +412,18 @@ export async function getRfq(actor: Actor, id: string) {
         reliability: { onTimePct: p?.onTimePct ?? null, rejectionPct: p?.rejectionPct ?? null, receipts: p?.receipts ?? 0 },
       });
     }
-    const effRate = (x: ComparisonQuote) => money(unitRate(x.taxable, x.quantity));
+    // unitRate() returns 4 dp — parse at rate scale, not money scale (money() throws on >2 dp).
+    const rateU = (v: string) => toUnits(v, SCALE.rate);
+    const effRate = (x: ComparisonQuote) => rateU(unitRate(x.taxable, x.quantity));
     const valid = quotes.filter((x) => !x.expired);
     if (quotes.length) {
       const minRate = quotes.reduce((a, b) => (effRate(b) < effRate(a) ? b : a));
       quotes.filter((x) => effRate(x) === effRate(minRate)).forEach((x) => (x.lowestRate = true));
-      const minLanded = quotes.reduce((a, b) => (money(b.landedUnit) < money(a.landedUnit) ? b : a));
+      const minLanded = quotes.reduce((a, b) => (rateU(b.landedUnit) < rateU(a.landedUnit) ? b : a));
       quotes.filter((x) => x.landedUnit === minLanded.landedUnit).forEach((x) => (x.lowestLanded = true));
     }
     if (valid.length) {
-      const best = [...valid].sort((a, b) => cmpMoney(a.landedUnit, b.landedUnit) || (b.reliability.onTimePct ?? -1) - (a.reliability.onTimePct ?? -1))[0]!;
+      const best = [...valid].sort((a, b) => Number(rateU(a.landedUnit) - rateU(b.landedUnit)) || (b.reliability.onTimePct ?? -1) - (a.reliability.onTimePct ?? -1))[0]!;
       best.recommended = true;
     }
     const awarded = quotes.reduce((a, x) => addQty(a, x.awardedQty), "0");

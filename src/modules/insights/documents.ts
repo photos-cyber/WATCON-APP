@@ -4,6 +4,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { projectAccessWhere } from "@/lib/permissions/scopes";
+import { attachmentModuleWhere } from "@/modules/documents/visibility";
 
 const query = z.object({
   q: z.string().trim().max(100).optional().catch(undefined),
@@ -33,6 +34,7 @@ export async function listOrgDocuments(actor: Actor, raw: unknown) {
     AND: [
       { organizationId: actor.organizationId, deletedAt: null, nextVersion: { is: null } },
       scope,
+      await attachmentModuleWhere(actor),
       q.projectId ? { projectId: q.projectId } : {},
       q.category ? { category: q.category } : {},
       q.entityType ? { entityType: q.entityType } : {},

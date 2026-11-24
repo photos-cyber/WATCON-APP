@@ -1,0 +1,31 @@
+{
+  "path": "/purchase-orders/new",
+  "title": "New purchase order · Watcon Enterprise",
+  "overflow": false,
+  "labels": [
+    "Project *",
+    "Supplier *",
+    "Deliver to",
+    "Delivery address / instructions",
+    "Order date *",
+    "Expected delivery",
+    "Freight / other charges (₹)",
+    "GST on charges %",
+    "Payment terms",
+    "Advance payable (₹)",
+    "Terms & conditions (printed)",
+    "Internal remarks (not printed)",
+    " Round total to the nearest rupee"
+  ],
+  "buttons": [
+    "Select project",
+    "Select supplier",
+    "Select the project first",
+    "Select item – brand",
+    "",
+    " Add line",
+    "",
+    "Cancel",
+    "Create draft PO"
+  ]
+}

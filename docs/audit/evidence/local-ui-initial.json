@@ -1,0 +1,346 @@
+{
+  "results": [
+    {
+      "id": "LOCAL-dashboard",
+      "name": "Desktop Dashboard opens",
+      "status": "passed",
+      "path": "/dashboard",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-projects",
+      "name": "Desktop Projects opens",
+      "status": "passed",
+      "path": "/projects",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-tasks",
+      "name": "Desktop Tasks opens",
+      "status": "passed",
+      "path": "/tasks",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-departments",
+      "name": "Desktop Departments opens",
+      "status": "passed",
+      "path": "/departments",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-team-members",
+      "name": "Desktop Team Members opens",
+      "status": "passed",
+      "path": "/team-members",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-items",
+      "name": "Desktop Items opens",
+      "status": "passed",
+      "path": "/items",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-brands",
+      "name": "Desktop Brands opens",
+      "status": "passed",
+      "path": "/brands",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-suppliers",
+      "name": "Desktop Suppliers opens",
+      "status": "passed",
+      "path": "/parties?type=supplier",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-clients",
+      "name": "Desktop Clients opens",
+      "status": "passed",
+      "path": "/parties?type=client",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-material-planning",
+      "name": "Desktop Material Planning opens",
+      "status": "passed",
+      "path": "/material-planning",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-purchase-requisitions",
+      "name": "Desktop Requisitions opens",
+      "status": "passed",
+      "path": "/purchase-requisitions",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-rate-enquiries",
+      "name": "Desktop Rate Enquiries opens",
+      "status": "passed",
+      "path": "/rate-enquiries",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-purchase-orders",
+      "name": "Desktop Purchase Orders opens",
+      "status": "passed",
+      "path": "/purchase-orders",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-site-receipts",
+      "name": "Desktop Site receipts opens",
+      "status": "passed",
+      "path": "/site-receipts",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-stock",
+      "name": "Desktop Inventory opens",
+      "status": "passed",
+      "path": "/stock",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-supplier-bills",
+      "name": "Desktop Supplier Bills opens",
+      "status": "passed",
+      "path": "/supplier-bills",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-quotations",
+      "name": "Desktop Quotations opens",
+      "status": "passed",
+      "path": "/quotations",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-client-pos",
+      "name": "Desktop Client POs opens",
+      "status": "passed",
+      "path": "/client-pos",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-sales-orders",
+      "name": "Desktop Sales Orders opens",
+      "status": "passed",
+      "path": "/sales-orders",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-challans",
+      "name": "Desktop Challans opens",
+      "status": "passed",
+      "path": "/challans",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-running-bills",
+      "name": "Desktop Running Bills opens",
+      "status": "passed",
+      "path": "/running-bills",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-client-invoices",
+      "name": "Desktop Client Invoices opens",
+      "status": "passed",
+      "path": "/client-invoices",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-payments",
+      "name": "Desktop Payments & Receipts opens",
+      "status": "passed",
+      "path": "/payments",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-notes",
+      "name": "Desktop Credit / Debit Notes opens",
+      "status": "passed",
+      "path": "/notes",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-accounts",
+      "name": "Desktop Project Accounts opens",
+      "status": "passed",
+      "path": "/accounts",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-reports",
+      "name": "Desktop Reports opens",
+      "status": "passed",
+      "path": "/reports",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-documents",
+      "name": "Desktop Documents opens",
+      "status": "passed",
+      "path": "/documents",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-approvals",
+      "name": "Desktop Approvals opens",
+      "status": "passed",
+      "path": "/approvals",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "LOCAL-settings",
+      "name": "Desktop Administration opens",
+      "status": "passed",
+      "path": "/settings",
+      "http": 200,
+      "overflow": false
+    },
+    {
+      "id": "MOBILE-projects",
+      "name": "Mobile /projects/new fits viewport",
+      "status": "passed",
+      "path": "/projects/new"
+    },
+    {
+      "id": "MOBILE-purchase-orders",
+      "name": "Mobile /purchase-orders/new fits viewport",
+      "status": "passed",
+      "path": "/purchase-orders/new"
+    },
+    {
+      "id": "MOBILE-sales-orders",
+      "name": "Mobile /sales-orders/new fits viewport",
+      "status": "passed",
+      "path": "/sales-orders/new"
+    },
+    {
+      "id": "MOBILE-supplier-bills",
+      "name": "Mobile /supplier-bills/new fits viewport",
+      "status": "passed",
+      "path": "/supplier-bills/new"
+    },
+    {
+      "id": "MOBILE-payments",
+      "name": "Mobile /payments/new fits viewport",
+      "status": "passed",
+      "path": "/payments/new"
+    },
+    {
+      "id": "HELP-SEARCH",
+      "name": "Help search finds troubleshooting",
+      "status": "passed"
+    },
+    {
+      "id": "MANUAL-pdf",
+      "name": "Authenticated pdf manual download",
+      "status": "passed",
+      "http": 200
+    },
+    {
+      "id": "MANUAL-quick",
+      "name": "Authenticated quick manual download",
+      "status": "passed",
+      "http": 200
+    },
+    {
+      "id": "MANUAL-docx",
+      "name": "Authenticated docx manual download",
+      "status": "passed",
+      "http": 200
+    },
+    {
+      "id": "ROLE-SUPER_ADMIN",
+      "name": "SUPER_ADMIN supplier-bill page permission",
+      "status": "passed"
+    },
+    {
+      "id": "ROLE-ADMIN",
+      "name": "ADMIN supplier-bill page permission",
+      "status": "passed"
+    },
+    {
+      "id": "ROLE-USER",
+      "name": "USER supplier-bill page permission",
+      "status": "failed"
+    },
+    {
+      "id": "ROLE-PROJECT_MANAGER",
+      "name": "PROJECT_MANAGER supplier-bill page permission",
+      "status": "passed"
+    },
+    {
+      "id": "ROLE-SITE_ENGINEER",
+      "name": "SITE_ENGINEER supplier-bill page permission",
+      "status": "failed"
+    },
+    {
+      "id": "ROLE-PURCHASE",
+      "name": "PURCHASE supplier-bill page permission",
+      "status": "passed"
+    },
+    {
+      "id": "ROLE-STOREKEEPER",
+      "name": "STOREKEEPER supplier-bill page permission",
+      "status": "failed"
+    },
+    {
+      "id": "ROLE-ACCOUNTS",
+      "name": "ACCOUNTS supplier-bill page permission",
+      "status": "passed"
+    },
+    {
+      "id": "ROLE-VIEWER",
+      "name": "VIEWER supplier-bill page permission",
+      "status": "passed"
+    },
+    {
+      "id": "LOCAL-LOGOUT",
+      "name": "Local normal logout",
+      "status": "passed"
+    },
+    {
+      "id": "HELP-UNAUTH",
+      "name": "Signed-out manual access blocked",
+      "status": "passed",
+      "http": 401
+    }
+  ],
+  "consoleErrors": []
+}

@@ -62,7 +62,7 @@ export function MultiSelect({ options, value, onChange, placeholder = "Select…
  * Searchable single-select. With `onCreate`, typing a value that has no case-insensitive
  * exact match offers "Add …" (the server still enforces uniqueness).
  */
-export function SingleSelect({ options, value, onChange, placeholder = "Select…", searchPlaceholder = "Search…", emptyText = "No matches.", id, invalid, disabled, allowClear = true, onCreate, createLabel = "Add" }: { options: ComboOption[]; value: string | null; onChange: (v: string | null) => void; placeholder?: string; searchPlaceholder?: string; emptyText?: string; id?: string; invalid?: boolean; disabled?: boolean; allowClear?: boolean; onCreate?: (text: string) => void; createLabel?: string }) {
+export function SingleSelect({ options, value, onChange, placeholder = "Select…", searchPlaceholder = "Search…", emptyText = "No matches.", id, ariaLabel, invalid, disabled, allowClear = true, onCreate, createLabel = "Add" }: { options: ComboOption[]; value: string | null; onChange: (v: string | null) => void; placeholder?: string; searchPlaceholder?: string; emptyText?: string; id?: string; ariaLabel?: string; invalid?: boolean; disabled?: boolean; allowClear?: boolean; onCreate?: (text: string) => void; createLabel?: string }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const current = options.find((o) => o.value === value);
@@ -71,7 +71,7 @@ export function SingleSelect({ options, value, onChange, placeholder = "Select�
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button id={id} type="button" variant="outline" role="combobox" aria-expanded={open} aria-invalid={invalid || undefined} disabled={disabled} className="h-9 w-full justify-between bg-card font-normal">
+        <Button id={id} type="button" variant="outline" role="combobox" aria-label={ariaLabel} aria-expanded={open} aria-invalid={invalid || undefined} disabled={disabled} className="h-9 w-full justify-between bg-card font-normal">
           <span className={cn("truncate", !current && "text-muted-foreground")}>{current ? current.label : placeholder}</span>
           <ChevronsUpDown className="opacity-50" />
         </Button>

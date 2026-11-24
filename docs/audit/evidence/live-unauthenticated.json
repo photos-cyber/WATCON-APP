@@ -1,0 +1,21 @@
+{
+  "signedOut": true,
+  "checks": [
+    {
+      "path": "/api/attachments/00000000-0000-0000-0000-000000000000",
+      "status": 401
+    },
+    {
+      "path": "/api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000",
+      "status": 401
+    },
+    {
+      "path": "/api/reports/pdf",
+      "status": 401
+    },
+    {
+      "path": "/api/reports/csv/accounts",
+      "status": 401
+    }
+  ]
+}

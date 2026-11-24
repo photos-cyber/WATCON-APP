@@ -1,0 +1,574 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--reporter=list,json"
+    ],
+    "configFile": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\playwright.config.ts",
+    "rootDir": "C:/Users/Admin/Desktop/Sana/WATCON-APP/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/Admin/Desktop/Sana/WATCON-APP/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/Admin/Desktop/Sana/WATCON-APP/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e",
+        "snapshotDir": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 60000,
+        "use": {
+          "baseURL": "http://localhost:3100",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node tests/e2e/prepare-db.mjs && npx next start -p 3100",
+      "url": "http://localhost:3100/login",
+      "reuseExistingServer": false,
+      "timeout": 180000,
+      "stdout": "pipe",
+      "env": {
+        "DATABASE_URL": "postgresql://audit:audit_local_only@localhost:5544/watcon_audit_e2e",
+        "APP_URL": "http://localhost:3100",
+        "MAIL_TRANSPORT": "console",
+        "DB_SSL_CA": "",
+        "BOOTSTRAP_ORG_NAME": "Watcon E2E",
+        "BOOTSTRAP_ADMIN_NAME": "E2E Super Admin",
+        "BOOTSTRAP_ADMIN_EMAIL": "e2e.super@example.test",
+        "BOOTSTRAP_ADMIN_USERNAME": "e2esuper",
+        "BOOTSTRAP_ADMIN_PASSWORD": "E2e-super-admin-2026"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "phase1-workflow.spec.ts",
+      "file": "phase1-workflow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "1-2. Super Admin logs in and creates an Admin",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5862,
+                  "error": {
+                    "message": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input id=\"password\" type=\"password\" name=\"password\" data-slot=\"input\" aria-invalid=\"false\" autocomplete=\"current-password\" class=\"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled…/> aka getByRole('textbox', { name: 'Password' })\n    2) <button type=\"button\" aria-label=\"Show password\" class=\"absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground\">…</button> aka getByRole('button', { name: 'Show password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n",
+                    "stack": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input id=\"password\" type=\"password\" name=\"password\" data-slot=\"input\" aria-invalid=\"false\" autocomplete=\"current-password\" class=\"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled…/> aka getByRole('textbox', { name: 'Password' })\n    2) <button type=\"button\" aria-label=\"Show password\" class=\"absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground\">…</button> aka getByRole('button', { name: 'Show password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n    at login (C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts:30:37)\n    at C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts:82:3",
+                    "location": {
+                      "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                      "column": 37,
+                      "line": 30
+                    },
+                    "snippet": " \u001b[90m 28 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m\"/login\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgetByLabel(\u001b[32m\"Email or username\"\u001b[39m)\u001b[33m.\u001b[39mfill(identifier)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgetByLabel(\u001b[32m\"Password\"\u001b[39m)\u001b[33m.\u001b[39mfill(password)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m\"button\"\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m\"Sign in\"\u001b[39m })\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 32 |\u001b[39m }\n \u001b[90m 33 |\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                        "column": 37,
+                        "line": 30
+                      },
+                      "message": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input id=\"password\" type=\"password\" name=\"password\" data-slot=\"input\" aria-invalid=\"false\" autocomplete=\"current-password\" class=\"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled…/> aka getByRole('textbox', { name: 'Password' })\n    2) <button type=\"button\" aria-label=\"Show password\" class=\"absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground\">…</button> aka getByRole('button', { name: 'Show password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n\n  28 |   await page.goto(\"/login\");\n  29 |   await page.getByLabel(\"Email or username\").fill(identifier);\n> 30 |   await page.getByLabel(\"Password\").fill(password);\n     |                                     ^\n  31 |   await page.getByRole(\"button\", { name: \"Sign in\" }).click();\n  32 | }\n  33 |\n    at login (C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts:30:37)\n    at C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts:82:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:20.550Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\test-results\\phase1-workflow-1-2-Super-Admin-logs-in-and-creates-an-Admin-chromium\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\test-results\\phase1-workflow-1-2-Super-Admin-logs-in-and-creates-an-Admin-chromium\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\test-results\\phase1-workflow-1-2-Super-Admin-logs-in-and-creates-an-Admin-chromium\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "column": 37,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b40027dd1718bc882947-4b100e6d232799663852",
+          "file": "phase1-workflow.spec.ts",
+          "line": 80,
+          "column": 1
+        },
+        {
+          "title": "3. invalid department and duplicate names are rejected",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.546Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-d215c4104b8e5cb94614",
+          "file": "phase1-workflow.spec.ts",
+          "line": 96,
+          "column": 1
+        },
+        {
+          "title": "4. creates team members with multiple departments",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-5916b9fd5db56d4ab6c5",
+          "file": "phase1-workflow.spec.ts",
+          "line": 107,
+          "column": 1
+        },
+        {
+          "title": "5-6. creates a project (validation first) and posts status paragraphs",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-6a1679c0eb4365d466ca",
+          "file": "phase1-workflow.spec.ts",
+          "line": 115,
+          "column": 1
+        },
+        {
+          "title": "7-9. creates a task from the project page with multiple departments and members",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-af11508dab266952ba31",
+          "file": "phase1-workflow.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "10-12. assigned user logs in, sees the task and updates progress",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-f73609f8a7cd05a5fc9a",
+          "file": "phase1-workflow.spec.ts",
+          "line": 182,
+          "column": 1
+        },
+        {
+          "title": "13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-9b1abde72908b72e13cb",
+          "file": "phase1-workflow.spec.ts",
+          "line": 211,
+          "column": 1
+        },
+        {
+          "title": "18b. inactive accounts cannot sign in; expired/forged sessions are rejected",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-3e0c88696f6528f5d730",
+          "file": "phase1-workflow.spec.ts",
+          "line": 263,
+          "column": 1
+        },
+        {
+          "title": "concurrent updates: a stale form is rejected instead of overwriting",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e\\phase1-workflow.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T09:52:29.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "b40027dd1718bc882947-238c8557398c0833c42a",
+          "file": "phase1-workflow.spec.ts",
+          "line": 282,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-24T09:52:10.779Z",
+    "duration": 425399.592,
+    "expected": 0,
+    "skipped": 8,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

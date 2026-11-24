@@ -1,0 +1,1107 @@
+{
+  "roles": [
+    {
+      "key": "SUPER_ADMIN",
+      "label": "Super Admin",
+      "permissions": [
+        "dashboard.view",
+        "projects.view_all",
+        "projects.create",
+        "projects.edit",
+        "projects.archive",
+        "projects.post_status",
+        "departments.manage",
+        "members.view",
+        "members.manage",
+        "users.manage_admins",
+        "tasks.view_all",
+        "tasks.create",
+        "tasks.manage",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.view",
+        "reports.own",
+        "reports.commercial",
+        "items.view",
+        "items.manage",
+        "locations.manage",
+        "stock.post",
+        "stock.adjust",
+        "stock.reserve",
+        "stock.transfer",
+        "stock.consume",
+        "parties.view",
+        "parties.manage",
+        "mrp.view",
+        "mrp.manage",
+        "pr.view",
+        "pr.create",
+        "pr.approve",
+        "rfq.view",
+        "rfq.manage",
+        "rfq.approve",
+        "po.view",
+        "po.create",
+        "po.approve",
+        "po.cancel",
+        "grn.view",
+        "grn.create",
+        "grn.post",
+        "grn.reverse",
+        "bills.view",
+        "bills.manage",
+        "bills.approve",
+        "bills.override_match",
+        "payments.view",
+        "payments.manage",
+        "accounts.view",
+        "cpo.view",
+        "cpo.manage",
+        "cpo.approve",
+        "so.view",
+        "so.manage",
+        "so.approve",
+        "rabill.view",
+        "rabill.manage",
+        "rabill.approve",
+        "rabill.certify",
+        "invoice.view",
+        "invoice.manage",
+        "invoice.approve",
+        "attachments.verify",
+        "approvals.view",
+        "settings.commercial",
+        "settings.company",
+        "settings.roles",
+        "audit.view"
+      ]
+    },
+    {
+      "key": "ADMIN",
+      "label": "Admin",
+      "permissions": [
+        "dashboard.view",
+        "projects.create",
+        "projects.edit",
+        "projects.archive",
+        "projects.post_status",
+        "departments.manage",
+        "members.view",
+        "members.manage",
+        "tasks.create",
+        "tasks.manage",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.view",
+        "reports.own",
+        "reports.commercial",
+        "items.view",
+        "items.manage",
+        "locations.manage",
+        "stock.post",
+        "stock.reserve",
+        "stock.transfer",
+        "stock.consume",
+        "parties.view",
+        "parties.manage",
+        "mrp.view",
+        "mrp.manage",
+        "pr.view",
+        "pr.create",
+        "pr.approve",
+        "rfq.view",
+        "rfq.manage",
+        "rfq.approve",
+        "po.view",
+        "po.create",
+        "po.approve",
+        "po.cancel",
+        "grn.view",
+        "grn.create",
+        "grn.post",
+        "grn.reverse",
+        "bills.view",
+        "bills.manage",
+        "bills.approve",
+        "payments.view",
+        "payments.manage",
+        "accounts.view",
+        "cpo.view",
+        "cpo.manage",
+        "cpo.approve",
+        "so.view",
+        "so.manage",
+        "so.approve",
+        "rabill.view",
+        "rabill.manage",
+        "rabill.approve",
+        "rabill.certify",
+        "invoice.view",
+        "invoice.manage",
+        "invoice.approve",
+        "attachments.verify",
+        "approvals.view"
+      ]
+    },
+    {
+      "key": "USER",
+      "label": "User",
+      "permissions": [
+        "dashboard.view",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.own"
+      ]
+    },
+    {
+      "key": "PROJECT_MANAGER",
+      "label": "Project Manager",
+      "permissions": [
+        "dashboard.view",
+        "projects.edit",
+        "projects.post_status",
+        "members.view",
+        "tasks.create",
+        "tasks.manage",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.view",
+        "reports.own",
+        "reports.commercial",
+        "items.view",
+        "stock.reserve",
+        "stock.consume",
+        "parties.view",
+        "mrp.view",
+        "mrp.manage",
+        "pr.view",
+        "pr.create",
+        "pr.approve",
+        "rfq.view",
+        "rfq.approve",
+        "po.view",
+        "grn.view",
+        "grn.create",
+        "grn.post",
+        "bills.view",
+        "payments.view",
+        "accounts.view",
+        "cpo.view",
+        "cpo.manage",
+        "so.view",
+        "so.manage",
+        "rabill.view",
+        "rabill.manage",
+        "rabill.approve",
+        "rabill.certify",
+        "invoice.view",
+        "attachments.verify",
+        "approvals.view"
+      ]
+    },
+    {
+      "key": "SITE_ENGINEER",
+      "label": "Site Engineer",
+      "permissions": [
+        "dashboard.view",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.own",
+        "items.view",
+        "stock.consume",
+        "parties.view",
+        "mrp.view",
+        "mrp.manage",
+        "pr.view",
+        "pr.create",
+        "po.view",
+        "grn.view",
+        "grn.create",
+        "rabill.view",
+        "rabill.manage"
+      ]
+    },
+    {
+      "key": "PURCHASE",
+      "label": "Purchase Team",
+      "permissions": [
+        "dashboard.view",
+        "projects.view_all",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.own",
+        "reports.commercial",
+        "items.view",
+        "items.manage",
+        "parties.view",
+        "parties.manage",
+        "mrp.view",
+        "pr.view",
+        "pr.create",
+        "rfq.view",
+        "rfq.manage",
+        "po.view",
+        "po.create",
+        "grn.view",
+        "bills.view",
+        "approvals.view"
+      ]
+    },
+    {
+      "key": "STOREKEEPER",
+      "label": "Storekeeper",
+      "permissions": [
+        "dashboard.view",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.own",
+        "items.view",
+        "stock.post",
+        "stock.reserve",
+        "stock.transfer",
+        "stock.consume",
+        "parties.view",
+        "mrp.view",
+        "pr.view",
+        "pr.create",
+        "po.view",
+        "grn.view",
+        "grn.create",
+        "grn.post",
+        "so.view",
+        "attachments.verify",
+        "approvals.view"
+      ]
+    },
+    {
+      "key": "ACCOUNTS",
+      "label": "Accounts Team",
+      "permissions": [
+        "dashboard.view",
+        "projects.view_all",
+        "tasks.update_assigned",
+        "tasks.comment",
+        "reports.own",
+        "reports.commercial",
+        "items.view",
+        "parties.view",
+        "parties.manage",
+        "mrp.view",
+        "pr.view",
+        "rfq.view",
+        "po.view",
+        "grn.view",
+        "bills.view",
+        "bills.manage",
+        "payments.view",
+        "payments.manage",
+        "accounts.view",
+        "cpo.view",
+        "so.view",
+        "rabill.view",
+        "rabill.certify",
+        "invoice.view",
+        "invoice.manage",
+        "invoice.approve",
+        "attachments.verify",
+        "approvals.view"
+      ]
+    },
+    {
+      "key": "VIEWER",
+      "label": "Management Viewer",
+      "permissions": [
+        "dashboard.view",
+        "projects.view_all",
+        "members.view",
+        "tasks.view_all",
+        "reports.view",
+        "reports.own",
+        "reports.commercial",
+        "items.view",
+        "parties.view",
+        "mrp.view",
+        "pr.view",
+        "rfq.view",
+        "po.view",
+        "grn.view",
+        "bills.view",
+        "payments.view",
+        "accounts.view",
+        "cpo.view",
+        "so.view",
+        "rabill.view",
+        "invoice.view"
+      ]
+    }
+  ],
+  "permissions": [
+    {
+      "key": "dashboard.view",
+      "name": "View dashboard",
+      "group": "Dashboard",
+      "description": "Open the dashboard.",
+      "defaults": [
+        "ADMIN",
+        "USER",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "projects.view_all",
+      "name": "View all projects",
+      "group": "Projects",
+      "description": "See every project (and its commercial records), not only projects the user manages, created, belongs to or has tasks in.",
+      "defaults": [
+        "VIEWER",
+        "ACCOUNTS",
+        "PURCHASE"
+      ]
+    },
+    {
+      "key": "projects.create",
+      "name": "Create projects",
+      "group": "Projects",
+      "description": "Create new projects / sites.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "projects.edit",
+      "name": "Edit projects",
+      "group": "Projects",
+      "description": "Edit details and members of accessible projects.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "projects.archive",
+      "name": "Archive projects",
+      "group": "Projects",
+      "description": "Archive and restore accessible projects.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "projects.post_status",
+      "name": "Post project status",
+      "group": "Projects",
+      "description": "Write current-status updates on accessible projects.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "departments.manage",
+      "name": "Manage departments",
+      "group": "Departments",
+      "description": "Create, edit and deactivate departments and their memberships.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "members.view",
+      "name": "View team directory",
+      "group": "Team Members",
+      "description": "See the full team member directory and profiles.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "members.manage",
+      "name": "Manage team members",
+      "group": "Team Members",
+      "description": "Create and edit non-administrator accounts, activate/deactivate them and issue password-reset links.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "users.manage_admins",
+      "name": "Manage administrators",
+      "group": "Administration",
+      "description": "Create administrators and change any account's role.",
+      "superAdminOnly": true,
+      "defaults": []
+    },
+    {
+      "key": "tasks.view_all",
+      "name": "View all tasks",
+      "group": "Tasks",
+      "description": "See every task in the organization.",
+      "defaults": [
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "tasks.create",
+      "name": "Create tasks",
+      "group": "Tasks",
+      "description": "Create and assign tasks on accessible projects.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "tasks.manage",
+      "name": "Manage tasks",
+      "group": "Tasks",
+      "description": "Edit, reassign and cancel tasks on accessible projects.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "tasks.update_assigned",
+      "name": "Update assigned tasks",
+      "group": "Tasks",
+      "description": "Update status and progress of tasks assigned to the user.",
+      "defaults": [
+        "ADMIN",
+        "USER",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "tasks.comment",
+      "name": "Comment on tasks",
+      "group": "Tasks",
+      "description": "Add comments to visible tasks.",
+      "defaults": [
+        "ADMIN",
+        "USER",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "reports.view",
+      "name": "Task reports",
+      "group": "Reports",
+      "description": "Print / export / share project, department, member and global task lists within the user's access.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "reports.own",
+      "name": "Own task report",
+      "group": "Reports",
+      "description": "Print / export the user's own task list.",
+      "defaults": [
+        "ADMIN",
+        "USER",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "reports.commercial",
+      "name": "Commercial reports & exports",
+      "group": "Reports",
+      "description": "Run and export procurement, stock, billing and accounts reports (rows still limited to accessible projects).",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "PURCHASE",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "items.view",
+      "name": "View inventory",
+      "group": "Inventory",
+      "description": "See items, brands, locations, stock balances and the stock ledger.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "items.manage",
+      "name": "Manage items & brands",
+      "group": "Inventory",
+      "description": "Create, edit and deactivate items and brands, link brands, set HSN/GST and reorder levels.",
+      "defaults": [
+        "ADMIN",
+        "PURCHASE"
+      ]
+    },
+    {
+      "key": "locations.manage",
+      "name": "Manage stock locations",
+      "group": "Inventory",
+      "description": "Create and edit warehouses and site stores.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "stock.post",
+      "name": "Post stock inward / outward",
+      "group": "Inventory",
+      "description": "Record manual stock received (inward) and issued (outward).",
+      "defaults": [
+        "ADMIN",
+        "STOREKEEPER"
+      ]
+    },
+    {
+      "key": "stock.adjust",
+      "name": "Stock adjustments",
+      "group": "Inventory",
+      "description": "Post opening stock, adjustments, physical-count variances and reversals (a reason is mandatory).",
+      "defaults": []
+    },
+    {
+      "key": "stock.reserve",
+      "name": "Reserve stock",
+      "group": "Inventory",
+      "description": "Reserve and release stock for projects.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "STOREKEEPER"
+      ]
+    },
+    {
+      "key": "stock.transfer",
+      "name": "Transfers & challans",
+      "group": "Stores & Site",
+      "description": "Create, dispatch and cancel delivery challans / stock transfers and returns.",
+      "defaults": [
+        "ADMIN",
+        "STOREKEEPER"
+      ]
+    },
+    {
+      "key": "stock.consume",
+      "name": "Record site consumption",
+      "group": "Stores & Site",
+      "description": "Record material consumed / installed at a project site.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "STOREKEEPER"
+      ]
+    },
+    {
+      "key": "parties.view",
+      "name": "View clients & suppliers",
+      "group": "Parties",
+      "description": "See the client and supplier directory.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "parties.manage",
+      "name": "Manage clients & suppliers",
+      "group": "Parties",
+      "description": "Create and edit clients and suppliers, GST and bank details.",
+      "defaults": [
+        "ADMIN",
+        "PURCHASE",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "mrp.view",
+      "name": "View material planning",
+      "group": "Material Planning",
+      "description": "See project material requirements, availability and shortages.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "mrp.manage",
+      "name": "Manage material requirements",
+      "group": "Material Planning",
+      "description": "Add and edit project material requirements.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER"
+      ]
+    },
+    {
+      "key": "pr.view",
+      "name": "View purchase requisitions",
+      "group": "Procurement",
+      "description": "See purchase requisitions.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "pr.create",
+      "name": "Raise purchase requisitions",
+      "group": "Procurement",
+      "description": "Create, edit and submit purchase requisitions.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER"
+      ]
+    },
+    {
+      "key": "pr.approve",
+      "name": "Approve purchase requisitions",
+      "group": "Procurement",
+      "description": "Approve or reject submitted requisitions.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "rfq.view",
+      "name": "View rate enquiries",
+      "group": "Procurement",
+      "description": "See rate enquiries, supplier quotations and comparisons.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "PURCHASE",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "rfq.manage",
+      "name": "Manage rate enquiries",
+      "group": "Procurement",
+      "description": "Create RFQs, record supplier quotations and propose awards.",
+      "defaults": [
+        "ADMIN",
+        "PURCHASE"
+      ]
+    },
+    {
+      "key": "rfq.approve",
+      "name": "Approve RFQ awards",
+      "group": "Procurement",
+      "description": "Approve or reject proposed supplier awards before POs are raised.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "po.view",
+      "name": "View purchase orders",
+      "group": "Procurement",
+      "description": "See purchase orders.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "po.create",
+      "name": "Create purchase orders",
+      "group": "Procurement",
+      "description": "Create, edit, submit, send and amend purchase orders.",
+      "defaults": [
+        "ADMIN",
+        "PURCHASE"
+      ]
+    },
+    {
+      "key": "po.approve",
+      "name": "Approve purchase orders",
+      "group": "Procurement",
+      "description": "Approve or reject purchase orders (within approval limits).",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "po.cancel",
+      "name": "Cancel / close purchase orders",
+      "group": "Procurement",
+      "description": "Cancel or short-close purchase orders.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "grn.view",
+      "name": "View site receipts",
+      "group": "Stores & Site",
+      "description": "See GRNs / site material receipts and challans.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "PURCHASE",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "grn.create",
+      "name": "Capture site receipts",
+      "group": "Stores & Site",
+      "description": "Record received quantities, photos and signed challans and submit them for verification.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "STOREKEEPER"
+      ]
+    },
+    {
+      "key": "grn.post",
+      "name": "Verify & post GRNs",
+      "group": "Stores & Site",
+      "description": "Verify submitted receipts and post them to stock.",
+      "defaults": [
+        "ADMIN",
+        "STOREKEEPER",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "grn.reverse",
+      "name": "Reverse posted GRNs",
+      "group": "Stores & Site",
+      "description": "Reverse a posted GRN (creates reversal stock entries).",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "bills.view",
+      "name": "View supplier bills",
+      "group": "Accounts",
+      "description": "See supplier invoices and their matching status.",
+      "defaults": [
+        "ADMIN",
+        "PURCHASE",
+        "ACCOUNTS",
+        "VIEWER",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "bills.manage",
+      "name": "Enter supplier bills",
+      "group": "Accounts",
+      "description": "Enter, edit and submit supplier bills and supplier credit/debit notes.",
+      "defaults": [
+        "ADMIN",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "bills.approve",
+      "name": "Approve supplier bills",
+      "group": "Accounts",
+      "description": "Approve supplier bills for payment.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "bills.override_match",
+      "name": "Override match exceptions",
+      "group": "Accounts",
+      "description": "Approve a bill despite PO/GRN match exceptions (reason mandatory).",
+      "defaults": []
+    },
+    {
+      "key": "payments.view",
+      "name": "View payments & receipts",
+      "group": "Accounts",
+      "description": "See supplier payments and client receipts.",
+      "defaults": [
+        "ADMIN",
+        "ACCOUNTS",
+        "VIEWER",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "payments.manage",
+      "name": "Record payments & receipts",
+      "group": "Accounts",
+      "description": "Record supplier payments / client receipts, allocate and reverse them.",
+      "defaults": [
+        "ADMIN",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "accounts.view",
+      "name": "Project accounts",
+      "group": "Accounts",
+      "description": "See project financial summaries, ledgers and aging.",
+      "defaults": [
+        "ADMIN",
+        "ACCOUNTS",
+        "VIEWER",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "cpo.view",
+      "name": "View client POs",
+      "group": "Sales & Contracts",
+      "description": "See client purchase orders / contracts.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "cpo.manage",
+      "name": "Manage client POs",
+      "group": "Sales & Contracts",
+      "description": "Create, edit, submit and amend client purchase orders.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "cpo.approve",
+      "name": "Approve client POs",
+      "group": "Sales & Contracts",
+      "description": "Approve client POs and their amendments / variations.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "so.view",
+      "name": "View sales orders",
+      "group": "Sales & Contracts",
+      "description": "See sales orders.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "STOREKEEPER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "so.manage",
+      "name": "Manage sales orders",
+      "group": "Sales & Contracts",
+      "description": "Create, edit, submit and amend sales orders.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "so.approve",
+      "name": "Approve sales orders",
+      "group": "Sales & Contracts",
+      "description": "Approve, cancel and close sales orders.",
+      "defaults": [
+        "ADMIN"
+      ]
+    },
+    {
+      "key": "rabill.view",
+      "name": "View running bills",
+      "group": "Billing",
+      "description": "See RA bills, measurements and certifications.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "rabill.manage",
+      "name": "Prepare running bills",
+      "group": "Billing",
+      "description": "Prepare RA bills and measurements and submit them for internal review.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "SITE_ENGINEER"
+      ]
+    },
+    {
+      "key": "rabill.approve",
+      "name": "Review & submit running bills",
+      "group": "Billing",
+      "description": "Internally approve RA bills and mark them submitted to the client.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER"
+      ]
+    },
+    {
+      "key": "rabill.certify",
+      "name": "Record client certification",
+      "group": "Billing",
+      "description": "Record client-certified quantities, deductions and disputes.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "invoice.view",
+      "name": "View client invoices",
+      "group": "Billing",
+      "description": "See client tax invoices.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "ACCOUNTS",
+        "VIEWER"
+      ]
+    },
+    {
+      "key": "invoice.manage",
+      "name": "Prepare client invoices",
+      "group": "Billing",
+      "description": "Draft client invoices and client credit notes.",
+      "defaults": [
+        "ADMIN",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "invoice.approve",
+      "name": "Issue client invoices",
+      "group": "Billing",
+      "description": "Approve / issue and cancel client invoices.",
+      "defaults": [
+        "ADMIN",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "attachments.verify",
+      "name": "Verify evidence",
+      "group": "Documents",
+      "description": "Mark attached proofs (photos, signed challans, invoices) verified or rejected.",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "STOREKEEPER",
+        "ACCOUNTS"
+      ]
+    },
+    {
+      "key": "approvals.view",
+      "name": "Approvals inbox",
+      "group": "Documents",
+      "description": "See the cross-module approvals inbox (only items the user may act on).",
+      "defaults": [
+        "ADMIN",
+        "PROJECT_MANAGER",
+        "ACCOUNTS",
+        "PURCHASE",
+        "STOREKEEPER"
+      ]
+    },
+    {
+      "key": "settings.commercial",
+      "name": "Commercial settings",
+      "group": "Administration",
+      "description": "Company GST identity, numbering series, matching tolerances, approval limits and locations.",
+      "defaults": []
+    },
+    {
+      "key": "settings.company",
+      "name": "Company settings",
+      "group": "Administration",
+      "description": "Edit company name, logo and contact details.",
+      "superAdminOnly": true,
+      "defaults": []
+    },
+    {
+      "key": "settings.roles",
+      "name": "Roles & permissions",
+      "group": "Administration",
+      "description": "Change which permissions each role has.",
+      "superAdminOnly": true,
+      "defaults": []
+    },
+    {
+      "key": "audit.view",
+      "name": "Audit log",
+      "group": "Administration",
+      "description": "View the organization audit log.",
+      "superAdminOnly": true,
+      "defaults": []
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+﻿{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@prisma/client": {
+      "name": "@prisma/client",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "prisma"
+      ],
+      "effects": [],
+      "range": "",
+      "nodes": [
+        "node_modules/@prisma/client"
+      ],
+      "fixAvailable": false
+    },
+    "@prisma/config": {
+      "name": "@prisma/config",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "effect"
+      ],
+      "effects": [
+        "prisma"
+      ],
+      "range": "",
+      "nodes": [
+        "node_modules/@prisma/config"
+      ],
+      "fixAvailable": false
+    },
+    "effect": {
+      "name": "effect",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1248071,
+          "name": "effect",
+          "dependency": "effect",
+          "title": "Effect: ReDoS in Schema.TemplateLiteral compiled regex",
+          "url": "https://github.com/advisories/GHSA-7589-6fvf-x4pw",
+          "severity": "high",
+          "cwe": [
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=3.22.0"
+        }
+      ],
+      "effects": [
+        "@prisma/config"
+      ],
+      "range": "",
+      "nodes": [
+        "node_modules/@prisma/config/node_modules/effect"
+      ],
+      "fixAvailable": false
+    },
+    "prisma": {
+      "name": "prisma",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "@prisma/config"
+      ],
+      "effects": [
+        "@prisma/client"
+      ],
+      "range": "",
+      "nodes": [
+        "node_modules/prisma"
+      ],
+      "fixAvailable": false
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 4,
+      "critical": 0,
+      "total": 4
+    },
+    "dependencies": {
+      "prod": 529,
+      "dev": 614,
+      "optional": 164,
+      "peer": 27,
+      "peerOptional": 0,
+      "total": 1210
+    }
+  }
+}

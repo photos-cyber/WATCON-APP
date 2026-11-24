@@ -1,0 +1,23 @@
+{
+  "path": "/purchase-orders/new",
+  "viewport": [
+    390,
+    844
+  ],
+  "horizontalOverflow": false,
+  "labels": [
+    "Project *",
+    "Supplier *",
+    "Deliver to",
+    "Delivery address / instructions",
+    "Order date *",
+    "Expected delivery",
+    "Freight / other charges (₹)",
+    "GST on charges %",
+    "Payment terms",
+    "Advance payable (₹)",
+    "Terms & conditions (printed)",
+    "Internal remarks (not printed)",
+    "Round total to the nearest rupee"
+  ]
+}

@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { AppError, toActionError } from "@/lib/errors";
 import { maxUploadBytes } from "@/lib/storage";
 import { uploadAttachment } from "@/modules/documents/attachments";
+import { isUploadOriginAllowed } from "@/lib/upload-origin";
 
 /**
  * POST /api/attachments (multipart) — uploads one evidence file to a record.
@@ -12,7 +13,7 @@ import { uploadAttachment } from "@/modules/documents/attachments";
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  if (!origin || !host || new URL(origin).host !== host) return NextResponse.json({ ok: false, error: "Cross-origin upload rejected." }, { status: 403 });
+  if (!isUploadOriginAllowed(origin, host)) return NextResponse.json({ ok: false, error: "Cross-origin upload rejected." }, { status: 403 });
 
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ ok: false, error: "Please sign in again." }, { status: 401 });

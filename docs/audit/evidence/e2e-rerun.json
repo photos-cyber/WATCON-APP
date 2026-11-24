@@ -1,0 +1,128 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--reporter=list,json"
+    ],
+    "configFile": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\playwright.config.ts",
+    "rootDir": "C:/Users/Admin/Desktop/Sana/WATCON-APP/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/Admin/Desktop/Sana/WATCON-APP/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/Admin/Desktop/Sana/WATCON-APP/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "name": "chromium",
+        "testDir": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e",
+        "snapshotDir": "C:\\Users\\Admin\\Desktop\\Sana\\WATCON-APP\\tests\\e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 60000,
+        "use": {
+          "baseURL": "http://localhost:3100",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node tests/e2e/prepare-db.mjs && npx next start -p 3100",
+      "url": "http://localhost:3100/login",
+      "reuseExistingServer": false,
+      "timeout": 180000,
+      "stdout": "pipe",
+      "env": {
+        "DATABASE_URL": "postgresql://audit:audit_local_only@localhost:5544/watcon_audit_e2e",
+        "APP_URL": "http://localhost:3100",
+        "MAIL_TRANSPORT": "console",
+        "DB_SSL_CA": "",
+        "BOOTSTRAP_ORG_NAME": "Watcon E2E",
+        "BOOTSTRAP_ADMIN_NAME": "E2E Super Admin",
+        "BOOTSTRAP_ADMIN_EMAIL": "e2e.super@example.test",
+        "BOOTSTRAP_ADMIN_USERNAME": "e2esuper",
+        "BOOTSTRAP_ADMIN_PASSWORD": "E2e-super-admin-2026"
+      }
+    }
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: http://localhost:3100/login is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.",
+      "stack": "Error: http://localhost:3100/login is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer."
+    }
+  ],
+  "stats": {
+    "startTime": "2026-11-24T09:58:55.756Z",
+    "duration": 40.54599999999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

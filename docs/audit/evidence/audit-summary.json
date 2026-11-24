@@ -1,0 +1,53 @@
+{
+  "cases": 371,
+  "counts": {
+    "passed": 336,
+    "failed": 11,
+    "blocked": 8,
+    "not executed": 16
+  },
+  "scores": {
+    "Functionality": {
+      "passed": 109,
+      "applicable": 115,
+      "score": 94.8
+    },
+    "Security": {
+      "passed": 54,
+      "applicable": 69,
+      "score": 78.3
+    },
+    "Database integrity": {
+      "passed": 14,
+      "applicable": 16,
+      "score": 87.5
+    },
+    "Financial accuracy": {
+      "passed": 50,
+      "applicable": 53,
+      "score": 94.3
+    },
+    "Inventory": {
+      "passed": 44,
+      "applicable": 45,
+      "score": 97.8
+    },
+    "UI/UX": {
+      "passed": 34,
+      "applicable": 37,
+      "score": 91.9
+    },
+    "Performance": {
+      "passed": 2,
+      "applicable": 5,
+      "score": 40.0
+    },
+    "Documentation": {
+      "passed": 29,
+      "applicable": 31,
+      "score": 93.5
+    }
+  },
+  "readinessEvidenceScore": 84.8,
+  "verdict": "NO-GO"
+}

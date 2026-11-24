@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { AppHeader, type HeaderUser } from "./app-header";
@@ -9,6 +11,9 @@ import { Brand, SidebarNav, type NavUser } from "./app-sidebar";
 const STORAGE_KEY = "wc.sidebar.collapsed";
 
 export function AppShell({ user, nav, orgName, unread, children }: { user: HeaderUser; nav: NavUser; orgName: string; unread: number; children: ReactNode }) {
+  const pathname = usePathname();
+  const partyType = useSearchParams().get("type");
+  const helpTopic = pathname.split("/")[1];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -55,6 +60,7 @@ export function AppShell({ user, nav, orgName, unread, children }: { user: Heade
       <div className="flex min-w-0 flex-1 flex-col">
         <AppHeader user={user} unread={unread} onToggleSidebar={toggle} />
         <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {helpTopic !== "help" && <div className="mb-3 flex justify-end print:hidden"><Link href={`/help#${helpTopic === "parties" ? partyType === "supplier" ? "suppliers" : "clients" : helpTopic}`} className="text-sm text-muted-foreground underline hover:text-foreground">Help with this page</Link></div>}
           {children}
         </main>
       </div>

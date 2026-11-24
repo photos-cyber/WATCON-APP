@@ -30,3 +30,34 @@ CSRF beyond Next.js server-action origin checks and SameSite=Lax; TLS configurat
 
 ## Files changed by this audit
 `src/proxy.ts`, `src/app/api/health/route.ts` (new), `src/lib/env.ts`, `src/lib/auth/session.ts`, `src/lib/auth/rate-limit.ts`, `src/modules/auth/service.ts`, `src/modules/members/service.ts`, `src/modules/departments/service.ts`, `next.config.ts`, `docker-compose.yml`, `.env.example`, `docs/DEPLOYMENT.md`, tests (`auth.test.ts`, `members-reports.test.ts`, `audit-coverage.test.ts`). Earlier in this session: company logo component and sidebar/auth layout.
+
+---
+
+<!-- AUDIT-2026-11-24 -->
+# Security audit update 24 November 2026
+
+Scope: source review, real local PostgreSQL tests, production Super Admin read-only navigation, signed-out API probes. This is not a penetration-test certification. No authentication bypass or production transaction was attempted.
+
+## Verified controls
+
+- Argon2 password hashing and database-backed, hashed opaque session tokens. HttpOnly, SameSite=Lax cookies; secure in production. Idle and absolute expiry, logout and deactivation have local tests.
+- Password reset tokens are single-use; reset revokes sessions. Generic authentication errors and account/IP limits have local tests. Mailbox delivery remains blocked.
+- Organization/project scopes are applied by services. All nine role defaults exist; individual local page probes and service authorization tests do not prove the entire role-by-action matrix.
+- Attachment bytes use PostgreSQL attachment_blobs by default; filesystem is an alternative. Access follows the owning resource; hashes are checked before serving bytes. Version and evidence-retention controls are tested.
+- Fixed metadata exposure and malformed-origin handling locally. Direct anonymous document endpoints return 401 in production.
+- State changes use Server Actions with framework origin checks; upload handler also checks origin/host. Reverse-proxy trust configuration requires deployment review.
+- SQL inputs normally use Prisma and tagged parameterized SQL. No dynamic untrusted SQL exploitation was demonstrated. The one reviewed dangerouslySetInnerHTML script is a fixed root-layout constant; this is not blanket XSS clearance.
+- Security headers exist and are sampled on the deployed health response. A full app CSP is not configured.
+
+## Remaining risks and configuration
+
+- Dependency audit: {'info': 0, 'low': 0, 'moderate': 4, 'high': 4, 'critical': 0, 'total': 8}. Entries include transitive chains; eight package entries do not mean eight independent root vulnerabilities. Review runtime reachability and patched upstream releases before release.
+- XLSX signature/extension checks and CSV NUL checks are not full content validation. No malware scanner is integrated or tested. Upload body buffering and platform limits need a capacity test.
+- Database least-privilege grants, provider firewall policy, encryption configuration, backup retention and restore ability were not independently inspected. Do not assume Supabase RLS replaces app authorization; the actual app uses direct PostgreSQL via Prisma.
+- Test database reset scripts guard database-name suffixes; run only against explicitly provisioned isolated targets. The new audit cluster uses local port 5544.
+- No raw .env values, credentials, session tokens or real business records are included in these reports. Tracked-file inspection found only .env.example among environment files; this is not a full historical secret scan.
+- Production credentials for roles other than Super Admin were not supplied.
+
+## Release requirements
+
+Resolve or formally assess the high dependency chain; review default grants against real departments; test protected document metadata after deploying to staging; validate SMTP with a test mailbox; perform a backup restore drill. No migrations or changes were made to production.

@@ -18,8 +18,10 @@ describe("money (decimal-safe)", () => {
     expect(qtyTimesRate("2.5", "0.333")).toBe("0.83"); // 0.8325 → 0.83
     expect(qtyTimesRate("1", "0.125")).toBe("0.13");
   });
-  it("rejects malformed numbers and excess precision", () => {
-    expect(() => toUnits("1.234", 2)).toThrow();
+  it("rejects malformed numbers and rounds excess precision", () => {
+    expect(toUnits("1.234", 2)).toBe(BigInt(123));
+    expect(toUnits("1.235", 2)).toBe(BigInt(124));
+    expect(toUnits("-1.235", 2)).toBe(BigInt(-124));
     expect(() => toUnits("abc", 2)).toThrow();
     expect(toUnits("1.230", 2)).toBe(BigInt(123));
   });

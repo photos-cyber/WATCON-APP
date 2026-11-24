@@ -27,7 +27,7 @@ let privateTaskUrl = "";
 async function login(page: Page, identifier: string, password: string) {
   await page.goto("/login");
   await page.getByLabel("Email or username").fill(identifier);
-  await page.getByLabel("Password").fill(password);
+  await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
 }
 

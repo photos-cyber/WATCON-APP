@@ -1,0 +1,392 @@
+﻿module,operation,source,status,evidence,limitation
+auth,syncRbac,src/modules/auth/rbac-sync.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+auth,sessionCookieMaxAgeSeconds,src/modules/auth/service.ts,Unable to test,,Source exists; no direct test-call reference found
+auth,login,src/modules/auth/service.ts,Partially working,tests\integration\auth.test.ts,Referenced by service tests; not full UI certification
+auth,validateSessionToken,src/modules/auth/service.ts,Partially working,tests\integration\auth.test.ts,Referenced by service tests; not full UI certification
+auth,logout,src/modules/auth/service.ts,Partially working,tests\integration\auth.test.ts,Referenced by service tests; not full UI certification
+auth,revokeAllSessions,src/modules/auth/service.ts,Unable to test,,Source exists; no direct test-call reference found
+auth,resetLinkFor,src/modules/auth/service.ts,Unable to test,,Source exists; no direct test-call reference found
+auth,requestPasswordReset,src/modules/auth/service.ts,Partially working,tests\integration\auth.test.ts,Referenced by service tests; not full UI certification
+auth,createAdminResetLink,src/modules/auth/service.ts,Partially working,tests\integration\auth.test.ts,Referenced by service tests; not full UI certification
+auth,resetPassword,src/modules/auth/service.ts,Partially working,tests\integration\auth.test.ts,Referenced by service tests; not full UI certification
+auth,changePassword,src/modules/auth/service.ts,Partially working,tests\integration\auth.test.ts,Referenced by service tests; not full UI certification
+commercial,requirePermission,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,projectScoped,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,projectRequiredScoped,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,assertProjectVisible,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,assertProjectUsable,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,getCommercialSettings,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,segregationBlocks,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,assertCanApprove,src/modules/commercial/core.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+commercial,approvalHint,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,transition,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,assertStatus,src/modules/commercial/core.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,computeMilestones,src/modules/commercial/payment-terms.ts,Partially working,tests\unit\payment-terms.test.ts,Referenced by service tests; not full UI certification
+commercial,validateSchedule,src/modules/commercial/payment-terms.ts,Partially working,tests\unit\payment-terms.test.ts,Referenced by service tests; not full UI certification
+commercial,scheduleSummary,src/modules/commercial/payment-terms.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,toInput,src/modules/commercial/payment-terms.ts,Unable to test,,Source exists; no direct test-call reference found
+commercial,projectAccess,src/modules/commercial/project-access.ts,Unable to test,,Source exists; no direct test-call reference found
+dashboard,getDashboard,src/modules/dashboard/service.ts,Partially working,tests\integration\audit-coverage.test.ts; tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+departments,listDepartments,src/modules/departments/service.ts,Unable to test,,Source exists; no direct test-call reference found
+departments,getDepartment,src/modules/departments/service.ts,Partially working,tests\integration\audit-coverage.test.ts; tests\integration\members-reports.test.ts; tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+departments,listDepartmentOptions,src/modules/departments/service.ts,Unable to test,,Source exists; no direct test-call reference found
+departments,createDepartment,src/modules/departments/service.ts,Partially working,tests\integration\audit-coverage.test.ts; tests\integration\members-reports.test.ts; tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+departments,updateDepartment,src/modules/departments/service.ts,Partially working,tests\integration\audit-coverage.test.ts,Referenced by service tests; not full UI certification
+departments,setDepartmentStatus,src/modules/departments/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+departments,addDepartmentMember,src/modules/departments/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+departments,removeDepartmentMember,src/modules/departments/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+documents,resolveAccess,src/modules/documents/access.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,entityActivity,src/modules/documents/activity.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,projectCommercialActivity,src/modules/documents/activity.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,uploadAttachment,src/modules/documents/attachments.ts,Partially working,tests\integration\document-visibility.test.ts; tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+documents,listAttachments,src/modules/documents/attachments.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+documents,readAttachment,src/modules/documents/attachments.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+documents,verifyAttachment,src/modules/documents/attachments.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+documents,deleteAttachment,src/modules/documents/attachments.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+documents,listProjectDocuments,src/modules/documents/attachments.ts,Partially working,tests\integration\document-visibility.test.ts,Referenced by service tests; not full UI certification
+documents,isEntityType,src/modules/documents/links.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,entityHref,src/modules/documents/links.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,entityLabel,src/modules/documents/links.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,sourceLink,src/modules/documents/links.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,partyPanel,src/modules/documents/pdf-format.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,docState,src/modules/documents/pdf-format.ts,Partially working,tests\unit\pdf-layout.test.ts,Referenced by service tests; not full UI certification
+documents,taxByRate,src/modules/documents/pdf-format.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,termsSection,src/modules/documents/pdf-format.ts,Partially working,tests\unit\pdf-layout.test.ts,Referenced by service tests; not full UI certification
+documents,pdfFileName,src/modules/documents/pdf-format.ts,Partially working,tests\unit\pdf-layout.test.ts,Referenced by service tests; not full UI certification
+documents,loadPdfOrg,src/modules/documents/pdf-kit.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,loadParty,src/modules/documents/pdf-models.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,registerPdfBuilder,src/modules/documents/pdf-models.ts,Unable to test,,Source exists; no direct test-call reference found
+documents,buildPdfModel,src/modules/documents/pdf-models.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+documents,attachmentModuleWhere,src/modules/documents/visibility.ts,Unable to test,,Source exists; no direct test-call reference found
+help,helpForActor,src/modules/help/articles.ts,Partially working,tests\unit\help.test.ts,Referenced by service tests; not full UI certification
+insights,projectAccountsSummary,src/modules/insights/accounts.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,partyLedger,src/modules/insights/accounts.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,listApprovals,src/modules/insights/approvals.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,countMyApprovals,src/modules/insights/approvals.ts,Unable to test,,Source exists; no direct test-call reference found
+insights,listSoAmendmentRequests,src/modules/insights/approvals.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,listOrgDocuments,src/modules/insights/documents.ts,Partially working,tests\integration\document-visibility.test.ts,Referenced by service tests; not full UI certification
+insights,emptyFinancials,src/modules/insights/finance.ts,Unable to test,,Source exists; no direct test-call reference found
+insights,projectFinancials,src/modules/insights/finance.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,sumFinancials,src/modules/insights/finance.ts,Unable to test,,Source exists; no direct test-call reference found
+insights,reportByKey,src/modules/insights/reports.ts,Unable to test,,Source exists; no direct test-call reference found
+insights,availableReports,src/modules/insights/reports.ts,Unable to test,,Source exists; no direct test-call reference found
+insights,runReport,src/modules/insights/reports.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,toCsv,src/modules/insights/reports.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,listProjectDocs,src/modules/insights/workspace.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,projectDocCounts,src/modules/insights/workspace.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,projectCommandCenter,src/modules/insights/workspace.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+insights,projectTeam,src/modules/insights/workspace.ts,Unable to test,,Source exists; no direct test-call reference found
+insights,projectOrderFlow,src/modules/insights/workspace.ts,Partially working,tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+inventory,ensureSystemLocations,src/modules/inventory/engine.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,ensureSiteLocation,src/modules/inventory/engine.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+inventory,postMovementTx,src/modules/inventory/engine.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+inventory,reverseMovementTx,src/modules/inventory/engine.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,createLocationAction,src/modules/inventory/location-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,updateLocationAction,src/modules/inventory/location-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,reserveStockAction,src/modules/inventory/location-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,releaseReservationAction,src/modules/inventory/location-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,recordConsumptionAction,src/modules/inventory/location-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,reverseStockEntryAction,src/modules/inventory/location-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,listLocationOptions,src/modules/inventory/locations.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,listLocations,src/modules/inventory/locations.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,createLocation,src/modules/inventory/locations.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,updateLocation,src/modules/inventory/locations.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,listLocationBalances,src/modules/inventory/locations.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+inventory,reserveStock,src/modules/inventory/locations.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+inventory,releaseReservation,src/modules/inventory/locations.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+inventory,listReservations,src/modules/inventory/locations.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,recordConsumption,src/modules/inventory/locations.ts,Partially working,tests\integration\foundation.test.ts; tests\integration\insights.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+inventory,reverseStockEntry,src/modules/inventory/locations.ts,Partially working,tests\integration\foundation.test.ts; tests\integration\insights.test.ts,Referenced by service tests; not full UI certification
+inventory,locationCapabilities,src/modules/inventory/locations.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,itemBrandOptions,src/modules/inventory/locations.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findItems,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findItemCategories,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findItem,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,itemCodeTaken,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,insertItem,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,updateItemRow,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,setItemStatusRow,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findBrands,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findBrand,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,brandNameTaken,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findBrandOptions,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,insertBrand,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,updateBrandRow,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findItemBrands,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findItemBrand,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findStockPositionOptions,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,postMovement,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,insertItemBrand,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,deleteItemBrand,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findStockPositions,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,summarizePositions,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,findLedger,src/modules/inventory/repository.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,ledgerBalance,src/modules/inventory/repository.ts,Partially working,tests\integration\foundation.test.ts; tests\integration\inventory.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+inventory,directionFor,src/modules/inventory/rules.ts,Partially working,tests\unit\inventory-rules.test.ts,Referenced by service tests; not full UI certification
+inventory,toMilli,src/modules/inventory/rules.ts,Partially working,tests\unit\inventory-rules.test.ts,Referenced by service tests; not full UI certification
+inventory,fromMilli,src/modules/inventory/rules.ts,Partially working,tests\unit\inventory-rules.test.ts,Referenced by service tests; not full UI certification
+inventory,applyMovement,src/modules/inventory/rules.ts,Partially working,tests\unit\inventory-rules.test.ts,Referenced by service tests; not full UI certification
+inventory,movementDateError,src/modules/inventory/rules.ts,Partially working,tests\unit\inventory-rules.test.ts,Referenced by service tests; not full UI certification
+inventory,summarize,src/modules/inventory/rules.ts,Partially working,tests\unit\inventory-rules.test.ts,Referenced by service tests; not full UI certification
+inventory,inventoryCapabilities,src/modules/inventory/service.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,listItems,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,listItemCategories,src/modules/inventory/service.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,getItem,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,createItem,src/modules/inventory/service.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,updateItem,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,setItemStatus,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,listBrands,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,listBrandOptions,src/modules/inventory/service.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,createBrand,src/modules/inventory/service.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,updateBrand,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,setBrandStatus,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,linkBrand,src/modules/inventory/service.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,unlinkBrand,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,listStockPositionOptions,src/modules/inventory/service.ts,Unable to test,,Source exists; no direct test-call reference found
+inventory,postStockMovement,src/modules/inventory/service.ts,Partially working,tests\integration\foundation.test.ts; tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,getStockSummary,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+inventory,getLedger,src/modules/inventory/service.ts,Partially working,tests\integration\inventory.test.ts,Referenced by service tests; not full UI certification
+members,listMembers,src/modules/members/service.ts,Unable to test,,Source exists; no direct test-call reference found
+members,getMember,src/modules/members/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+members,listMemberOptions,src/modules/members/service.ts,Unable to test,,Source exists; no direct test-call reference found
+members,createMember,src/modules/members/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+members,updateMember,src/modules/members/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+members,setMemberStatus,src/modules/members/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+members,issueMemberResetLink,src/modules/members/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+members,resetMemberPassword,src/modules/members/service.ts,Unable to test,,Source exists; no direct test-call reference found
+notifications,listNotifications,src/modules/notifications/service.ts,Unable to test,,Source exists; no direct test-call reference found
+notifications,markAllRead,src/modules/notifications/service.ts,Unable to test,,Source exists; no direct test-call reference found
+parties,partyCapabilities,src/modules/parties/service.ts,Unable to test,,Source exists; no direct test-call reference found
+parties,listParties,src/modules/parties/service.ts,Unable to test,,Source exists; no direct test-call reference found
+parties,partyOptions,src/modules/parties/service.ts,Unable to test,,Source exists; no direct test-call reference found
+parties,getParty,src/modules/parties/service.ts,Unable to test,,Source exists; no direct test-call reference found
+parties,createParty,src/modules/parties/service.ts,Partially working,tests\integration\foundation.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+parties,updateParty,src/modules/parties/service.ts,Partially working,tests\integration\foundation.test.ts,Referenced by service tests; not full UI certification
+parties,partyAccess,src/modules/parties/service.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,createBill,src/modules/payables/bills.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,updateBill,src/modules/payables/bills.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,billAction,src/modules/payables/bills.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,getBill,src/modules/payables/bills.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,listBills,src/modules/payables/bills.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,billAccess,src/modules/payables/bills.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,billablePoOptions,src/modules/payables/bills.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,billPrefillFromPo,src/modules/payables/bills.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,outstandingBills,src/modules/payables/bills.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,billableQty,src/modules/payables/match.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,matchBill,src/modules/payables/match.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,invoiceKeyOf,src/modules/payables/match.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,createNote,src/modules/payables/notes.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,noteAction,src/modules/payables/notes.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,listNotes,src/modules/payables/notes.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,getNote,src/modules/payables/notes.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,noteAccess,src/modules/payables/notes.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,noteTargets,src/modules/payables/notes.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,createPayment,src/modules/payables/payments.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\payables.test.ts; tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+payables,allocatePayment,src/modules/payables/payments.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,reverseAllocation,src/modules/payables/payments.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,cancelPayment,src/modules/payables/payments.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,listPayments,src/modules/payables/payments.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,getPayment,src/modules/payables/payments.ts,Partially working,tests\integration\payables.test.ts,Referenced by service tests; not full UI certification
+payables,paymentAccess,src/modules/payables/payments.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,outstandingInvoices,src/modules/payables/payments.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,paymentDefaultsFor,src/modules/payables/payments.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,supplierBillPdf,src/modules/payables/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,paymentPdf,src/modules/payables/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,notePdf,src/modules/payables/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,lockBill,src/modules/payables/settlement.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,lockInvoice,src/modules/payables/settlement.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,lockPayment,src/modules/payables/settlement.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,applyBillSettlement,src/modules/payables/settlement.ts,Unable to test,,Source exists; no direct test-call reference found
+payables,applyInvoiceSettlement,src/modules/payables/settlement.ts,Unable to test,,Source exists; no direct test-call reference found
+planning,computeMrp,src/modules/planning/mrp.ts,Unable to test,,Source exists; no direct test-call reference found
+planning,saveRequirement,src/modules/planning/service.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+planning,setRequirementStatus,src/modules/planning/service.ts,Unable to test,,Source exists; no direct test-call reference found
+planning,getMrp,src/modules/planning/service.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+planning,planningCapabilities,src/modules/planning/service.ts,Unable to test,,Source exists; no direct test-call reference found
+planning,setPlanningAttributes,src/modules/planning/service.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,supplierPerformance,src/modules/procurement/performance.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,createPo,src/modules/procurement/po.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\document-visibility.test.ts; tests\integration\insights.test.ts; tests\integration\payables.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,updatePo,src/modules/procurement/po.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,poAction,src/modules/procurement/po.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\insights.test.ts; tests\integration\payables.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,refreshPoReceiptStatus,src/modules/procurement/po.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,isOpenForReceipt,src/modules/procurement/po.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,getPo,src/modules/procurement/po.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,poWhere,src/modules/procurement/po.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,listPos,src/modules/procurement/po.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,poAccess,src/modules/procurement/po.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,prefillFromPr,src/modules/procurement/po.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,submitPortalQuoteAction,src/modules/procurement/portal-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,createPr,src/modules/procurement/pr.ts,Partially working,tests\integration\insights.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,updatePr,src/modules/procurement/pr.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,prAction,src/modules/procurement/pr.ts,Partially working,tests\integration\insights.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,refreshPrOrderStatus,src/modules/procurement/pr.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,createPrFromMrp,src/modules/procurement/pr.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,getPr,src/modules/procurement/pr.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,listPrs,src/modules/procurement/pr.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,prAccess,src/modules/procurement/pr.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,createRfq,src/modules/procurement/rfq.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,addRfqSuppliers,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,prefillRfqFromPr,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,rfqAction,src/modules/procurement/rfq.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,recordQuotation,src/modules/procurement/rfq.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,persistQuotation,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,markRfqSupplierShared,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,supplierTermsSummary,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,getRfq,src/modules/procurement/rfq.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,proposeAward,src/modules/procurement/rfq.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,createPosFromAward,src/modules/procurement/rfq.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+procurement,listRfqs,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,rfqAccess,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,quotationAccess,src/modules/procurement/rfq.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,getPortalQuote,src/modules/procurement/supplier-portal.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,submitPortalQuote,src/modules/procurement/supplier-portal.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,traceSalesOrders,src/modules/procurement/trace.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,procurementForSalesOrder,src/modules/procurement/trace.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,procurementForRequisition,src/modules/procurement/trace.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,visibleTraced,src/modules/procurement/trace.ts,Unable to test,,Source exists; no direct test-call reference found
+procurement,traceSalesOrdersForPoLines,src/modules/procurement/trace.ts,Unable to test,,Source exists; no direct test-call reference found
+projects,deliveryProgressByProject,src/modules/projects/lifecycle.ts,Unable to test,,Source exists; no direct test-call reference found
+projects,advanceProjectStatus,src/modules/projects/lifecycle.ts,Unable to test,,Source exists; no direct test-call reference found
+projects,taskCountsByProject,src/modules/projects/service.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+projects,listProjects,src/modules/projects/service.ts,Partially working,tests\integration\audit-coverage.test.ts,Referenced by service tests; not full UI certification
+projects,getProject,src/modules/projects/service.ts,Partially working,tests\integration\audit-coverage.test.ts; tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+projects,listProjectOptions,src/modules/projects/service.ts,Unable to test,,Source exists; no direct test-call reference found
+projects,createProject,src/modules/projects/service.ts,Partially working,tests\integration\audit-coverage.test.ts; tests\integration\members-reports.test.ts; tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+projects,updateProject,src/modules/projects/service.ts,Partially working,tests\integration\audit-coverage.test.ts,Referenced by service tests; not full UI certification
+projects,setProjectArchived,src/modules/projects/service.ts,Partially working,tests\integration\audit-coverage.test.ts,Referenced by service tests; not full UI certification
+projects,addStatusUpdate,src/modules/projects/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+projects,listStatusUpdates,src/modules/projects/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+projects,projectActivity,src/modules/projects/service.ts,Unable to test,,Source exists; no direct test-call reference found
+reports,getReport,src/modules/reports/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+reports,reportWhatsAppText,src/modules/reports/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+sales,createClientPo,src/modules/sales/client-po.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,updateClientPo,src/modules/sales/client-po.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,clientPoAction,src/modules/sales/client-po.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,setMilestoneStatus,src/modules/sales/client-po.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,getClientPo,src/modules/sales/client-po.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,listClientPos,src/modules/sales/client-po.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,clientPoOptions,src/modules/sales/client-po.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,clientPoAccess,src/modules/sales/client-po.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,cpoFormValues,src/modules/sales/client-po.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,createClientInvoice,src/modules/sales/invoice.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\quotations.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,updateClientInvoice,src/modules/sales/invoice.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,clientInvoiceAction,src/modules/sales/invoice.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\quotations.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,getClientInvoice,src/modules/sales/invoice.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,defaultDueDate,src/modules/sales/invoice.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,invoicePrefill,src/modules/sales/invoice.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,listClientInvoices,src/modules/sales/invoice.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,clientInvoiceAccess,src/modules/sales/invoice.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,getSoBilling,src/modules/sales/milestone-billing.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,setSoMilestones,src/modules/sales/milestone-billing.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,markMilestoneAchieved,src/modules/sales/milestone-billing.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,createMilestoneInvoice,src/modules/sales/milestone-billing.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,projectReceivables,src/modules/sales/milestone-billing.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,clientPoPdf,src/modules/sales/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,salesOrderPdf,src/modules/sales/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,raBillPdf,src/modules/sales/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,clientInvoicePdf,src/modules/sales/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,quotationPdf,src/modules/sales/pdf.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,createQuotationAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,updateQuotationAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,duplicateQuotationAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,quotationActionAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,recordAcceptanceAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,convertQuotationAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,emailQuotationAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,setSoMilestonesAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,markMilestoneAchievedAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,createMilestoneInvoiceAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,savePaymentTemplateAction,src/modules/sales/quotation-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,requestAcceptanceCodeAction,src/modules/sales/quotation-public-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,acceptQuotationAction,src/modules/sales/quotation-public-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,rejectQuotationAction,src/modules/sales/quotation-public-actions.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,createQuotation,src/modules/sales/quotation.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,updateQuotation,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,duplicateQuotation,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,formValues,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,quotationAction,src/modules/sales/quotation.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,recordAcceptance,src/modules/sales/quotation.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,convertToSalesOrder,src/modules/sales/quotation.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,quotationLink,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,emailQuotation,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,getPublicQuotation,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,requestAcceptanceCode,src/modules/sales/quotation.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,acceptViaLink,src/modules/sales/quotation.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,rejectViaLink,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,displayStatus,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,getQuotation,src/modules/sales/quotation.ts,Partially working,tests\integration\quotations.test.ts,Referenced by service tests; not full UI certification
+sales,listQuotations,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,quotationAccess,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,listPaymentTemplates,src/modules/sales/quotation.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,raAmounts,src/modules/sales/ra-bill.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,createRaBill,src/modules/sales/ra-bill.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,updateRaBill,src/modules/sales/ra-bill.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,raBillAction,src/modules/sales/ra-bill.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,certifyRaBill,src/modules/sales/ra-bill.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,getRaBill,src/modules/sales/ra-bill.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,raPrefill,src/modules/sales/ra-bill.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,listRaBills,src/modules/sales/ra-bill.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,raBillAccess,src/modules/sales/ra-bill.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,syncRequirementsFromSo,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,createSalesOrder,src/modules/sales/sales-order.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,createSalesOrderTx,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,updateSalesOrder,src/modules/sales/sales-order.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,salesOrderAction,src/modules/sales/sales-order.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\quotations.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,requestSoAmendment,src/modules/sales/sales-order.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,withdrawSoAmendment,src/modules/sales/sales-order.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,decideSoAmendment,src/modules/sales/sales-order.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,getSalesOrder,src/modules/sales/sales-order.ts,Partially working,tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+sales,listSalesOrders,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,salesOrderPrefill,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,salesOrderOptions,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,salesOrderAccess,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,soAmendmentAccess,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,listPendingSoAmendments,src/modules/sales/sales-order.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,loadClient,src/modules/sales/shared.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,netRate,src/modules/sales/shared.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,cpoLineBilled,src/modules/sales/shared.ts,Unable to test,,Source exists; no direct test-call reference found
+sales,lockClientPo,src/modules/sales/shared.ts,Unable to test,,Source exists; no direct test-call reference found
+search,globalSearch,src/modules/search/service.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,getBranding,src/modules/settings/branding.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,updateBranding,src/modules/settings/branding.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,getCommercialAdmin,src/modules/settings/commercial.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,updateCommercialSettings,src/modules/settings/commercial.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,updateSeries,src/modules/settings/commercial.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,setApprovalLimit,src/modules/settings/commercial.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,getOrganization,src/modules/settings/service.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,updateCompany,src/modules/settings/service.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,getRoleMatrix,src/modules/settings/service.ts,Unable to test,,Source exists; no direct test-call reference found
+settings,updateRolePermissions,src/modules/settings/service.ts,Partially working,tests\integration\members-reports.test.ts,Referenced by service tests; not full UI certification
+settings,listAuditLogs,src/modules/settings/service.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,createChallan,src/modules/stores/challan.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\procurement-stores.test.ts; tests\integration\quotations.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+stores,refreshSoFulfilment,src/modules/stores/challan.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,refreshChallanStatus,src/modules/stores/challan.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,challanAction,src/modules/stores/challan.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\procurement-stores.test.ts; tests\integration\quotations.test.ts; tests\integration\sales.test.ts,Referenced by service tests; not full UI certification
+stores,getChallan,src/modules/stores/challan.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+stores,challanWhere,src/modules/stores/challan.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,listChallans,src/modules/stores/challan.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,challanAccess,src/modules/stores/challan.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,challanFormData,src/modules/stores/challan.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,createGrn,src/modules/stores/grn.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\insights.test.ts; tests\integration\payables.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+stores,updateGrn,src/modules/stores/grn.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,postGrn,src/modules/stores/grn.ts,Partially working,tests\integration\complete-training-workflow.test.ts; tests\integration\insights.test.ts; tests\integration\payables.test.ts; tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+stores,grnAction,src/modules/stores/grn.ts,Partially working,tests\integration\procurement-stores.test.ts,Referenced by service tests; not full UI certification
+stores,pendingDeliveries,src/modules/stores/grn.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,receiptSource,src/modules/stores/grn.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,getGrn,src/modules/stores/grn.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,grnWhere,src/modules/stores/grn.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,listGrns,src/modules/stores/grn.ts,Unable to test,,Source exists; no direct test-call reference found
+stores,grnAccess,src/modules/stores/grn.ts,Unable to test,,Source exists; no direct test-call reference found
+tasks,buildTaskWhere,src/modules/tasks/filters.ts,Partially working,tests\unit\validation-and-utils.test.ts,Referenced by service tests; not full UI certification
+tasks,buildTaskOrderBy,src/modules/tasks/filters.ts,Partially working,tests\unit\validation-and-utils.test.ts,Referenced by service tests; not full UI certification
+tasks,applyTaskTransition,src/modules/tasks/rules.ts,Partially working,tests\unit\rules.test.ts,Referenced by service tests; not full UI certification
+tasks,completionRate,src/modules/tasks/rules.ts,Partially working,tests\unit\rules.test.ts,Referenced by service tests; not full UI certification
+tasks,isOverdue,src/modules/tasks/rules.ts,Partially working,tests\unit\rules.test.ts,Referenced by service tests; not full UI certification
+tasks,startOfToday,src/modules/tasks/rules.ts,Partially working,tests\integration\foundation.test.ts; tests\integration\inventory.test.ts; tests\unit\rules.test.ts,Referenced by service tests; not full UI certification
+tasks,listTasks,src/modules/tasks/service.ts,Partially working,tests\integration\audit-coverage.test.ts; tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+tasks,listTasksForReport,src/modules/tasks/service.ts,Unable to test,,Source exists; no direct test-call reference found
+tasks,getTask,src/modules/tasks/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+tasks,createTask,src/modules/tasks/service.ts,Partially working,tests\integration\audit-coverage.test.ts; tests\integration\members-reports.test.ts; tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+tasks,updateTask,src/modules/tasks/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+tasks,updateTaskProgress,src/modules/tasks/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification
+tasks,addComment,src/modules/tasks/service.ts,Partially working,tests\integration\tasks.test.ts,Referenced by service tests; not full UI certification

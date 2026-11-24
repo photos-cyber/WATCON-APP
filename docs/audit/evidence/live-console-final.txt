@@ -1,0 +1,6 @@
+Total messages: 4 (Errors: 4, Warnings: 0)
+
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://watcon-app.vercel.app/api/reports/pdf:1
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://watcon-app.vercel.app/api/attachments/00000000-0000-0000-0000-000000000000:1
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://watcon-app.vercel.app/api/reports/csv/accounts:1
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://watcon-app.vercel.app/api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000:1

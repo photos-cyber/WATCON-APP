@@ -1,0 +1,3746 @@
+[
+  {
+    "id": "getting-started",
+    "title": "Getting Started",
+    "category": "Getting Started",
+    "summary": "Learn how to sign in and use the menu.",
+    "sections": [
+      {
+        "title": "Before you begin",
+        "paragraphs": [
+          "Ask your manager for your work login and the modules you should use. The screen can hide actions your account cannot perform."
+        ]
+      },
+      {
+        "title": "Sign in",
+        "paragraphs": [
+          "1. Open the WATCON application.",
+          "2. Enter Email or username and Password.",
+          "3. Click Sign in.",
+          "4. If asked, enter Current password, New password and Confirm new password. Click Update password."
+        ]
+      },
+      {
+        "title": "Find your work",
+        "paragraphs": [
+          "Use the left menu on a desktop. On a phone, use the navigation button at the top. Open Tasks for your assigned work. Open a record to see its details."
+        ]
+      },
+      {
+        "title": "Save safely",
+        "paragraphs": [
+          "Check the project, party, item, brand, quantity and date before saving. A draft often needs submission, approval, posting or issuing before it changes totals. Wait for confirmation before trying again."
+        ]
+      },
+      {
+        "title": "Sign out",
+        "paragraphs": [
+          "Open your account menu and choose Sign out. Do this on shared computers."
+        ]
+      },
+      {
+        "title": "Verification note",
+        "paragraphs": [
+          "This guide uses current source labels and local tests. Only the sign-in screenshots come from production. Module examples and screenshots use fictional local data. Untested operations are not a promise of a successful transaction."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "dashboard",
+    "title": "Dashboard",
+    "category": "All Modules",
+    "summary": "See the work and totals you are allowed to see.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "See the work and totals you are allowed to see."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "See the work and totals you are allowed to see."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "All employees. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Dashboard from the left menu. Address: /dashboard."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Dashboard.",
+          "2. Use the project and task links to open the matching lists.",
+          "3. Check deadlines and pending work."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Viewing this page does not post stock or money. Totals follow your permissions."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Open the record that needs attention."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": "/dashboard"
+  },
+  {
+    "id": "projects",
+    "title": "Projects",
+    "category": "All Modules",
+    "summary": "Keep one site or job and its linked work together.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Keep one site or job and its linked work together."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Keep one site or job and its linked work together."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Project Manager or Admin. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Projects from the left menu. Address: /projects."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Click Create new project.",
+          "2. Enter Site / project name, Site address and Project description.",
+          "3. Choose Project manager and Project members.",
+          "4. Set dates, Priority and Status.",
+          "5. Click Create project.",
+          "6. Open the saved project to view work and status history."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Site / project name: A short name employees recognize.",
+          "Project code",
+          "Site address: The physical work location.",
+          "Project description: What the job covers.",
+          "Start date",
+          "Expected completion",
+          "Priority: How urgently work needs attention.",
+          "Status: The current stage of the record.",
+          "Project manager: The person responsible for the job.",
+          "Project members: People who need to work on this job."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Saving a project creates a job record. Approved orders and deliveries can later change its status and progress automatically."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Create tasks and the required orders."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": "/projects"
+  },
+  {
+    "id": "tasks",
+    "title": "Tasks",
+    "category": "All Modules",
+    "summary": "Tell people what work they must do and track progress.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Tell people what work they must do and track progress."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Tell people what work they must do and track progress."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Managers and assigned employees. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Tasks from the left menu. Address: /tasks."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Click Create task.",
+          "2. Choose the project, departments and team members.",
+          "3. Choose an accountable owner who is also assigned.",
+          "4. Enter the title, dates and priority.",
+          "5. Save the task.",
+          "6. Open it and use Update progress or add a comment."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Task title",
+          "Task code",
+          "Project: The job or site this record belongs to.",
+          "Task description",
+          "Departments",
+          "Team members",
+          "Accountable owner",
+          "Start date",
+          "Due date",
+          "Priority: How urgently work needs attention.",
+          "Status: The current stage of the record.",
+          "Progress (%)"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Tasks do not post stock or payments. Completed means 100 percent. Reopening requires progress below 100 percent."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Review the project task list."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": "/tasks"
+  },
+  {
+    "id": "departments",
+    "title": "Departments",
+    "category": "All Modules",
+    "summary": "Group employees by the work they do.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Group employees by the work they do."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Group employees by the work they do."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Admin. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Departments from the left menu. Address: /departments."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Click Add department.",
+          "2. Enter the department details.",
+          "3. Click Create department.",
+          "4. Open the department to view its people and tasks."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Department code",
+          "Department name",
+          "Description",
+          "Department head",
+          "Status: The current stage of the record."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "No stock or account entry is created. A name must be unique."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Assign employees to the department."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": "/departments"
+  },
+  {
+    "id": "team-members",
+    "title": "Team Members",
+    "category": "All Modules",
+    "summary": "Create employee access and map people to departments.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Create employee access and map people to departments."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Create employee access and map people to departments."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Admin within permission limits or Super Admin. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Team Members from the left menu. Address: /team-members."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Team Members.",
+          "2. Click Add member.",
+          "3. Enter the employee details and username.",
+          "4. Choose the role and primary department.",
+          "5. Choose additional departments if needed.",
+          "6. Enter a temporary password.",
+          "7. Click Create member."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Full name",
+          "Employee ID",
+          "Designation",
+          "Joining date",
+          "Phone number",
+          "WhatsApp number",
+          "Primary department",
+          "Additional departments",
+          "Email",
+          "Username",
+          "Role",
+          "Temporary password"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "No stock or account entry is created. New members must change their temporary password. Deactivation keeps history and revokes sessions."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Ask the employee to sign in and change their password."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "members.view",
+    "route": "/team-members"
+  },
+  {
+    "id": "items",
+    "title": "Items",
+    "category": "All Modules",
+    "summary": "Maintain the materials the company buys or supplies.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Maintain the materials the company buys or supplies."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Maintain the materials the company buys or supplies."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Storekeeper or authorized master-data operator. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Items from the left menu. Address: /items."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Items.",
+          "2. Open the add item form.",
+          "3. Enter the item name and Unit.",
+          "4. Enter other needed details and save.",
+          "5. Open the item to link its brands."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Item code",
+          "Unit: How the material is counted, such as Bag or Nos.",
+          "Item name",
+          "Category",
+          "Description",
+          "Status: The current stage of the record."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Creating an item does not receive material. Stock belongs to each item and brand combination."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Link the correct brand and record stock through an authorized movement."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "items.view",
+    "route": "/items"
+  },
+  {
+    "id": "brands",
+    "title": "Brands",
+    "category": "All Modules",
+    "summary": "Keep brand names consistent across materials.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Keep brand names consistent across materials."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Keep brand names consistent across materials."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Authorized master-data operator. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Brands from the left menu. Address: /brands."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Brands.",
+          "2. Open the add brand form.",
+          "3. Enter a unique brand name.",
+          "4. Save the brand.",
+          "5. Open the relevant item to link it."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Brand code",
+          "Brand name",
+          "Description",
+          "Status: The current stage of the record."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "No stock is created by a brand name. Case-insensitive duplicate names are rejected."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Use the item and brand combination on documents."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "items.view",
+    "route": "/brands"
+  },
+  {
+    "id": "suppliers",
+    "title": "Suppliers",
+    "category": "All Modules",
+    "summary": "Keep the details of people or companies we buy from.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Keep the details of people or companies we buy from."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Keep the details of people or companies we buy from."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Purchase Team and Accounts Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Suppliers from the left menu. Address: /parties?type=supplier."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Suppliers.",
+          "2. Click Add supplier.",
+          "3. Enter the name and contact details.",
+          "4. Keep the supplier option selected.",
+          "5. Enter address, tax details and payment terms if needed.",
+          "6. Save the record."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Name",
+          "Legal / registered name",
+          "Code",
+          "Type",
+          "GSTIN",
+          "PAN",
+          "State (place of supply)",
+          "TDS section",
+          "TDS rate %",
+          "Contact person",
+          "Phone",
+          "Email",
+          "WhatsApp",
+          "Address",
+          "City",
+          "PIN code",
+          "Payment terms (days)",
+          "Credit limit (₹)",
+          "Bank",
+          "Account number",
+          "IFSC",
+          "Status: The current stage of the record.",
+          "Notes"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Create party. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A supplier profile creates no payable. Approved supplier bills create amounts to pay."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Create a Rate Enquiry or Purchase Order."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "parties.view",
+    "route": "/parties?type=supplier"
+  },
+  {
+    "id": "clients",
+    "title": "Clients",
+    "category": "All Modules",
+    "summary": "Keep the details of people or companies that buy from us.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Keep the details of people or companies that buy from us."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Keep the details of people or companies that buy from us."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Sales operator and Accounts Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Clients from the left menu. Address: /parties?type=client."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Clients.",
+          "2. Click Add client.",
+          "3. Enter the name and contact details.",
+          "4. Keep the client option selected.",
+          "5. Enter address and tax details if needed.",
+          "6. Save the record."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Name",
+          "Legal / registered name",
+          "Code",
+          "Type",
+          "GSTIN",
+          "PAN",
+          "State (place of supply)",
+          "TDS section",
+          "TDS rate %",
+          "Contact person",
+          "Phone",
+          "Email",
+          "WhatsApp",
+          "Address",
+          "City",
+          "PIN code",
+          "Payment terms (days)",
+          "Credit limit (₹)",
+          "Bank",
+          "Account number",
+          "IFSC",
+          "Status: The current stage of the record.",
+          "Notes"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Create party. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A client profile creates no receivable. Issued Client Invoices create amounts due."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Record a Client PO or prepare a Quotation."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "parties.view",
+    "route": "/parties?type=client"
+  },
+  {
+    "id": "material-planning",
+    "title": "Material Planning",
+    "category": "All Modules",
+    "summary": "Compare project requirements with stock and procurement.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Compare project requirements with stock and procurement."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Compare project requirements with stock and procurement."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Project Manager or Purchase Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Material Planning from the left menu. Address: /material-planning."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Material Planning.",
+          "2. Choose the project.",
+          "3. Review the requirements, available stock and shortages.",
+          "4. Use the available planning actions only for the required shortage."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A plan alone does not receive or issue stock. Reservations hold stock for a project."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Prepare a Requisition for the shortage."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "mrp.view",
+    "route": "/material-planning"
+  },
+  {
+    "id": "purchase-requisitions",
+    "title": "Requisitions",
+    "category": "All Modules",
+    "summary": "Ask the purchase team to arrange materials.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Ask the purchase team to arrange materials."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Ask the purchase team to arrange materials."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Site Engineer or Project Manager. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Requisitions from the left menu. Address: /purchase-requisitions."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Requisitions.",
+          "2. Click New requisition.",
+          "3. Choose the project and required materials.",
+          "4. Enter quantities and dates.",
+          "5. Save a draft.",
+          "6. Submit for approval from the record page."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A requisition does not receive stock or create a supplier bill."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "After approval, prepare the Rate Enquiry or Purchase Order."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "pr.view",
+    "route": "/purchase-requisitions"
+  },
+  {
+    "id": "rate-enquiries",
+    "title": "Rate Enquiries",
+    "category": "All Modules",
+    "summary": "Ask suppliers for prices and compare their offers.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Ask suppliers for prices and compare their offers."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Ask suppliers for prices and compare their offers."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Purchase Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Rate Enquiries from the left menu. Address: /rate-enquiries."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Rate Enquiries.",
+          "2. Click New enquiry.",
+          "3. Choose the project and suppliers.",
+          "4. Add the required item and brand lines.",
+          "5. Save the enquiry.",
+          "6. Record supplier quotations and compare the rates.",
+          "7. Use the award action only after reviewing the chosen offer."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Project: The job or site this record belongs to.",
+          "Deliver to",
+          "Subject",
+          "Quotes needed by",
+          "Material needed at site by",
+          "Suppliers to ask",
+          "Payment terms",
+          "Freight terms",
+          "Tax terms",
+          "Quote valid for (days)",
+          "Delivery address",
+          "General specifications"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Save enquiry. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "An enquiry and supplier quote do not change stock or create a payable."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Review the linked Purchase Order after award."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "rfq.view",
+    "route": "/rate-enquiries"
+  },
+  {
+    "id": "purchase-orders",
+    "title": "Purchase Orders",
+    "category": "All Modules",
+    "summary": "Tell a supplier which materials we want to buy.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Tell a supplier which materials we want to buy."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Tell a supplier which materials we want to buy."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Purchase Team and authorized approver. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Purchase Orders from the left menu. Address: /purchase-orders."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Purchase Orders.",
+          "2. Click New purchase order.",
+          "3. Select Project and Supplier.",
+          "4. Check Deliver to and delivery instructions.",
+          "5. Add item and brand lines, quantities, rates and GST.",
+          "6. Enter freight and payment terms if needed.",
+          "7. Click Create draft PO.",
+          "8. Review and submit the draft.",
+          "9. An authorized approver reviews the order."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Project: The job or site this record belongs to.",
+          "Supplier: The company we buy from.",
+          "Deliver to",
+          "Delivery address / instructions",
+          "Order date",
+          "Expected delivery",
+          "Freight / other charges (₹): Extra cost in addition to the material lines.",
+          "GST on charges %: Tax rate for freight or other charges.",
+          "Payment terms",
+          "Advance payable (₹)",
+          "Terms & conditions (printed)",
+          "Internal remarks (not printed): A note for staff, excluded from the printed PO terms."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A PO alone does not increase stock. Posted Site Receipts receive accepted material. An approved supplier bill records the payable."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Record actual arrival through Site receipts."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "po.view",
+    "route": "/purchase-orders"
+  },
+  {
+    "id": "site-receipts",
+    "title": "Site receipts",
+    "category": "All Modules",
+    "summary": "Record materials that actually arrived and passed checks.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Record materials that actually arrived and passed checks."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Record materials that actually arrived and passed checks."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Site Engineer and Storekeeper. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Site Receipts from the left menu. Address: /site-receipts."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Site Receipts in the menu.",
+          "2. Find the source under Waiting to be received.",
+          "3. Open its receipt action.",
+          "4. Enter Received, Damaged and Rejected quantities.",
+          "5. Check Receipt date and Received by.",
+          "6. Use Save draft to continue later, or submit for verification.",
+          "7. An authorized stock operator posts the verified receipt."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Received",
+          "Rejected",
+          "Receipt date",
+          "Supplier challan no.",
+          "Supplier invoice no.: The reference printed on the supplier invoice.",
+          "Vehicle no.",
+          "Received by: The person who checked the delivery.",
+          "Site location (optional)",
+          "Remarks"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Posting a supplier GRN increases accepted stock at its receiving location. A draft does not. An internal transfer receipt moves material from transit to destination; it is not a second purchase."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Attach evidence and record or match the Supplier Bill."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "grn.view",
+    "route": "/site-receipts"
+  },
+  {
+    "id": "stock",
+    "title": "Inventory",
+    "category": "All Modules",
+    "summary": "See quantities by item, brand and location.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "See quantities by item, brand and location."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "See quantities by item, brand and location."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Storekeeper. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Inventory from the left menu. Address: /stock."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Inventory.",
+          "2. Use Company stock for totals.",
+          "3. Use By location to find the material.",
+          "4. Use Stock ledger to trace each movement.",
+          "5. Use Reservations to review stock held for projects.",
+          "6. Use Locations for stores and sites."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Item – brand",
+          "Location",
+          "Movement",
+          "Adjustment",
+          "Date",
+          "Reference",
+          "Reason",
+          "Remarks"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Only posted movements change balances. Manual adjustments need permission and a reason. Do not enter an adjustment to repeat a GRN."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Investigate any difference using the Stock ledger."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "items.view",
+    "route": "/stock"
+  },
+  {
+    "id": "supplier-bills",
+    "title": "Supplier Bills",
+    "category": "All Modules",
+    "summary": "Record a supplier invoice and the amount we owe.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Record a supplier invoice and the amount we owe."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Record a supplier invoice and the amount we owe."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Accounts Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Supplier Bills from the left menu. Address: /supplier-bills."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Supplier Bills.",
+          "2. Click Enter supplier bill.",
+          "3. Select the project, supplier and Purchase Order where relevant.",
+          "4. Enter the supplier invoice number, dates and bill lines.",
+          "5. Check taxes and matching differences.",
+          "6. Save a draft and submit it.",
+          "7. An authorized approver approves the matched bill."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Purchase order",
+          "Project: The job or site this record belongs to.",
+          "Supplier: The company we buy from.",
+          "Supplier invoice number",
+          "Invoice date",
+          "Due date",
+          "Supplier GSTIN on the invoice",
+          "TDS section",
+          "TDS rate %",
+          "Freight / other charges ₹",
+          "GST on charges %: Tax rate for freight or other charges.",
+          "Remarks"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Approval creates the payable and updates billed quantities. This version does not receive stock from the bill. Do not add stock a second time after a GRN."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Record the supplier payment and allocate it to this bill."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "bills.view",
+    "route": "/supplier-bills"
+  },
+  {
+    "id": "quotations",
+    "title": "Quotations",
+    "category": "All Modules",
+    "summary": "Prepare a price offer for a client.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Prepare a price offer for a client."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Prepare a price offer for a client."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Sales operator with Sales Order permissions. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Quotations from the left menu. Address: /quotations."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Quotations.",
+          "2. Open the new quotation form.",
+          "3. Choose the client and project.",
+          "4. Add the offer lines and terms.",
+          "5. Save and review the quotation.",
+          "6. Use the available send, acceptance or conversion actions after checking the details."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Project: The job or site this record belongs to.",
+          "Client: The customer we supply.",
+          "Subject",
+          "Quotation date",
+          "Valid until",
+          "Additional payment terms (optional)",
+          "Delivery terms",
+          "Terms & conditions",
+          "Internal notes (not printed)"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A quotation does not issue materials or create an invoice receivable. Public quote links grant access to the offer; share them privately."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Create or review the resulting Sales Order."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "so.view",
+    "route": "/quotations"
+  },
+  {
+    "id": "client-pos",
+    "title": "Client POs",
+    "category": "All Modules",
+    "summary": "Record the order a client sends to us.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Record the order a client sends to us."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Record the order a client sends to us."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Project Manager or authorized sales operator. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Client POs from the left menu. Address: /client-pos."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Client POs.",
+          "2. Click New client PO.",
+          "3. Choose project and client.",
+          "4. Enter the client reference and date.",
+          "5. Add agreed lines, quantities, rates and terms.",
+          "6. Click Save draft.",
+          "7. Review and submit for approval.",
+          "8. Attach the original document in the record evidence panel."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Project: The job or site this record belongs to.",
+          "Client: The customer we supply.",
+          "Client's PO / work-order number",
+          "PO date",
+          "Start date",
+          "Completion date",
+          "Place of supply",
+          "Scope of work",
+          "Retention %",
+          "Mobilisation advance (₹)",
+          "Advance recovery % per bill",
+          "Payment terms",
+          "Delivery terms",
+          "Notes"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "An active Client PO records the contract. It does not dispatch stock or issue a tax invoice."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Create the linked Sales Order."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "cpo.view",
+    "route": "/client-pos"
+  },
+  {
+    "id": "sales-orders",
+    "title": "Sales Orders",
+    "category": "All Modules",
+    "summary": "Record what we agreed to supply to the client.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Record what we agreed to supply to the client."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Record what we agreed to supply to the client."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Project Manager or authorized sales operator. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Sales Orders from the left menu. Address: /sales-orders."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Sales Orders.",
+          "2. Click New sales order.",
+          "3. Choose the project and client.",
+          "4. Link the Client PO when applicable.",
+          "5. Add materials or services and agreed prices.",
+          "6. Save a draft and submit it for approval.",
+          "7. Use the amendment process for approved changes."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Project: The job or site this record belongs to.",
+          "Client: The customer we supply.",
+          "Client PO (optional)",
+          "Order date",
+          "Deliver by",
+          "Delivery address",
+          "Delivery schedule",
+          "Billing schedule",
+          "Payment terms",
+          "Notes",
+          "Reason for the change"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A Sales Order alone does not reduce stock. Client-delivery challans update delivered quantities."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Prepare a Challan when materials are ready."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "so.view",
+    "route": "/sales-orders"
+  },
+  {
+    "id": "challans",
+    "title": "Challans",
+    "category": "All Modules",
+    "summary": "Record dispatch, transfer or return of materials.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Record dispatch, transfer or return of materials."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Record dispatch, transfer or return of materials."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Storekeeper. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Challans from the left menu. Address: /challans."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Challans.",
+          "2. Click New challan.",
+          "3. Choose the correct movement type and project.",
+          "4. Choose the source and destination.",
+          "5. Link the relevant Sales Order or Purchase Order where needed.",
+          "6. Enter item and brand quantities.",
+          "7. Save and review the draft.",
+          "8. Dispatch only after checking physical material."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Project: The job or site this record belongs to.",
+          "Sales order",
+          "Supplier: The company we buy from.",
+          "Against purchase order",
+          "To warehouse",
+          "Deliver to",
+          "Dispatch date",
+          "Expected arrival",
+          "Vehicle no.",
+          "Transporter",
+          "LR / docket no.",
+          "Driver name",
+          "Driver phone",
+          "Sent by",
+          "Remarks"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Save challan. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Dispatch reduces the source stock. Internal transfers remain in Goods in transit until receipt. Client delivery records supplied quantities. Returns and reversals have separate controlled actions."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Confirm receipt or delivery and keep the signed proof."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "grn.view",
+    "route": "/challans"
+  },
+  {
+    "id": "running-bills",
+    "title": "Running Bills",
+    "category": "All Modules",
+    "summary": "Prepare period billing and record what the client certifies.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Prepare period billing and record what the client certifies."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Prepare period billing and record what the client certifies."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Project Manager, Site Engineer and Accounts Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Running Bills from the left menu. Address: /running-bills."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Running Bills.",
+          "2. Click New running bill for the project.",
+          "3. Choose the relevant order.",
+          "4. Enter current measurements and review previous quantities.",
+          "5. Save and submit for internal review.",
+          "6. Record client certification through the authorized action."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Bill progress",
+          "Bill date",
+          "Work done from",
+          "Work done up to",
+          "Other deductions (₹)",
+          "Deduction details",
+          "Remarks",
+          "Client certificate / reference",
+          "Certified on"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Save draft. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "A Running Bill records measured and certified work. The separate Client Invoice creates the receivable. Do not treat certification as cash received."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Prepare the Client Invoice from eligible certified work."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "rabill.view",
+    "route": "/running-bills"
+  },
+  {
+    "id": "client-invoices",
+    "title": "Client Invoices",
+    "category": "All Modules",
+    "summary": "Issue the client bill that asks for payment.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Issue the client bill that asks for payment."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Issue the client bill that asks for payment."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Accounts Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Client Invoices from the left menu. Address: /client-invoices."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Client Invoices.",
+          "2. Click New invoice.",
+          "3. Choose the project, client and eligible billing source.",
+          "4. Review quantities, tax and deductions.",
+          "5. Click Create draft invoice.",
+          "6. Review and use the authorized issue action."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Invoice date",
+          "Due date",
+          "Notes on invoice"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "An issued invoice creates a receivable. Draft and cancelled invoices are excluded from live billed totals."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Record client receipts and allocate them to the invoice."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "invoice.view",
+    "route": "/client-invoices"
+  },
+  {
+    "id": "payments",
+    "title": "Payments & Receipts",
+    "category": "All Modules",
+    "summary": "Record money paid to suppliers or received from clients.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Record money paid to suppliers or received from clients."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Record money paid to suppliers or received from clients."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Accounts Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Payments & Receipts from the left menu. Address: /payments."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Payments & Receipts.",
+          "2. Open the new payment or receipt form.",
+          "3. Choose the direction, party and project.",
+          "4. Enter Payment date, mode and bank reference.",
+          "5. Enter the amount and choose the bills or invoices being settled.",
+          "6. Check each allocation and save."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Project: The job or site this record belongs to.",
+          "Date",
+          "Mode",
+          "Bank account",
+          "TDS deducted by client ₹",
+          "Remarks"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Click Record payment or Record receipt, according to the chosen direction. Correct any field named in a validation message. Wait for the saved record and check its status."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Allocated amounts reduce the matching due. Unallocated money is an advance. Recording money does not move stock. Supplier TDS is recorded on the bill; client TDS is entered on the receipt."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Review the document balance and Project Accounts."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "payments.view",
+    "route": "/payments"
+  },
+  {
+    "id": "notes",
+    "title": "Credit / Debit Notes",
+    "category": "All Modules",
+    "summary": "Record an approved adjustment to a bill or invoice.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Record an approved adjustment to a bill or invoice."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Record an approved adjustment to a bill or invoice."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Accounts Team. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Credit / Debit Notes from the left menu. Address: /notes."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Credit / Debit Notes.",
+          "2. Open the new note form.",
+          "3. Choose the supplier bill or client invoice being adjusted.",
+          "4. Enter the reference, date, reason and value.",
+          "5. Save and request approval."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Note date",
+          "Taxable amount ₹",
+          "GST %",
+          "Reason"
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Approval adjusts the matching balance. A financial note does not physically return stock. Use a material return separately when required."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Review the adjusted due and keep supporting evidence."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "bills.view",
+    "route": "/notes"
+  },
+  {
+    "id": "accounts",
+    "title": "Project Accounts",
+    "category": "All Modules",
+    "summary": "See project commercial totals and outstanding amounts.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "See project commercial totals and outstanding amounts."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "See project commercial totals and outstanding amounts."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Accounts Team, Project Manager and management. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Project Accounts from the left menu. Address: /accounts."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Project Accounts.",
+          "2. Review the required project.",
+          "3. Read the help beside each figure.",
+          "4. Open underlying documents before correcting a difference."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "This is an operational sub-ledger. Margin excludes labour and overheads. Received money and allocated invoice settlement are different measures."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Reconcile invoices, receipts, supplier bills and payments."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "accounts.view",
+    "route": "/accounts"
+  },
+  {
+    "id": "reports",
+    "title": "Reports",
+    "category": "All Modules",
+    "summary": "Review and export the reports your role can access.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Review and export the reports your role can access."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Review and export the reports your role can access."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Management and authorized department staff. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Reports from the left menu. Address: /reports."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Reports.",
+          "2. Choose the report and available filters.",
+          "3. Review the matching rows.",
+          "4. Use the export option displayed for that report."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Exporting does not change stock or accounts. Task Print, Export PDF and WhatsApp are also available on supported task report views."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Check exported totals and share only with authorized people."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "reports.commercial",
+    "route": "/reports"
+  },
+  {
+    "id": "documents",
+    "title": "Documents",
+    "category": "All Modules",
+    "summary": "Find attachments and their verification status.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Find attachments and their verification status."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Find attachments and their verification status."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Employees within their record permissions. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Documents from the left menu. Address: /documents."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Documents.",
+          "2. Search by filename or use project and category filters.",
+          "3. Open the permitted record or download its file.",
+          "4. Upload and version evidence from the owning record panel."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Files do not change stock or financial totals. Verified and posted evidence has retention protections."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Have another authorized person verify important evidence."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": "/documents"
+  },
+  {
+    "id": "approvals",
+    "title": "Approvals",
+    "category": "All Modules",
+    "summary": "See records waiting for decisions you may make.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "See records waiting for decisions you may make."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "See records waiting for decisions you may make."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Authorized approvers. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Approvals from the left menu. Address: /approvals."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Approvals.",
+          "2. Open a pending record.",
+          "3. Check quantities, values and evidence.",
+          "4. Use the record approval or rejection action with a clear reason."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Approval has module-specific effects. You may need another approver when separation of duties is enabled."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Recheck the updated status and downstream work."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": "approvals.view",
+    "route": "/approvals"
+  },
+  {
+    "id": "settings",
+    "title": "Administration",
+    "category": "All Modules",
+    "summary": "Maintain company settings and permitted administration.",
+    "sections": [
+      {
+        "title": "What is this module?",
+        "paragraphs": [
+          "Maintain company settings and permitted administration."
+        ]
+      },
+      {
+        "title": "Why should I use it?",
+        "paragraphs": [
+          "Maintain company settings and permitted administration."
+        ]
+      },
+      {
+        "title": "Who should use it?",
+        "paragraphs": [
+          "Super Admin for company, role and audit settings. Your granted permissions decide which actions you can use."
+        ]
+      },
+      {
+        "title": "When should I use it?",
+        "paragraphs": [
+          "Use this module when its step in the job is ready. Check the source document and actual material or payment first."
+        ]
+      },
+      {
+        "title": "How do I open it?",
+        "paragraphs": [
+          "Open Administration from the left menu. Address: /settings."
+        ]
+      },
+      {
+        "title": "How do I add or operate a record?",
+        "paragraphs": [
+          "1. Open Administration.",
+          "2. Open only the settings your permissions allow.",
+          "3. Review the existing values.",
+          "4. Save a deliberate change.",
+          "5. Review the audit log where permitted."
+        ]
+      },
+      {
+        "title": "Important fields",
+        "paragraphs": [
+          "Use the displayed project, date, reference, status and search filters where available. Read the help beside each field. This page may be a register rather than a creation form."
+        ]
+      },
+      {
+        "title": "How do I save?",
+        "paragraphs": [
+          "Use the save or creation button described above. Read validation messages, correct the named field and try again. On a viewing or report page there is nothing to save."
+        ]
+      },
+      {
+        "title": "How do I view or edit?",
+        "paragraphs": [
+          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+        ]
+      },
+      {
+        "title": "How do I print or download?",
+        "paragraphs": [
+          "Use a PDF, Print or export action only where the page displays one. Documents has authorized attachment downloads. Not every register has its own PDF. See the PDF support list in this guide."
+        ]
+      },
+      {
+        "title": "What happens after saving?",
+        "paragraphs": [
+          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+        ]
+      },
+      {
+        "title": "Does it affect stock or accounts?",
+        "paragraphs": [
+          "Numbering, approval and tax settings affect later transactions. Do not change business rules without company approval."
+        ]
+      },
+      {
+        "title": "What should I do next?",
+        "paragraphs": [
+          "Tell affected employees about the agreed change."
+        ]
+      },
+      {
+        "title": "Common mistakes to avoid",
+        "paragraphs": [
+          "Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": "/settings"
+  },
+  {
+    "id": "business-workflow",
+    "title": "Complete Business Workflow",
+    "category": "Step-by-Step Tutorials",
+    "summary": "Follow material and money from project setup to settlement.",
+    "sections": [
+      {
+        "title": "Project and tasks",
+        "paragraphs": [
+          "Projects → Team Members and Departments → Tasks → progress updates → project review."
+        ]
+      },
+      {
+        "title": "Procurement",
+        "paragraphs": [
+          "Material Planning → Requisitions → Rate Enquiries → Purchase Orders → Site receipts → Supplier Bills → Payments & Receipts."
+        ]
+      },
+      {
+        "title": "Sales and billing",
+        "paragraphs": [
+          "Clients → Client POs or Quotations → Sales Orders → Challans → Running Bills → Client Invoices → Payments & Receipts → Project Accounts."
+        ]
+      },
+      {
+        "title": "Partial work and returns",
+        "paragraphs": [
+          "Record only quantities actually received, dispatched or measured. Use separate receipts or bills for later quantities. Keep references linked. Use the available reversal or cancellation actions; never erase historical transactions."
+        ]
+      },
+      {
+        "title": "Stock rule",
+        "paragraphs": [
+          "PO and SO drafts or approvals do not move stock. Supplier GRN posting adds accepted quantities. Challan dispatch moves stock out of the source; internal receipts move transit stock to destination. Supplier bill approval does not add stock in this version."
+        ]
+      },
+      {
+        "title": "Fictional training example",
+        "paragraphs": [
+          "Use only the isolated test application. Project: ABC Hotel Swimming Pool Installation. Client: ABC Hotel Training. Supplier: Training Pool Supplies. Material: Pool filter, Training brand, unit Nos.",
+          "Purchase 10 filters at ₹1,000 each. With 18% GST and no discount or charges, taxable value is ₹10,000, GST ₹1,800 and bill total ₹11,800. Same-state GST is CGST ₹900 plus SGST ₹900.",
+          "Receive 6 filters and then 4. After both supplier GRNs are posted, stock rises by 10. Record the supplier bill for ₹11,800. Stock stays at 10. Pay ₹5,000 and then ₹6,800, allocating both payments. Supplier due becomes zero.",
+          "Agree a client order for 10 filters at ₹1,500 each. Taxable value is ₹15,000, GST ₹2,700 and total ₹17,700. Deliver 4 and then 6 through client-delivery challans. Stock falls first to 6, then to zero.",
+          "Prepare the eligible running bills and record client certification. Issue matching Client Invoices. Receive ₹7,080 and then ₹10,620 with allocations. Final client due is zero. For this example use no retention, advance recovery, TDS or other deductions.",
+          "Expected material margin is ₹5,000 before labour and overheads, excluding GST. Verify project accounts, all tasks and outstanding documents before project closure. This numerical example is a training worksheet; the audit evidence states which workflows were actually executed."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-super_admin",
+    "title": "Super Admin",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "SUPER_ADMIN is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Review security, access and exceptions."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Review role grants and audit entries."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review backup and restore evidence with the administrator."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-admin",
+    "title": "Admin",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "ADMIN is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Review project tasks and approval queues within access."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Review inactive people, overdue work and rejected documents."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review project completeness and permission needs."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-project_manager",
+    "title": "Project Manager",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "PROJECT_MANAGER is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Review project tasks, shortages, receipts and billing progress."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Review open orders and certified work."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review project accounts and closure blockers."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-site_engineer",
+    "title": "Site Engineer",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "SITE_ENGINEER is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Record actual arrivals, consumption, measurements and task progress."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Reconcile site material and pending receipts."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review remaining site work and evidence."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-purchase",
+    "title": "Purchase Department",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "PURCHASE is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Review shortages, supplier quotations and pending POs."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Follow up expected deliveries and supplier commitments."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review supplier performance and open orders."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-project_manager-sales",
+    "title": "Sales Department",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "PROJECT_MANAGER is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Prepare client offers and review agreed orders using granted so and cpo permissions."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Review pending supply and billing with Accounts."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review customer commitments. There is no separate SALES system role."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-storekeeper",
+    "title": "Store or Inventory Manager",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "STOREKEEPER is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Check stock by location, dispatches, receipts and transit."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Reconcile stock ledger and reservations."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review differences and request approved adjustments."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-accounts",
+    "title": "Accounts Department",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "ACCOUNTS is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Match bills, issue invoices and allocate payments or receipts."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Reconcile dues, advances and notes."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review tax records and project accounts with the responsible accountant."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "role-user",
+    "title": "Normal Employee",
+    "category": "Role-wise Guides",
+    "summary": "Daily, weekly and monthly work.",
+    "sections": [
+      {
+        "title": "Software role",
+        "paragraphs": [
+          "USER is the mapped system role. Operational responsibilities do not grant extra permissions."
+        ]
+      },
+      {
+        "title": "Daily",
+        "paragraphs": [
+          "Open assigned Tasks, update progress and add comments."
+        ]
+      },
+      {
+        "title": "Weekly",
+        "paragraphs": [
+          "Review deadlines with the manager."
+        ]
+      },
+      {
+        "title": "Monthly",
+        "paragraphs": [
+          "Review completed work and report access problems."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "glossary",
+    "title": "Business Terms Glossary",
+    "category": "Business Terms Glossary",
+    "summary": "Plain meanings for everyday business words.",
+    "sections": [
+      {
+        "title": "Project",
+        "paragraphs": [
+          "One job or work site."
+        ]
+      },
+      {
+        "title": "Client",
+        "paragraphs": [
+          "A customer who buys materials or services from us."
+        ]
+      },
+      {
+        "title": "Supplier",
+        "paragraphs": [
+          "A company or person we buy from."
+        ]
+      },
+      {
+        "title": "Item",
+        "paragraphs": [
+          "A named material or product."
+        ]
+      },
+      {
+        "title": "Brand",
+        "paragraphs": [
+          "The make of an item."
+        ]
+      },
+      {
+        "title": "Rate Enquiry",
+        "paragraphs": [
+          "A request asking suppliers for their prices."
+        ]
+      },
+      {
+        "title": "Purchase Order",
+        "paragraphs": [
+          "An order we send to a supplier to buy materials."
+        ]
+      },
+      {
+        "title": "Client Purchase Order",
+        "paragraphs": [
+          "An order we receive from our client."
+        ]
+      },
+      {
+        "title": "Sales Order",
+        "paragraphs": [
+          "Our record of the supply agreed with the client."
+        ]
+      },
+      {
+        "title": "Supplier Bill",
+        "paragraphs": [
+          "The supplier invoice we record as money to pay."
+        ]
+      },
+      {
+        "title": "GRN",
+        "paragraphs": [
+          "Goods Receipt Note. In this app use Site Receipts to record and post accepted arrivals."
+        ]
+      },
+      {
+        "title": "Challan",
+        "paragraphs": [
+          "A record of materials sent, transferred or returned. It is not a tax invoice."
+        ]
+      },
+      {
+        "title": "Running Bill",
+        "paragraphs": [
+          "A record of current and earlier measured work for review and client certification."
+        ]
+      },
+      {
+        "title": "Inventory",
+        "paragraphs": [
+          "The material we hold and its movement history."
+        ]
+      },
+      {
+        "title": "Available Stock",
+        "paragraphs": [
+          "Stock that can be issued from the selected location after reservations are considered."
+        ]
+      },
+      {
+        "title": "Advance Payment",
+        "paragraphs": [
+          "Money paid or received before it is allocated to a bill or invoice."
+        ]
+      },
+      {
+        "title": "Outstanding Amount",
+        "paragraphs": [
+          "The part of an approved bill or issued invoice still unsettled."
+        ]
+      },
+      {
+        "title": "Receivable",
+        "paragraphs": [
+          "Money a client still owes us."
+        ]
+      },
+      {
+        "title": "Payable",
+        "paragraphs": [
+          "Money we still owe a supplier."
+        ]
+      },
+      {
+        "title": "Billed Amount",
+        "paragraphs": [
+          "Issued Client Invoice value in Project Accounts."
+        ]
+      },
+      {
+        "title": "Unbilled Amount",
+        "paragraphs": [
+          "Work or supply not yet included in an issued invoice; check the specific report definition."
+        ]
+      },
+      {
+        "title": "Partial Payment",
+        "paragraphs": [
+          "Payment of only part of the amount due."
+        ]
+      },
+      {
+        "title": "GST",
+        "paragraphs": [
+          "Goods and Services Tax. Confirm the rate and state treatment with Accounts."
+        ]
+      },
+      {
+        "title": "HSN",
+        "paragraphs": [
+          "The goods classification code used for tax reporting."
+        ]
+      },
+      {
+        "title": "Credit Adjustment",
+        "paragraphs": [
+          "An approved correction that reduces the relevant amount due."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "faq",
+    "title": "Frequently Asked Questions",
+    "category": "Frequently Asked Questions",
+    "summary": "Answers to common questions.",
+    "sections": [
+      {
+        "title": "Why is a menu or button missing?",
+        "paragraphs": [
+          "Your role or the record status may not allow it. Ask the Super Admin to check your permissions. Do not use someone else’s login."
+        ]
+      },
+      {
+        "title": "Why did a PO not increase stock?",
+        "paragraphs": [
+          "Orders are commitments. Stock increases when accepted supplier material is posted through Site Receipts."
+        ]
+      },
+      {
+        "title": "Why does my bill not increase stock?",
+        "paragraphs": [
+          "This version uses GRN stock posting. A supplier bill records the amount owed and matching quantities."
+        ]
+      },
+      {
+        "title": "Why is company stock different from site stock?",
+        "paragraphs": [
+          "Material may be in the warehouse, another site, transit or quarantine. Use By location."
+        ]
+      },
+      {
+        "title": "Why is payment received different from invoice settlement?",
+        "paragraphs": [
+          "Part of the receipt may still be an advance. Check allocations on the receipt."
+        ]
+      },
+      {
+        "title": "Can I send a PDF through WhatsApp?",
+        "paragraphs": [
+          "Supported task and document controls open a WhatsApp message or sharing link. Review the recipient and message. Attach a downloaded PDF manually when the control does not attach it."
+        ]
+      },
+      {
+        "title": "Does Project Accounts show full profit?",
+        "paragraphs": [
+          "No. Its material margin excludes labour and overheads. Do not use it as a complete statutory profit statement."
+        ]
+      },
+      {
+        "title": "Which PDFs exist?",
+        "paragraphs": [
+          "Commercial builders cover Purchase Order, Requisition, Rate Enquiry, supplier quotation, Site Receipt, Challan, Client PO, Sales Order, client Quotation, Running Bill, Client Invoice, Supplier Bill, Payment and adjustment note. Task reports have a PDF route. A PDF option is not guaranteed for every dashboard, statement or register."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  },
+  {
+    "id": "troubleshooting",
+    "title": "Troubleshooting",
+    "category": "Troubleshooting",
+    "summary": "What to do when work cannot continue.",
+    "sections": [
+      {
+        "title": "Sign-in problem",
+        "paragraphs": [
+          "Check Email or username. Use Forgot your password? if needed. If the account is inactive, contact your administrator."
+        ]
+      },
+      {
+        "title": "Reset message did not arrive",
+        "paragraphs": [
+          "Check your work email and spam folder. Ask the administrator to check SMTP delivery. A reset form alone does not prove email is configured."
+        ]
+      },
+      {
+        "title": "Insufficient stock",
+        "paragraphs": [
+          "Check the exact item, brand and source location. Review reservations and receipts. Do not make a false adjustment."
+        ]
+      },
+      {
+        "title": "Changed by someone else",
+        "paragraphs": [
+          "Refresh the record and review its latest version before trying again."
+        ]
+      },
+      {
+        "title": "Approval refused",
+        "paragraphs": [
+          "Read the reason. Another approver may be required or the amount may exceed your limit."
+        ]
+      },
+      {
+        "title": "Upload problem",
+        "paragraphs": [
+          "Use an allowed PDF, image, CSV or XLSX within the configured limit. SVG and executables are not accepted. Keep files free of malware."
+        ]
+      },
+      {
+        "title": "Network error or no confirmation",
+        "paragraphs": [
+          "Reconnect and reopen the list to check whether the record saved. Avoid repeated payment entries. Tell your supervisor the reference, time and visible error; never send your password."
+        ]
+      },
+      {
+        "title": "Wrong totals",
+        "paragraphs": [
+          "Check document statuses, project links, returns, cancellations, allocations and notes. Ask Accounts to reconcile the original records before editing anything."
+        ]
+      }
+    ],
+    "permission": null,
+    "route": null
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "path": "/sales-orders/new",
+  "viewport": [
+    1440,
+    1000
+  ],
+  "horizontalOverflow": false,
+  "fields": [
+    "Project *",
+    "Client *",
+    "Client PO (optional)",
+    "Order date *",
+    "Deliver by",
+    "Delivery address",
+    "Disc %",
+    "GST %0%0.25%3%5%12%18%28%",
+    "Delivery schedule",
+    "Billing schedule",
+    "Payment terms",
+    "Notes"
+  ]
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\challan-issue.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\credit-note-cancelled.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\grn-discrepancies.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\invoice-draft-no-signature.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\invoice-igst-bank.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\payment-voucher.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-100-items.pdf",
+    "pages": 5,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-60-items.pdf",
+    "pages": 3,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-99-items.pdf",
+    "pages": 5,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-draft-missing-optional.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-interstate-large.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-long-terms.pdf",
+    "pages": 2,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-multi-item-freight-roundoff.pdf",
+    "pages": 2,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\po-single-item.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\ra-bill-landscape.pdf",
+    "pages": 2,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\pdf-samples\\task-report.pdf",
+    "pages": 8,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\training\\client_invoice.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\training\\client_po.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\training\\purchase_order.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\training\\ra_bill.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\training\\sales_order.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\audit\\evidence\\training\\supplier_bill.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\user-guide\\QUICK_START_GUIDE.pdf",
+    "pages": 1,
+    "issues": []
+  },
+  {
+    "file": "docs\\user-guide\\WATCON_USER_GUIDE.pdf",
+    "pages": 78,
+    "issues": []
+  }
+]

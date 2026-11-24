@@ -1,4 +1,5 @@
 import "server-only";
+import { attachmentModuleWhere } from "./visibility";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
@@ -242,7 +243,7 @@ export async function listProjectDocuments(actor: Actor, projectId: string, opts
   if (!access) throw new NotFoundError("Project");
   const page = Math.max(1, opts.page ?? 1);
   const pageSize = 30;
-  const where = { organizationId: actor.organizationId, projectId, deletedAt: null, nextVersion: { is: null }, ...(opts.category ? { category: opts.category } : {}) };
+  const where = { organizationId: actor.organizationId, projectId, deletedAt: null, nextVersion: { is: null }, ...(opts.category ? { category: opts.category } : {}), AND: [await attachmentModuleWhere(actor)] };
   const [total, rows] = await Promise.all([
     db.attachment.count({ where }),
     db.attachment.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * pageSize, take: pageSize, include: { uploadedBy: { select: { fullName: true } } } }),

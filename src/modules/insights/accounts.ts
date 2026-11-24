@@ -16,7 +16,6 @@ export async function projectAccountsSummary(actor: Actor, opts: { includeArchiv
     where: { AND: [projectAccessWhere(actor), opts.includeArchived ? {} : { archivedAt: null }] },
     orderBy: { name: "asc" },
     select: { id: true, code: true, name: true, status: true },
-    take: 1000,
   });
   const fin = await projectFinancials(actor.organizationId, projects.map((p) => p.id));
   const rows = projects.map((p) => ({ project: p, ...(fin.get(p.id) as ProjectFinancials) }));

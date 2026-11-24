@@ -88,6 +88,7 @@ export function LinesEditor({ lines, onChange, variant = "item", options = [], m
                   <td className="px-2 py-2">
                     {variant === "item" ? (
                       <SingleSelect
+                        ariaLabel={`Line ${i + 1} item and brand`}
                         options={comboOptions}
                         value={l.itemBrandId ?? null}
                         disabled={lockItems && !!l.id}

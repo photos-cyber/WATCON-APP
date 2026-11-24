@@ -1,0 +1,376 @@
+<!-- AUDIT-2026-11-24 -->
+# Audit checklist
+
+24 November 2026. Every check has an execution state in TEST_CASES.csv. Earlier audit files are historical evidence only.
+
+- [x] TC-0001: pgAdapterConfig passes the URL through untouched when no CA is configured — passed.
+- [x] TC-0002: pgAdapterConfig pins the CA, drops sslmode, keeps verification on and preserves encoded credentials — passed.
+- [x] TC-0003: money (decimal-safe) never suffers float error — passed.
+- [x] TC-0004: money (decimal-safe) rounds half-up away from zero — passed.
+- [x] TC-0005: money (decimal-safe) rejects malformed numbers and excess precision — passed.
+- [x] TC-0006: money (decimal-safe) computes intra-state GST per line (CGST = SGST = half, each rounded) — passed.
+- [x] TC-0007: money (decimal-safe) computes inter-state IGST — passed.
+- [x] TC-0008: money (decimal-safe) document totals include taxed charges and round-off — passed.
+- [x] TC-0009: money (decimal-safe) tax mode from state codes — passed.
+- [x] TC-0010: money (decimal-safe) helpers — passed.
+- [x] TC-0011: money (decimal-safe) formats Indian rupees — passed.
+- [x] TC-0012: document numbering uses the Indian financial year — passed.
+- [x] TC-0013: GST validation validates the GSTIN check digit — passed.
+- [x] TC-0014: GST validation party schema derives state and PAN from GSTIN and cross-checks them — passed.
+- [x] TC-0015: upload content sniffing detects allowed types from magic bytes, not names — passed.
+- [x] TC-0016: upload content sniffing sanitises file names — passed.
+- [x] TC-0017: roles & permissions every role exists in the catalogue defaults and no super-admin-only grant leaks — passed.
+- [x] TC-0018: roles & permissions role defaults follow job functions — passed.
+- [x] TC-0019: uses unique article identifiers and keeps manuals free of business records — passed.
+- [x] TC-0020: limits module instructions and role guides to the reader's grants — passed.
+- [x] TC-0021: quantity arithmetic is exact to three decimals — passed.
+- [x] TC-0022: quantity arithmetic never lets a balance go negative — passed.
+- [x] TC-0023: quantity arithmetic derives direction from the movement type — passed.
+- [x] TC-0024: movement dates rejects future dates and back-dating before the latest movement — passed.
+- [x] TC-0025: period summary summarises all time — passed.
+- [x] TC-0026: period summary carries earlier movements into the opening balance — passed.
+- [x] TC-0027: inventory validation normalises item codes and requires name and unit — passed.
+- [x] TC-0028: inventory validation validates movements (positive quantity, mandatory adjustment reason) — passed.
+- [x] TC-0029: inventory validation treats a blank or zero opening quantity as none — passed.
+- [x] TC-0030: inventory validation formats inventory business codes — passed.
+- [x] TC-0031: payment milestones default 50/40/10 on ₹10,00,000 — passed.
+- [x] TC-0032: payment milestones puts the paisa remainder on the last percentage milestone so the schedule adds up exactly — passed.
+- [x] TC-0033: payment milestones supports fixed-amount milestones and mixed schedules — passed.
+- [x] TC-0034: payment milestones rejects schedules that do not cover the total, or exceed it — passed.
+- [x] TC-0035: payment milestones allows partial schedules when full coverage is not required — passed.
+- [x] TC-0036: payment milestones every built-in template is a valid full schedule — passed.
+- [x] TC-0037: commercial PDF layout po-single-item: A4, expected page count — passed.
+- [x] TC-0038: commercial PDF layout po-multi-item-freight-roundoff: A4, expected page count — passed.
+- [x] TC-0039: commercial PDF layout po-60-items: A4, expected page count — passed.
+- [x] TC-0040: commercial PDF layout po-draft-missing-optional: A4, expected page count — passed.
+- [x] TC-0041: commercial PDF layout po-interstate-large: A4, expected page count — passed.
+- [x] TC-0042: commercial PDF layout po-long-terms: A4, expected page count — passed.
+- [x] TC-0043: commercial PDF layout invoice-igst-bank: A4, expected page count — passed.
+- [x] TC-0044: commercial PDF layout invoice-draft-no-signature: A4, expected page count — passed.
+- [x] TC-0045: commercial PDF layout ra-bill-landscape: A4, expected page count — passed.
+- [x] TC-0046: commercial PDF layout grn-discrepancies: A4, expected page count — passed.
+- [x] TC-0047: commercial PDF layout challan-issue: A4, expected page count — passed.
+- [x] TC-0048: commercial PDF layout payment-voucher: A4, expected page count — passed.
+- [x] TC-0049: commercial PDF layout credit-note-cancelled: A4, expected page count — passed.
+- [x] TC-0050: commercial PDF layout 100 lines paginate without a blank trailing page — passed.
+- [x] TC-0051: task report PDF renders landscape A4 with the shared letterhead and paginates 150 tasks — passed.
+- [x] TC-0052: PDF formatting helpers formats INR with Indian grouping — passed.
+- [x] TC-0053: PDF formatting helpers amount in words includes paise and matches the figure — passed.
+- [x] TC-0054: PDF formatting helpers marks drafts, pending, cancelled and final documents correctly — passed.
+- [x] TC-0055: PDF formatting helpers builds safe file names from the real document number — passed.
+- [x] TC-0056: PDF formatting helpers splits one-clause-per-line terms into numbered items — passed.
+- [x] TC-0057: can() super admin always passes — passed.
+- [x] TC-0058: can() super-admin-only permissions are never granted to other roles, even if stored — passed.
+- [x] TC-0059: can() default grants match the role matrix — passed.
+- [x] TC-0060: can() no default grant includes a super-admin-only permission — passed.
+- [x] TC-0061: scopes users only see tasks assigned to or owned by them — passed.
+- [x] TC-0062: scopes admins see their project scope; view_all widens to the organization — passed.
+- [x] TC-0063: scopes without tasks.manage nothing is manageable — passed.
+- [x] TC-0064: scopes admins may only manage non-administrator accounts — passed.
+- [x] TC-0065: applyTaskTransition completing forces 100% and sets completedAt — passed.
+- [x] TC-0066: applyTaskTransition reaching 100% auto-completes — passed.
+- [x] TC-0067: applyTaskTransition raising progress on a To Do task starts it — passed.
+- [x] TC-0068: applyTaskTransition rejects an explicit To Do with progress — passed.
+- [x] TC-0069: applyTaskTransition reopening requires progress below 100 — passed.
+- [x] TC-0070: applyTaskTransition blocked/cancelled tasks cannot reach 100% without a status change — passed.
+- [x] TC-0071: applyTaskTransition validates progress bounds — passed.
+- [x] TC-0072: applyTaskTransition keeps the original completion time when already completed — passed.
+- [x] TC-0073: completionRate excludes cancelled tasks from the denominator — passed.
+- [x] TC-0074: overdue only open tasks with a past due date are overdue — passed.
+- [x] TC-0075: overdue uses the business time zone for 'today' — passed.
+- [x] TC-0076: upload origin accepts same-host http and https only — passed.
+- [x] TC-0077: upload origin rejects missing, null and malformed origins without throwing — passed.
+- [x] TC-0078: business codes formats with zero padding and grows past the width — passed.
+- [x] TC-0079: project validation accepts minimal input and defaults optional fields — passed.
+- [x] TC-0080: project validation requires name, address and description; rejects bad dates and ordering — passed.
+- [x] TC-0081: task validation owner must be an assignee — passed.
+- [x] TC-0082: task validation due date cannot precede start date; progress within 0-100; no duplicates — passed.
+- [x] TC-0083: task validation list query ignores junk values instead of failing — passed.
+- [x] TC-0084: member & password validation enforces password policy — passed.
+- [x] TC-0085: member & password validation normalises email/username and limits roles — passed.
+- [x] TC-0086: task filters always starts with the visibility scope and AND-s every filter — passed.
+- [x] TC-0087: task filters sorts multi-value columns by maintained keys with nulls last and a stable tie-breaker — passed.
+- [x] TC-0088: whatsapp normalises numbers — passed.
+- [x] TC-0089: whatsapp builds wa.me links with encoded text — passed.
+- [x] TC-0090: whatsapp caps message length and points to the PDF — passed.
+- [x] TC-0091: projects: edit & archive persists edits, enforces who may edit, and archives without deleting — passed.
+- [x] TC-0092: departments: edit renames a department, sets a head (auto-membership) and rejects non-managers — passed.
+- [x] TC-0093: tasks: server-side pagination returns disjoint pages with a correct total — passed.
+- [x] TC-0094: health probe reports ok when the database answers — passed.
+- [x] TC-0095: login logs in with email or username and creates a hashed session — passed.
+- [x] TC-0096: login returns the same generic error for unknown accounts and wrong passwords (no enumeration) — passed.
+- [x] TC-0097: login blocks deactivated accounts — passed.
+- [x] TC-0098: login locks an account out for the attacking IP only, so an attacker cannot lock the real user out — passed.
+- [x] TC-0099: login caps distributed guessing across IPs per account — passed.
+- [x] TC-0100: login parallel login bursts cannot exceed the per-account+IP limit — passed.
+- [x] TC-0101: sessions rejects expired sessions and sessions of deactivated users, and logout revokes — passed.
+- [x] TC-0102: sessions enforces the absolute session lifetime — passed.
+- [x] TC-0103: password reset & change does not reveal whether an email exists and issues a single-use token — passed.
+- [x] TC-0104: password reset & change resets the password once and revokes sessions — passed.
+- [x] TC-0105: password reset & change a self-service request cannot cancel an admin-issued link; requests are capped per email — passed.
+- [x] TC-0106: password reset & change throttles wrong current-password guesses — passed.
+- [x] TC-0107: password reset & change change password requires the current password — passed.
+- [x] TC-0108: ABC Hotel: partial supplier receipts, bill, deliveries, certified RA, invoice and two-sided settlement reconcile — passed.
+- [x] TC-0109: hides restricted commercial filenames and totals in both document browsers — passed.
+- [x] TC-0110: location-aware stock engine keeps per-location balances and the company total consistent — passed.
+- [x] TC-0111: location-aware stock engine refuses to take more than a location holds even if the company total is enough — passed.
+- [x] TC-0112: location-aware stock engine manual Phase 2 movements still default to the Central Warehouse — passed.
+- [x] TC-0113: location-aware stock engine site consumption is idempotent and attributed to the project — passed.
+- [x] TC-0114: location-aware stock engine an engineer outside the project cannot record consumption there — passed.
+- [x] TC-0115: location-aware stock engine reversals post an opposite entry once and never edit history — passed.
+- [x] TC-0116: reservations protects reserved stock from other projects and is consumed by the owning project — passed.
+- [x] TC-0117: reservations cannot over-promise, even with two concurrent reservations — passed.
+- [x] TC-0118: reservations released reservations free the stock — passed.
+- [x] TC-0119: attachments stores, lists and serves files with integrity metadata — passed.
+- [x] TC-0120: attachments denies people who cannot see the project (404, not 403) — passed.
+- [x] TC-0121: attachments rejects disguised executables and oversized files — passed.
+- [x] TC-0122: attachments keeps versions, enforces separation of duties on verification, retains verified evidence — passed.
+- [x] TC-0123: parties, numbering and approvals prevents case-insensitive duplicate names and duplicate GSTINs — passed.
+- [x] TC-0124: parties, numbering and approvals allocates unique FY numbers under concurrency — passed.
+- [x] TC-0125: parties, numbering and approvals separation of duties and approval limits — passed.
+- [x] TC-0126: project workspace & insights computes project financial KPIs from approved documents — passed.
+- [x] TC-0127: project workspace & insights never shows another project's records — passed.
+- [x] TC-0128: project workspace & insights approvals inbox separates own documents from actionable ones — passed.
+- [x] TC-0129: project workspace & insights lists, filters and counts project documents and guides the order flow — passed.
+- [x] TC-0130: project workspace & insights exports CSV safely — passed.
+- [x] TC-0131: items master creates items with generated or manual codes and rejects duplicate codes — passed.
+- [x] TC-0132: items master edits, deactivates, searches and filters items — passed.
+- [x] TC-0133: brands master creates brands with unique (case-insensitive) names and edits them — passed.
+- [x] TC-0134: brands master associates multiple brands with an item and blocks duplicate links — passed.
+- [x] TC-0135: brand-wise stock keeps each item–brand balance independent — passed.
+- [x] TC-0136: brand-wise stock calculates opening, inward, outward and closing (all-time and by period) — passed.
+- [x] TC-0137: brand-wise stock prevents negative stock for outward and adjustments — passed.
+- [x] TC-0138: brand-wise stock requires a reason for adjustments and records them in the audit log — passed.
+- [x] TC-0139: brand-wise stock rejects future dates and back-dating before the latest movement — passed.
+- [x] TC-0140: brand-wise stock blocks posting and linking for inactive items or brands — passed.
+- [x] TC-0141: brand-wise stock only removes brand links that have no stock history — passed.
+- [x] TC-0142: duplicate posting & concurrency posts a retried submission only once — passed.
+- [x] TC-0143: duplicate posting & concurrency posts concurrent identical submissions only once — passed.
+- [x] TC-0144: duplicate posting & concurrency never oversells under concurrent outward postings — passed.
+- [x] TC-0145: duplicate posting & concurrency serialises concurrent inward and outward on one position — passed.
+- [x] TC-0146: permissions lets ADMIN manage and post but not adjust; USER has no inventory access — passed.
+- [x] TC-0147: permissions isolates organizations — passed.
+- [x] TC-0148: permissions grants new permissions' defaults to existing roles without undoing customisations — passed.
+- [x] TC-0149: departments & members creates members in multiple departments with one primary, prevents duplicates — passed.
+- [x] TC-0150: departments & members enforces role boundaries — passed.
+- [x] TC-0151: departments & members deactivation revokes sessions; reset links are admin-only — passed.
+- [x] TC-0152: departments & members an admin cannot change a super admin's department memberships — passed.
+- [x] TC-0153: departments & members changing a member's email invalidates outstanding reset links — passed.
+- [x] TC-0154: departments & members super-admin-only permissions can never be granted to other roles — passed.
+- [x] TC-0155: reports only includes tasks the requester may see, and enforces report permissions — passed.
+- [x] TC-0156: supplier bills computes GST and TDS server-side and derives the project from the PO — passed.
+- [x] TC-0157: supplier bills requires a project for bills without a purchase order — passed.
+- [x] TC-0158: supplier bills rejects a duplicate supplier invoice number (normalised), but allows it again once the first is cancelled — passed.
+- [x] TC-0159: supplier bills 3-way match: billing more than was received is an exception that needs an override with a reason — passed.
+- [x] TC-0160: supplier bills flags rate variance and GSTIN mismatch in plain words — passed.
+- [x] TC-0161: supplier bills enforces separation of duties and approval permission — passed.
+- [x] TC-0162: supplier bills two bills approved at the same time can never bill more than was received — passed.
+- [x] TC-0163: supplier bills 2-way match bills against the ordered quantity before anything is received — passed.
+- [x] TC-0164: payments, advances and notes partial payments move the bill to partially paid, then paid; overpayment is refused — passed.
+- [x] TC-0165: payments, advances and notes records an advance and allocates it to a bill later; cannot allocate more than is unallocated — passed.
+- [x] TC-0166: payments, advances and notes a payment belongs to one project and can only settle that project's bills — passed.
+- [x] TC-0167: payments, advances and notes concurrent allocations to the same bill can never exceed what is outstanding — passed.
+- [x] TC-0168: payments, advances and notes is idempotent on double submit, and cancelling a payment reverses its allocations — passed.
+- [x] TC-0169: payments, advances and notes reversing one allocation frees the amount back to the payment as an advance — passed.
+- [x] TC-0170: payments, advances and notes an approved credit note reduces what is outstanding; cancelling it restores the amount — passed.
+- [x] TC-0171: payments, advances and notes client receipts with TDS settle issued invoices and the linked running bill — passed.
+- [x] TC-0172: purchase orders computes GST server-side and enforces separation of duties on approval — passed.
+- [x] TC-0173: purchase orders uses IGST for an inter-state supplier — passed.
+- [x] TC-0174: purchase orders blocks receipts against unapproved orders (unless the exception is switched on) — passed.
+- [x] TC-0175: site receipts (GRN) and stock posting partial deliveries, multiple GRNs, stock lands at the SITE only on posting, rejected never enters stock — passed.
+- [x] TC-0176: site receipts (GRN) and stock posting two people receiving the same PO at once cannot exceed the ordered quantity — passed.
+- [x] TC-0177: site receipts (GRN) and stock posting posting the same receipt twice (double click / two verifiers) posts once — passed.
+- [x] TC-0178: site receipts (GRN) and stock posting a repeated save from a phone returns the same receipt — passed.
+- [x] TC-0179: site receipts (GRN) and stock posting the receiver cannot verify their own receipt; outsiders cannot record receipts for the project — passed.
+- [x] TC-0180: site receipts (GRN) and stock posting reverses a posted receipt, but not once the stock has been consumed — passed.
+- [x] TC-0181: PO amendments, cancellation and closure an approved PO is amended (snapshot + re-approval), never edited in place; received quantities are protected — passed.
+- [x] TC-0182: PO amendments, cancellation and closure a partially received PO cannot be cancelled, but can be short-closed (releasing the requisition) — passed.
+- [x] TC-0183: transfers & challans dispatch puts stock in transit; partial receipt; discrepancy write-off; nothing counted twice — passed.
+- [x] TC-0184: transfers & challans return to store: site → transit → warehouse receipt posts back into the warehouse — passed.
+- [x] TC-0185: material planning → requisition → RFQ → award → POs avoids double ordering and drives the full sourcing workflow — passed.
+- [x] TC-0186: rejects unrelated brands, locations and requisitions on an enquiry — passed.
+- [x] TC-0187: every procurement document belongs to one project requisitions, enquiries and purchase orders cannot be saved without a project — passed.
+- [x] TC-0188: every procurement document belongs to one project a PO delivers to its project's site store by default — passed.
+- [x] TC-0189: challan rules client deliveries require the project's approved sales order — passed.
+- [x] TC-0190: challan rules a supplier return against a PO is linked to the PO line automatically and cannot exceed what was accepted — passed.
+- [x] TC-0191: client quotations prices server-side, splits the 50/40/10 schedule to the paisa and rejects incomplete schedules — passed.
+- [x] TC-0192: client quotations client acceptance needs the emailed one-time code; email failure is reported, not faked — passed.
+- [x] TC-0193: client quotations revision keeps the previous version; only approved / sent quotations can be accepted by staff — passed.
+- [x] TC-0194: quotation → sales order → milestone billing converts idempotently and bills milestones without double billing — passed.
+- [x] TC-0195: quotation & proforma PDFs render from real records on the WATCON layout — passed.
+- [x] TC-0196: client POs approves with separation of duties and keeps the original value; amendments snapshot a revision — passed.
+- [x] TC-0197: client POs enforces separation of duties for an approver who submitted — passed.
+- [x] TC-0198: client POs sales orders cannot exceed what is left on the client PO — passed.
+- [x] TC-0199: running bills prevents over-billing, including two bills raced at once — passed.
+- [x] TC-0200: running bills certification ≤ claimed, retention and capped advance recovery, then one invoice only — passed.
+- [x] TC-0201: sales orders drive the project is locked once approved; amendment requests need another Super Admin; approval applies, syncs requirements — passed.
+- [x] TC-0202: sales orders drive the project rejection leaves the order unchanged; reducing below delivered is refused at approval — passed.
+- [x] TC-0203: sales orders drive the project project progress follows sales-order delivery and status moves Planning → Active → Completed — passed.
+- [x] TC-0204: sales orders drive the project manual On hold is never overridden by automation — passed.
+- [x] TC-0205: sales orders drive the project uses IGST for an inter-state client — passed.
+- [x] TC-0206: sales orders drive the project refuses to invoice a client with no state (place of supply) — passed.
+- [x] TC-0207: sales orders drive the project the person who drafted an invoice cannot issue it; another approver can — passed.
+- [x] TC-0208: sales orders drive the project cancelling an approved order cancels its requirement (never deletes it) — passed.
+- [x] TC-0209: task creation & multi-assignment creates ONE task visible to every assignee, both departments, the project and the global register — passed.
+- [x] TC-0210: task creation & multi-assignment validates owner ∈ assignees, dates, active departments/members and project access — passed.
+- [x] TC-0211: task creation & multi-assignment keeps task history when a department is deactivated — passed.
+- [x] TC-0212: authorization (IDOR) a user cannot see or update a task they are not assigned to — passed.
+- [x] TC-0213: authorization (IDOR) assignees cannot edit, reassign or cancel tasks — passed.
+- [x] TC-0214: status & progress assignee updates progress; admin sees it; activity is recorded — passed.
+- [x] TC-0215: status & progress detects concurrent updates with optimistic versioning — passed.
+- [x] TC-0216: status & progress records edit, reassignment, department and due-date changes — passed.
+- [x] TC-0217: status & progress adds comments visible to the team — passed.
+- [x] TC-0218: combined filters & sorting combines project + department + member + status + due range + overdue — passed.
+- [x] TC-0219: projects generates unique codes under concurrency and keeps status history append-only — passed.
+- [x] TC-0220: projects dashboard metrics are scoped per user — passed.
+- [x] TC-0221: 1-2. Super Admin logs in and creates an Admin — passed.
+- [x] TC-0222: 3. invalid department and duplicate names are rejected — passed.
+- [x] TC-0223: 4. creates team members with multiple departments — passed.
+- [x] TC-0224: 5-6. creates a project (validation first) and posts status paragraphs — passed.
+- [x] TC-0225: 7-9. creates a task from the project page with multiple departments and members — passed.
+- [x] TC-0226: 10-12. assigned user logs in, sees the task and updates progress — passed.
+- [x] TC-0227: 13-17. admin sees the update, filters, prints, exports PDF and opens WhatsApp — passed.
+- [x] TC-0228: 18b. inactive accounts cannot sign in; expired/forged sessions are rejected — passed.
+- [x] TC-0229: concurrent updates: a stale form is rejected instead of overwriting — passed.
+- [x] TC-0230: Desktop Dashboard opens — passed.
+- [x] TC-0231: Desktop Projects opens — passed.
+- [x] TC-0232: Desktop Tasks opens — passed.
+- [x] TC-0233: Desktop Departments opens — passed.
+- [x] TC-0234: Desktop Team Members opens — passed.
+- [x] TC-0235: Desktop Items opens — passed.
+- [x] TC-0236: Desktop Brands opens — passed.
+- [x] TC-0237: Desktop Suppliers opens — passed.
+- [x] TC-0238: Desktop Clients opens — passed.
+- [x] TC-0239: Desktop Material Planning opens — passed.
+- [x] TC-0240: Desktop Requisitions opens — passed.
+- [x] TC-0241: Desktop Rate Enquiries opens — passed.
+- [x] TC-0242: Desktop Purchase Orders opens — passed.
+- [x] TC-0243: Desktop Site receipts opens — passed.
+- [x] TC-0244: Desktop Inventory opens — passed.
+- [x] TC-0245: Desktop Supplier Bills opens — passed.
+- [x] TC-0246: Desktop Quotations opens — passed.
+- [x] TC-0247: Desktop Client POs opens — passed.
+- [x] TC-0248: Desktop Sales Orders opens — passed.
+- [x] TC-0249: Desktop Challans opens — passed.
+- [x] TC-0250: Desktop Running Bills opens — passed.
+- [x] TC-0251: Desktop Client Invoices opens — passed.
+- [x] TC-0252: Desktop Payments & Receipts opens — passed.
+- [x] TC-0253: Desktop Credit / Debit Notes opens — passed.
+- [x] TC-0254: Desktop Project Accounts opens — passed.
+- [x] TC-0255: Desktop Reports opens — passed.
+- [x] TC-0256: Desktop Documents opens — passed.
+- [x] TC-0257: Desktop Approvals opens — passed.
+- [x] TC-0258: Desktop Administration opens — passed.
+- [x] TC-0259: Mobile /projects/new fits viewport — passed.
+- [x] TC-0260: Mobile /purchase-orders/new fits viewport — passed.
+- [x] TC-0261: Mobile /sales-orders/new fits viewport — passed.
+- [x] TC-0262: Mobile /supplier-bills/new fits viewport — passed.
+- [x] TC-0263: Mobile /payments/new fits viewport — passed.
+- [x] TC-0264: Help search finds troubleshooting — passed.
+- [x] TC-0265: Authenticated pdf manual download — passed.
+- [x] TC-0266: Authenticated quick manual download — passed.
+- [x] TC-0267: Authenticated docx manual download — passed.
+- [x] TC-0268: SUPER_ADMIN supplier-bill page permission — passed.
+- [x] TC-0269: ADMIN supplier-bill page permission — passed.
+- [ ] TC-0270: USER supplier-bill page permission — failed.
+- [x] TC-0271: PROJECT_MANAGER supplier-bill page permission — passed.
+- [ ] TC-0272: SITE_ENGINEER supplier-bill page permission — failed.
+- [x] TC-0273: PURCHASE supplier-bill page permission — passed.
+- [ ] TC-0274: STOREKEEPER supplier-bill page permission — failed.
+- [x] TC-0275: ACCOUNTS supplier-bill page permission — passed.
+- [x] TC-0276: VIEWER supplier-bill page permission — passed.
+- [x] TC-0277: Local normal logout — passed.
+- [x] TC-0278: Signed-out manual access blocked — passed.
+- [x] TC-0279: Production read-only GET /projects — passed.
+- [x] TC-0280: Production read-only GET /tasks — passed.
+- [x] TC-0281: Production read-only GET /departments — passed.
+- [x] TC-0282: Production read-only GET /team-members — passed.
+- [x] TC-0283: Production read-only GET /items — passed.
+- [x] TC-0284: Production read-only GET /brands — passed.
+- [x] TC-0285: Production read-only GET /parties?type=supplier — passed.
+- [x] TC-0286: Production read-only GET /parties?type=client — passed.
+- [x] TC-0287: Production read-only GET /rate-enquiries — passed.
+- [x] TC-0288: Production read-only GET /purchase-orders — passed.
+- [x] TC-0289: Production read-only GET /client-pos — passed.
+- [x] TC-0290: Production read-only GET /sales-orders — passed.
+- [x] TC-0291: Production read-only GET /stock — passed.
+- [x] TC-0292: Production read-only GET /site-receipts — passed.
+- [x] TC-0293: Production read-only GET /supplier-bills — passed.
+- [x] TC-0294: Production read-only GET /challans — passed.
+- [x] TC-0295: Production read-only GET /running-bills — passed.
+- [x] TC-0296: Production read-only GET /client-invoices — passed.
+- [x] TC-0297: Production read-only GET /payments — passed.
+- [x] TC-0298: Production read-only GET /accounts — passed.
+- [x] TC-0299: Production read-only GET /reports — passed.
+- [x] TC-0300: Production read-only GET /documents — passed.
+- [x] TC-0301: Production read-only GET /approvals — passed.
+- [x] TC-0302: Production read-only GET /material-planning — passed.
+- [x] TC-0303: Production read-only GET /purchase-requisitions — passed.
+- [x] TC-0304: Production read-only GET /quotations — passed.
+- [x] TC-0305: Production read-only GET /notes — passed.
+- [x] TC-0306: Production read-only GET /settings — passed.
+- [x] TC-0307: Production signed-out API /api/attachments/00000000-0000-0000-0000-000000000000 — passed.
+- [x] TC-0308: Production signed-out API /api/documents/pdf?type=purchase_order&id=00000000-0000-0000-0000-000000000000 — passed.
+- [x] TC-0309: Production signed-out API /api/reports/pdf — passed.
+- [x] TC-0310: Production signed-out API /api/reports/csv/accounts — passed.
+- [x] TC-0311: Production viewport live-mobile-po-geometry.json — passed.
+- [x] TC-0312: Production viewport live-tablet-po-geometry.json — passed.
+- [x] TC-0313: Production viewport live-sales-form-desktop.json — passed.
+- [x] TC-0314: Production normal Super Admin sign-in and sign-out — passed.
+- [x] TC-0315: PDF page bounds challan-issue.pdf — passed.
+- [x] TC-0316: PDF page bounds credit-note-cancelled.pdf — passed.
+- [x] TC-0317: PDF page bounds grn-discrepancies.pdf — passed.
+- [x] TC-0318: PDF page bounds invoice-draft-no-signature.pdf — passed.
+- [x] TC-0319: PDF page bounds invoice-igst-bank.pdf — passed.
+- [x] TC-0320: PDF page bounds payment-voucher.pdf — passed.
+- [x] TC-0321: PDF page bounds po-100-items.pdf — passed.
+- [x] TC-0322: PDF page bounds po-60-items.pdf — passed.
+- [x] TC-0323: PDF page bounds po-99-items.pdf — passed.
+- [x] TC-0324: PDF page bounds po-draft-missing-optional.pdf — passed.
+- [x] TC-0325: PDF page bounds po-interstate-large.pdf — passed.
+- [x] TC-0326: PDF page bounds po-long-terms.pdf — passed.
+- [x] TC-0327: PDF page bounds po-multi-item-freight-roundoff.pdf — passed.
+- [x] TC-0328: PDF page bounds po-single-item.pdf — passed.
+- [x] TC-0329: PDF page bounds ra-bill-landscape.pdf — passed.
+- [x] TC-0330: PDF page bounds task-report.pdf — passed.
+- [x] TC-0331: PDF page bounds client_invoice.pdf — passed.
+- [x] TC-0332: PDF page bounds client_po.pdf — passed.
+- [x] TC-0333: PDF page bounds purchase_order.pdf — passed.
+- [x] TC-0334: PDF page bounds ra_bill.pdf — passed.
+- [x] TC-0335: PDF page bounds sales_order.pdf — passed.
+- [x] TC-0336: PDF page bounds supplier_bill.pdf — passed.
+- [x] TC-0337: PDF page bounds QUICK_START_GUIDE.pdf — passed.
+- [x] TC-0338: PDF page bounds WATCON_USER_GUIDE.pdf — passed.
+- [ ] TC-0339: Production login and direct access for all non-Super-Admin roles — blocked.
+- [ ] TC-0340: Production dashboard totals against source database — blocked.
+- [ ] TC-0341: Production inventory balances against stock ledger — blocked.
+- [ ] TC-0342: Backup restore and recovery drill — blocked.
+- [ ] TC-0343: SMTP delivery and password-reset mailbox round trip — blocked.
+- [ ] TC-0344: Production server logs and deployment revision matching — blocked.
+- [ ] TC-0345: Live external supplier and client acceptance email delivery — blocked.
+- [ ] TC-0346: All commercial CRUD workflows through UI — not executed.
+- [ ] TC-0347: All commercial API authorization combinations for every role — not executed.
+- [ ] TC-0348: Statutory GST return and e-invoice validation — not executed.
+- [ ] TC-0349: Full labour and overhead profitability — not executed.
+- [ ] TC-0350: Every PDF builder with long tables and long fields — not executed.
+- [ ] TC-0351: Cross-browser Firefox and WebKit workflows — not executed.
+- [ ] TC-0352: Real iOS and Android device testing — not executed.
+- [ ] TC-0353: Screen-reader and keyboard accessibility of every form — not executed.
+- [ ] TC-0354: Load test with simultaneous HTTP users and large data — not executed.
+- [ ] TC-0355: 5000-record performance benchmark in this audit — not executed.
+- [ ] TC-0356: Network interruption during every save and upload — not executed.
+- [ ] TC-0357: WhatsApp recipient handoff and PDF attachment on real device — not executed.
+- [ ] TC-0358: Malware scanning and XLSX container validation — not executed.
+- [ ] TC-0359: Full project closure with expenses and all reversal branches — not executed.
+- [ ] TC-0360: Word manual render and visual layout check — blocked.
+- [ ] TC-0361: Dependency advisory @prisma/client — failed.
+- [ ] TC-0362: Dependency advisory @prisma/config — failed.
+- [ ] TC-0363: Dependency advisory @ts-morph/common — failed.
+- [ ] TC-0364: Dependency advisory effect — failed.
+- [ ] TC-0365: Dependency advisory minimatch — failed.
+- [ ] TC-0366: Dependency advisory prisma — failed.
+- [ ] TC-0367: Dependency advisory shadcn — failed.
+- [ ] TC-0368: Dependency advisory ts-morph — failed.
+- [x] TC-0369: TypeScript — passed.
+- [ ] TC-0370: ESLint — not executed.
+- [ ] TC-0371: Production build — not executed.

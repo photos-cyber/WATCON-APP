@@ -23,7 +23,7 @@ export default defineConfig({
   use: { baseURL: E2E.baseURL, trace: "retain-on-failure", screenshot: "only-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `node tests/e2e/prepare-db.mjs && npx next start -p ${PORT}`,
+    command: `node tests/e2e/prepare-db.mjs && node node_modules/next/dist/bin/next start -p ${PORT}`,
     url: `${E2E.baseURL}/login`,
     reuseExistingServer: false,
     timeout: 180_000,
@@ -32,6 +32,8 @@ export default defineConfig({
       DATABASE_URL: E2E.databaseUrl,
       APP_URL: E2E.baseURL,
       MAIL_TRANSPORT: "console",
+      // Do not inherit a production CA from .env into the disposable local DB.
+      DB_SSL_CA: process.env.E2E_DB_SSL_CA ?? "",
       BOOTSTRAP_ORG_NAME: "Watcon E2E",
       BOOTSTRAP_ADMIN_NAME: E2E.superAdmin.name,
       BOOTSTRAP_ADMIN_EMAIL: E2E.superAdmin.email,

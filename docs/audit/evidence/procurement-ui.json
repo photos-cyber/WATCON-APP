@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "name": "UI procurement: sign in",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: create fictional project",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: create purchase order",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: submit and approve PO",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: enter and submit actual receipt",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement: verify receipt and post stock",
+      "status": "passed"
+    },
+    {
+      "name": "UI procurement workflow next step",
+      "status": "failed",
+      "error": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Supplier invoice number', { exact: true })\u001b[22m\n"
+    }
+  ],
+  "ids": {
+    "project": "b313c21a-0bc7-471e-94fa-6b7c9ddbd2ed",
+    "po": "c654bba0-2808-4ea9-a24d-e350e092811b",
+    "grn": "7e275f90-2ee4-4a9c-b25a-bf74120a6859"
+  }
+}
