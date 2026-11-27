@@ -7,10 +7,11 @@ import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { cmpQty } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, assertProjectUsable, dec3, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec3, parseInput, projectScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { projectIdField, qtyField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSiteLocation, ensureSystemLocations } from "@/modules/inventory/engine";
+import { assertAllocations } from "@/modules/planning/allocation";
 import { getMrp } from "@/modules/planning/service";
 import { startOfToday } from "@/modules/tasks/rules";
 
@@ -67,6 +68,7 @@ export async function createPr(actor: Actor, input: unknown) {
   return db.$transaction(async (tx) => {
     const map = await validateLines(tx, actor.organizationId, data.lines);
     const locationId = await resolveLocation(tx, actor, data.projectId, data.deliveryLocationId);
+    await assertAllocations(tx, actor.organizationId, { projectId: data.projectId, label: "This requisition" }, data.lines);
     const number = await nextDocNumber(tx, actor.organizationId, "PR", startOfToday());
     const pr = await tx.purchaseRequisition.create({
       data: {
@@ -94,6 +96,7 @@ export async function updatePr(actor: Actor, id: string, version: number, input:
   return db.$transaction(async (tx) => {
     const map = await validateLines(tx, actor.organizationId, data.lines);
     const locationId = await resolveLocation(tx, actor, data.projectId, data.deliveryLocationId);
+    await assertAllocations(tx, actor.organizationId, { projectId: data.projectId, label: "This requisition" }, data.lines, { prId: id });
     await transition(tx.purchaseRequisition, { id, organizationId: actor.organizationId, version }, ["DRAFT", "REJECTED"], { projectId: data.projectId, deliveryLocationId: locationId, requiredBy: toDbDate(data.requiredBy), purpose: data.purpose, status: "DRAFT", statusNote: null }, "requisition");
     await tx.prLine.deleteMany({ where: { prId: id } });
     await tx.prLine.createMany({ data: data.lines.map((l, i) => ({ prId: id, lineNo: i + 1, itemBrandId: l.itemBrandId, itemId: map.get(l.itemBrandId)!.itemId, quantity: l.quantity, requiredBy: toDbDate(l.requiredBy), requirementId: l.requirementId, notes: l.notes })) });
@@ -114,14 +117,16 @@ export async function prAction(actor: Actor, id: string, action: PrAction, opts:
   const audit = (tx: Tx, verb: string) => writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: `pr.${action}`, entityType: "purchase_requisition", entityId: id, projectId: pr.projectId, summary: `${verb} requisition ${pr.number}${opts.note ? ` – ${opts.note}` : ""}` }, tx);
   const w = { id, organizationId: actor.organizationId, version: opts.version };
   if (action === "submit") {
-    requirePermission(actor, "pr.create");
+    // Simplified workflow: a finalized requisition is approved straight away (requisitions are optional).
+    requireAnyPermission(actor, ["pr.create", "pr.approve"]);
     return db.$transaction(async (tx) => {
-      await transition(tx.purchaseRequisition, w, ["DRAFT", "REJECTED"], { status: "SUBMITTED", submittedById: actor.id, submittedAt: new Date(), statusNote: null }, "requisition");
-      await audit(tx, "Submitted");
+      const now = new Date();
+      await transition(tx.purchaseRequisition, w, ["DRAFT", "REJECTED"], { status: "APPROVED", submittedById: actor.id, submittedAt: now, approvedById: actor.id, approvedAt: now, statusNote: null }, "requisition");
+      await audit(tx, "Finalized");
     });
   }
   if (action === "approve" || action === "reject") {
-    await assertCanApprove(actor, { permission: "pr.approve", docType: "PR", createdById: pr.createdById, submittedById: pr.submittedById, what: "requisition" });
+    requireAnyPermission(actor, ["pr.create", "pr.approve"]);
     if (action === "reject" && !opts.note) throw new ValidationError("Give a reason for rejecting.", { note: "Reason is required." });
     return db.$transaction(async (tx) => {
       await transition(tx.purchaseRequisition, w, ["SUBMITTED"], action === "approve" ? { status: "APPROVED", approvedById: actor.id, approvedAt: new Date() } : { status: "REJECTED", statusNote: opts.note }, "requisition");
@@ -164,7 +169,7 @@ export async function createPrFromMrp(actor: Actor, input: unknown) {
   requirePermission(actor, "pr.create");
   const data = parseInput(z.object({ projectId: uuid, requirementIds: z.array(uuid).min(1).max(200), purpose: optionalText("Purpose", 500) }), input);
   const mrp = await getMrp(actor, { projectId: data.projectId, view: "open" });
-  const chosen = mrp.rows.filter((r) => data.requirementIds.includes(r.requirementId) && cmpQty(r.toOrder, "0") > 0);
+  const chosen = mrp.rows.filter((r) => !!r.requirementId && data.requirementIds.includes(r.requirementId) && cmpQty(r.toOrder, "0") > 0);
   if (!chosen.length) throw new ValidationError("Nothing to order: the selected lines are already covered by stock, open orders or open requisitions.");
   return createPr(actor, {
     projectId: data.projectId,
@@ -177,15 +182,13 @@ export async function getPr(actor: Actor, id: string) {
   requirePermission(actor, "pr.view");
   const pr = await db.purchaseRequisition.findFirst({ where: { AND: [{ id }, projectScoped(actor) as Prisma.PurchaseRequisitionWhereInput] }, include });
   if (!pr) throw new NotFoundError("Requisition");
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "pr.approve", pr, settings.enforceSegregation);
   return {
     pr: { ...pr, lines: pr.lines.map((l) => ({ ...l, quantity: dec3(l.quantity), orderedQty: dec3(l.orderedQty) })) },
     can: {
       edit: can(actor, "pr.create") && (pr.status === "DRAFT" || pr.status === "REJECTED"),
       submit: can(actor, "pr.create") && (pr.status === "DRAFT" || pr.status === "REJECTED"),
-      approve: pr.status === "SUBMITTED" && hint.canApprove,
-      approveBlockedReason: pr.status === "SUBMITTED" ? hint.reason : null,
+      approve: pr.status === "SUBMITTED" && (can(actor, "pr.create") || can(actor, "pr.approve")),
+      approveBlockedReason: null as string | null,
       cancel: ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED"].includes(pr.status) && (can(actor, "pr.approve") || pr.createdById === actor.id),
       close: ["APPROVED", "PARTIALLY_ORDERED"].includes(pr.status) && can(actor, "pr.approve"),
       rfq: ["APPROVED", "PARTIALLY_ORDERED"].includes(pr.status) && can(actor, "rfq.manage"),

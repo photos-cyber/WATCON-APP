@@ -8,7 +8,7 @@ import { GSTIN_RE, TDS_SECTIONS } from "@/lib/gst";
 import { addQty, cmpMoney, cmpQty, minQty, pctOf, subMoney, subQty, taxModeFor, type TaxMode } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, isSuperAdmin, parseInput, projectScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
 import { gstRateField, optMoney, optPct, priceDocument, qtyField, rateField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { startOfToday } from "@/modules/tasks/rules";
@@ -91,6 +91,7 @@ async function buildBill(tx: Tx, actor: Actor, data: z.output<typeof billSchema>
   let projectId = data.projectId;
   let partyId = data.partyId;
   let po: Awaited<ReturnType<typeof matchRefs>> | null = null;
+  let generalStock = false;
   if (data.poId) {
     const visible = await tx.purchaseOrder.findFirst({ where: { AND: [{ id: data.poId }, projectScoped(actor) as Prisma.PurchaseOrderWhereInput] }, select: { id: true, status: true, partyId: true, projectId: true, number: true } });
     if (!visible) throw new ValidationError("Choose a purchase order you can see.", { poId: "Purchase order not found." });
@@ -98,12 +99,16 @@ async function buildBill(tx: Tx, actor: Actor, data: z.output<typeof billSchema>
     if (partyId && partyId !== visible.partyId) throw new ValidationError("The supplier must be the one on the purchase order.", { partyId: "Different from the PO supplier." });
     partyId = visible.partyId;
     if (projectId && visible.projectId && projectId !== visible.projectId) throw new ValidationError(`${visible.number} belongs to a different project.`, { poId: "PO of another project." });
+    if (!visible.projectId && projectId) throw new ValidationError(`${visible.number} is a general-stock / combined order, so its bill is not charged to a project.`, { projectId: "General-stock PO." });
+    // A bill for a general-stock (or combined) PO is a warehouse purchase, not a project cost: the cost
+    // reaches projects only when material is issued to them.
+    generalStock = !visible.projectId;
     projectId = visible.projectId ?? projectId;
     po = await matchRefs(tx, visible.id);
   }
-  if (!projectId) throw new ValidationError("Select the project this bill is for.", { projectId: "Select the project this is for." });
+  if (!projectId && !generalStock) throw new ValidationError("Select the project this bill is for.", { projectId: "Select the project this is for." });
   if (!partyId) throw new ValidationError("Select the supplier.", { partyId: "Select the supplier." });
-  await assertProjectUsable(actor, projectId, tx);
+  if (projectId) await assertProjectUsable(actor, projectId, tx);
   const party = await tx.party.findFirst({ where: { id: partyId, organizationId: actor.organizationId } });
   if (!party || !party.isSupplier) throw new ValidationError("Choose a supplier.", { partyId: "Not a supplier." });
   if (party.status !== "ACTIVE") throw new ValidationError("This supplier is inactive.", { partyId: "Inactive supplier." });
@@ -308,22 +313,39 @@ export async function billAction(actor: Actor, id: string, action: BillAction, o
     if (!cond) throw new ValidationError(msg, { note: msg });
   };
   switch (action) {
-    case "submit":
-      requirePermission(actor, "bills.manage");
+    case "submit": {
+      // Simplified workflow: a bill that matches its PO / receipts is approved for payment in one step.
+      // Only a bill with match exceptions (e.g. billed above received) waits for an override.
+      requireAnyPermission(actor, ["bills.manage", "bills.approve"]);
+      const override = !!opts.override && can(actor, "bills.override_match");
+      if (opts.override && !override) throw new ForbiddenError("You do not have permission to override match exceptions.");
+      if (override) need(opts.note?.trim(), "Give the reason for accepting the bill despite the exceptions.");
       return db.$transaction(async (tx) => {
-        const m = await rematch(tx, bill, false);
-        await transition(tx.supplierBill, w, ["DRAFT", "REJECTED"], { status: "PENDING_APPROVAL", submittedById: actor.id, submittedAt: new Date(), statusNote: null, matchStatus: m.status, exceptions: { list: m.exceptions } as Prisma.InputJsonValue }, "supplier bill");
-        await log(tx, "Submitted", ` for approval (₹${dec2(bill.total)})${m.exceptions.length ? ` with ${m.exceptions.length} match exception(s)` : ""}`);
+        await tx.$queryRaw`SELECT id FROM supplier_bills WHERE id = ${id}::uuid FOR UPDATE`;
+        const fresh = await loadScoped(actor, id, tx);
+        const m = await rematch(tx, fresh, true);
+        const now = new Date();
+        if (m.exceptions.length && !override) {
+          await transition(tx.supplierBill, w, ["DRAFT", "REJECTED"], { status: "PENDING_APPROVAL", submittedById: actor.id, submittedAt: now, statusNote: null, matchStatus: m.status, exceptions: { list: m.exceptions } as Prisma.InputJsonValue }, "supplier bill");
+          await log(tx, "Submitted", ` (₹${dec2(bill.total)}) — ${m.exceptions.length} match exception(s) need an override`);
+          return { approved: false, exceptions: m.exceptions.map((e) => e.message) };
+        }
+        const grnApplied = await applyBilled(tx, fresh, 1);
+        await transition(tx.supplierBill, w, ["DRAFT", "REJECTED"], { status: "APPROVED", submittedById: actor.id, submittedAt: now, approvedById: actor.id, approvedAt: now, matchStatus: m.status, exceptions: { list: m.exceptions, grnApplied } as Prisma.InputJsonValue, overrideReason: override && m.exceptions.length ? opts.note : null, statusNote: null }, "supplier bill");
+        await log(tx, override && m.exceptions.length ? "Finalized with override" : "Finalized", ` (₹${dec2(fresh.total)})`);
+        return { approved: true, exceptions: [] as string[] };
       });
+    }
     case "reject":
-      await assertCanApprove(actor, { permission: "bills.approve", docType: "SB", createdById: bill.createdById, submittedById: bill.submittedById, what: "supplier bill" });
+      requireAnyPermission(actor, ["bills.manage", "bills.approve"]);
       need(opts.note, "Give a reason for rejecting.");
       return db.$transaction(async (tx) => {
         await transition(tx.supplierBill, w, ["PENDING_APPROVAL"], { status: "REJECTED", statusNote: opts.note }, "supplier bill");
         await log(tx, "Rejected");
       });
     case "approve":
-      await assertCanApprove(actor, { permission: "bills.approve", docType: "SB", amount: dec2(bill.total), createdById: bill.createdById, submittedById: bill.submittedById, what: "supplier bill" });
+      // Legacy pending bills, and bills held for match exceptions.
+      requireAnyPermission(actor, ["bills.manage", "bills.approve"]);
       if (opts.override) {
         requirePermission(actor, "bills.override_match", "You do not have permission to override match exceptions.");
         need(opts.note?.trim(), "Give the reason for approving despite the exceptions.");
@@ -341,7 +363,8 @@ export async function billAction(actor: Actor, id: string, action: BillAction, o
         await log(tx, opts.override && m.exceptions.length ? "Approved with override" : "Approved", ` (₹${dec2(fresh.total)})`);
       });
     case "cancel": {
-      requirePermission(actor, bill.status === "APPROVED" ? "bills.approve" : "bills.manage");
+      if (bill.status === "APPROVED") requireSuperAdmin(actor, "cancel an approved supplier bill");
+      else requireAnyPermission(actor, ["bills.manage", "bills.approve"]);
       need(opts.note, "Give a reason for cancelling.");
       return db.$transaction(async (tx) => {
         await tx.$queryRaw`SELECT id FROM supplier_bills WHERE id = ${id}::uuid FOR UPDATE`;
@@ -385,8 +408,7 @@ export async function getBill(actor: Actor, id: string) {
   requirePermission(actor, "bills.view");
   const b = await db.supplierBill.findFirst({ where: { AND: [{ id }, projectScoped(actor) as Prisma.SupplierBillWhereInput] }, include: billInclude });
   if (!b) throw new NotFoundError("Supplier bill");
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "bills.approve", b, settings.enforceSegregation);
+  const manager = can(actor, "bills.manage") || can(actor, "bills.approve");
   const ex = exceptionsOf(b.exceptions);
   const outstanding = outstandingOf(dec2(b.netPayable), dec2(b.paidAmount), dec2(b.adjustedAmount));
   const payable = ["APPROVED", "PARTIALLY_PAID"].includes(b.status);
@@ -429,10 +451,11 @@ export async function getBill(actor: Actor, id: string) {
     can: {
       edit: can(actor, "bills.manage") && ["DRAFT", "REJECTED"].includes(b.status),
       submit: can(actor, "bills.manage") && ["DRAFT", "REJECTED"].includes(b.status),
-      approve: b.status === "PENDING_APPROVAL" && hint.canApprove,
-      override: b.status === "PENDING_APPROVAL" && hint.canApprove && can(actor, "bills.override_match"),
-      approveBlockedReason: b.status === "PENDING_APPROVAL" ? hint.reason : null,
-      cancel: (b.status === "APPROVED" ? can(actor, "bills.approve") : can(actor, "bills.manage")) && ["DRAFT", "PENDING_APPROVAL", "REJECTED", "APPROVED"].includes(b.status) && cmpMoney(dec2(b.paidAmount), "0") === 0 && cmpMoney(dec2(b.adjustedAmount), "0") === 0,
+      approve: b.status === "PENDING_APPROVAL" && manager,
+      override: ["PENDING_APPROVAL", "DRAFT", "REJECTED"].includes(b.status) && manager && can(actor, "bills.override_match"),
+      approveBlockedReason: null as string | null,
+      cancel: (b.status === "APPROVED" ? isSuperAdmin(actor) : manager) && ["DRAFT", "PENDING_APPROVAL", "REJECTED", "APPROVED"].includes(b.status) && cmpMoney(dec2(b.paidAmount), "0") === 0 && cmpMoney(dec2(b.adjustedAmount), "0") === 0,
+      requestChange: !isSuperAdmin(actor) && manager && ["APPROVED", "PARTIALLY_PAID", "PAID"].includes(b.status),
       pay: can(actor, "payments.manage") && payable && cmpMoney(outstanding, "0") > 0,
       note: can(actor, "bills.manage") && payable && cmpMoney(outstanding, "0") > 0,
     },
@@ -567,10 +590,10 @@ export async function billPrefillFromPo(actor: Actor, poId: string) {
 }
 
 /** Open (approved, unpaid) bills of a supplier, oldest due first — for the payment form. */
-export async function outstandingBills(actor: Actor, partyId: string, projectId?: string | null) {
+export async function outstandingBills(actor: Actor, partyId: string, projectId?: string | null, opts: { generalStock?: boolean } = {}) {
   requirePermission(actor, "payments.view");
   const rows = await db.supplierBill.findMany({
-    where: { AND: [projectScoped(actor) as Prisma.SupplierBillWhereInput, { partyId, status: { in: ["APPROVED", "PARTIALLY_PAID"] } }, projectId ? { projectId } : {}] },
+    where: { AND: [projectScoped(actor) as Prisma.SupplierBillWhereInput, { partyId, status: { in: ["APPROVED", "PARTIALLY_PAID"] } }, projectId ? { projectId } : opts.generalStock ? { projectId: null } : {}] },
     orderBy: [{ dueDate: { sort: "asc", nulls: "last" } }, { invoiceDate: "asc" }],
     select: { id: true, number: true, supplierInvoiceNo: true, invoiceDate: true, dueDate: true, netPayable: true, paidAmount: true, adjustedAmount: true, project: { select: { code: true } } },
   });

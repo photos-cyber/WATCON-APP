@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowDownToLine, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -46,9 +47,18 @@ function MovementForm({ positions, locations = [], canPost, canAdjust, today, pr
   const { errors, isSubmitting } = form.formState;
   const [type, itemBrandId] = useWatch({ control: form.control, name: ["type", "itemBrandId"] });
   const position = positions.find((p) => p.id === itemBrandId);
+  const [evidence, setEvidence] = useState<File | null>(null);
+  const [evidenceError, setEvidenceError] = useState<string | null>(null);
 
   async function onSubmit(values: Output) {
-    const res = await callAction(postStockMovementAction, values);
+    if (!evidence) {
+      setEvidenceError("Attach evidence: a photo, count sheet or document.");
+      return;
+    }
+    const fd = new FormData();
+    fd.set("input", JSON.stringify(values));
+    fd.set("evidence", evidence);
+    const res = await callAction(postStockMovementAction, fd);
     if (!applyActionResult(res, form.setError)) return;
     if (res.data.duplicate) toast.info(`Already posted as ${res.data.code}. Nothing was posted twice.`);
     else toast.success(`Posted ${res.data.code}. New balance: ${formatQty(res.data.balanceAfter)}${position ? ` ${position.unit}` : ""}`);
@@ -144,11 +154,12 @@ function MovementForm({ positions, locations = [], canPost, canAdjust, today, pr
       <Field id="mv-ref" label="Reference" error={errors.reference?.message} help="Bill, challan, indent or site reference.">
         <Input id="mv-ref" autoComplete="off" {...form.register("reference")} />
       </Field>
-      {type === "ADJUSTMENT" && (
-        <Field id="mv-reason" label="Reason" required error={errors.reason?.message}>
-          <Textarea id="mv-reason" rows={2} aria-invalid={!!errors.reason} {...form.register("reason")} />
-        </Field>
-      )}
+      <Field id="mv-reason" label="Reason" required error={errors.reason?.message} help="Why this manual change is needed (normal stock moves through receipts, challans and consumption).">
+        <Textarea id="mv-reason" rows={2} aria-invalid={!!errors.reason} {...form.register("reason")} />
+      </Field>
+      <Field id="mv-evidence" label="Evidence" required error={evidenceError ?? undefined} help="Photo, count sheet or document (image or PDF). Kept permanently with the entry.">
+        <Input id="mv-evidence" type="file" accept="image/*,application/pdf" capture="environment" onChange={(e) => { setEvidence(e.target.files?.[0] ?? null); setEvidenceError(null); }} />
+      </Field>
       <Field id="mv-remarks" label="Remarks" error={errors.remarks?.message}>
         <Textarea id="mv-remarks" rows={2} {...form.register("remarks")} />
       </Field>
@@ -169,8 +180,8 @@ export function PostMovementButton({ positions, locations, canPost, canAdjust, t
   if (!canPost && !canAdjust) return null;
   return (
     <FormDialog
-      title="Post stock movement"
-      description="Inward and outward update the brand-wise balance immediately. Stock can never go below zero."
+      title="Manual stock change"
+      description="Owner only. Needs a reason and evidence; updates the brand-wise balance immediately. Stock can never go below zero."
       trigger={
         <Button size={size} variant={variant}>
           <ArrowDownToLine /> {label}

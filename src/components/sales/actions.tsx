@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DocActions, type DocActionDef } from "@/components/commercial/doc-actions";
+import { RequestChangeButton } from "@/components/commercial/request-change";
 import { Button } from "@/components/ui/button";
 import { callAction } from "@/lib/call-action";
-import { clientInvoiceActionAction, clientPoActionAction, raBillActionAction, salesOrderActionAction, setMilestoneStatusAction } from "@/modules/sales/actions";
+import { acceptRaBillAndInvoiceAction, clientInvoiceActionAction, clientPoActionAction, raBillActionAction, salesOrderActionAction, setMilestoneStatusAction } from "@/modules/sales/actions";
 
-const Hint = ({ text }: { text: string | null }) => (text ? <span className="text-xs text-muted-foreground">{text}</span> : null);
 const LinkButton = ({ href, icon: Icon, children }: { href: string; icon?: typeof Pencil; children: React.ReactNode }) => (
   <Button asChild size="sm" variant="outline">
     <Link href={href}>
@@ -18,18 +18,18 @@ const LinkButton = ({ href, icon: Icon, children }: { href: string; icon?: typeo
   </Button>
 );
 
-type CpoCan = { edit: boolean; submit: boolean; approve: boolean; approveBlockedReason: string | null; amend: boolean; close: boolean; cancel: boolean; salesOrder: boolean; raBill: boolean; invoice: boolean };
+type CpoCan = { edit: boolean; submit: boolean; approve: boolean; approveBlockedReason: string | null; amend: boolean; close: boolean; cancel: boolean; salesOrder: boolean; raBill: boolean; invoice: boolean; requestChange?: boolean };
 
 export function CpoActions({ id, version, can }: { id: string; version: number; can: CpoCan }) {
   const defs: DocActionDef[] = [];
-  if (can.submit) defs.push({ key: "submit", label: "Submit for approval", icon: Send, variant: "default", success: "Submitted for approval." });
+  if (can.submit) defs.push({ key: "submit", label: "Finalize", icon: CheckCircle2, variant: "default", confirm: { title: "Finalize this client PO?", description: "It becomes the active contract: sales orders, running bills and invoices can be raised against it. After this, only the Super Admin can amend it." }, success: "Client PO is now active." });
   if (can.approve) {
-    defs.push({ key: "approve", label: "Approve", icon: ThumbsUp, variant: "default", confirm: { title: "Approve this client PO?", description: "It becomes the active contract: sales orders, running bills and invoices can then be raised against it." }, success: "Client PO approved." });
-    defs.push({ key: "reject", label: "Reject", icon: ThumbsDown, confirm: { title: "Reject this client PO?", description: "It returns for correction.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Client PO rejected." });
+    defs.push({ key: "approve", label: "Finalize", icon: ThumbsUp, variant: "default", confirm: { title: "Finalize this client PO?", description: "It becomes the active contract." }, success: "Client PO is now active." });
+    defs.push({ key: "reject", label: "Return for changes", icon: ThumbsDown, confirm: { title: "Return this client PO for changes?", description: "It goes back for correction.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Returned for changes." });
   }
   if (can.amend) {
-    defs.push({ key: "variation", label: "Variation", icon: FilePen, confirm: { title: "Record a variation?", description: "Use this when the client changes scope or quantities. The current contract is saved to history and the revised one needs approval.", noteLabel: "What changed (client's variation reference)", noteRequired: true }, success: "Variation opened — edit and resubmit." });
-    defs.push({ key: "amend", label: "Amend", icon: FilePen, confirm: { title: "Amend this client PO?", description: "For corrections that are not a scope change. The current version is saved to history and the amended one needs approval.", noteLabel: "Reason", noteRequired: true }, success: "Amendment opened — edit and resubmit." });
+    defs.push({ key: "variation", label: "Variation", icon: FilePen, confirm: { title: "Record a variation?", description: "Use this when the client changes scope or quantities. The current contract is saved to history; edit it and finalize again.", noteLabel: "What changed (client's variation reference)", noteRequired: true }, success: "Variation opened — edit and finalize." });
+    defs.push({ key: "amend", label: "Amend", icon: FilePen, confirm: { title: "Amend this client PO?", description: "For corrections that are not a scope change. The current version is saved to history; edit it and finalize again.", noteLabel: "Reason", noteRequired: true }, success: "Amendment opened — edit and finalize." });
   }
   if (can.close) defs.push({ key: "close", label: "Close", icon: Lock, confirm: { title: "Close this contract?", description: "No further orders, bills or invoices can be raised against it.", noteLabel: "Reason", noteRequired: true }, success: "Contract closed." });
   if (can.cancel) defs.push({ key: "cancel", label: "Cancel", icon: Ban, variant: "ghost", confirm: { title: "Cancel this client PO?", description: "Only possible while nothing has been ordered or billed against it.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Client PO cancelled." });
@@ -40,7 +40,7 @@ export function CpoActions({ id, version, can }: { id: string; version: number; 
       {can.raBill && <LinkButton href={`/running-bills/new?clientPoId=${id}`} icon={ScrollText}>Running bill</LinkButton>}
       {can.invoice && <LinkButton href={`/client-invoices/new?clientPoId=${id}`} icon={ReceiptIndianRupee}>Invoice</LinkButton>}
       <DocActions actions={defs} run={(key, note) => callAction(clientPoActionAction, id, key as never, { version, note })} />
-      <Hint text={can.approveBlockedReason} />
+      {can.requestChange && <RequestChangeButton kind="client_po" id={id} />}
     </>
   );
 }
@@ -49,10 +49,11 @@ type SoCan = { edit: boolean; submit: boolean; approve: boolean; approveBlockedR
 
 export function SoActions({ id, version, projectId, partyId, can }: { id: string; version: number; projectId: string; partyId: string; can: SoCan }) {
   const defs: DocActionDef[] = [];
-  if (can.submit) defs.push({ key: "submit", label: "Submit for approval", icon: Send, variant: "default", success: "Submitted for approval." });
+  const confirmSo = { title: "Confirm this sales order?", description: "It is locked once confirmed: material planning starts from its lines straight away. Any later change needs an amendment approved by the Super Admin." };
+  if (can.submit) defs.push({ key: "submit", label: "Confirm order", icon: CheckCircle2, variant: "default", confirm: confirmSo, success: "Sales order confirmed — material planning updated." });
   if (can.approve) {
-    defs.push({ key: "approve", label: "Approve", icon: ThumbsUp, variant: "default", confirm: { title: "Approve this sales order?", description: "Once approved it is locked — any later change needs an amendment request approved by a Super Admin. Material requirements for the project are updated from its lines." }, success: "Sales order approved and locked." });
-    defs.push({ key: "reject", label: "Reject", icon: ThumbsDown, confirm: { title: "Reject this sales order?", description: "It returns for correction.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Sales order rejected." });
+    defs.push({ key: "approve", label: "Confirm order", icon: ThumbsUp, variant: "default", confirm: confirmSo, success: "Sales order confirmed — material planning updated." });
+    defs.push({ key: "reject", label: "Return for changes", icon: ThumbsDown, confirm: { title: "Return this sales order for changes?", description: "It goes back for correction.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Returned for changes." });
   }
   if (can.close) defs.push({ key: "close", label: "Close", icon: Lock, confirm: { title: "Close this sales order?", description: "No further deliveries. Material requirements drop to what was actually delivered.", noteLabel: "Reason", noteRequired: true }, success: "Sales order closed." });
   if (can.cancel) defs.push({ key: "cancel", label: "Cancel", icon: Ban, variant: "ghost", confirm: { title: "Cancel this sales order?", description: "Only possible before anything is delivered or invoiced. Its material requirements are cancelled.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Sales order cancelled." });
@@ -63,17 +64,21 @@ export function SoActions({ id, version, projectId, partyId, can }: { id: string
       {can.deliver && <LinkButton href={`/challans/new?type=CLIENT_DELIVERY&soId=${id}&projectId=${projectId}&partyId=${partyId}`} icon={Truck}>Deliver</LinkButton>}
       {can.invoice && <LinkButton href={`/client-invoices/new?soId=${id}`} icon={ReceiptIndianRupee}>Invoice</LinkButton>}
       <DocActions actions={defs} run={(key, note) => callAction(salesOrderActionAction, id, key as never, { version, note })} />
-      <Hint text={can.approveBlockedReason} />
     </>
   );
 }
 
-type RaCan = { edit: boolean; submitReview: boolean; approve: boolean; approveBlockedReason: string | null; returnForCorrection: boolean; dispute: boolean; resubmit: boolean; cancel: boolean; invoice: boolean };
+type RaCan = { edit: boolean; submitReview: boolean; approve: boolean; approveBlockedReason: string | null; returnForCorrection: boolean; dispute: boolean; resubmit: boolean; cancel: boolean; invoice: boolean; requestChange?: boolean; acceptAndInvoice?: boolean };
 
 export function RaActions({ id, version, can }: { id: string; version: number; can: RaCan }) {
+  const router = useRouter();
   const defs: DocActionDef[] = [];
-  if (can.submitReview) defs.push({ key: "submit_review", label: "Send for review", icon: Send, variant: "default", success: "Sent for internal review." });
-  if (can.approve) defs.push({ key: "approve", label: "Approve & mark sent to client", icon: ThumbsUp, variant: "default", confirm: { title: "Approve and submit to the client?", description: "Confirms the measurements are checked. Share the PDF with the client, then record their certification." }, success: "Bill submitted to client." });
+  const quick: DocActionDef[] = can.acceptAndInvoice
+    ? [{ key: "accept", label: "Client accepted — invoice now", icon: CheckCircle2, variant: "default", confirm: { title: "Client accepted the bill as submitted?", description: "Every line is certified at the claimed quantity, the invoice is created and issued in one step. If the client cut any quantity, use “Record certification” instead.", noteLabel: "Client reference (optional, e.g. email of 12 Nov)", input: true, confirmLabel: "Certify & issue invoice" }, success: "Certified and invoiced." }]
+    : [];
+  const submitToClient = { title: "Submit this bill to the client?", description: "Share the PDF with the client, then record their certification (or certify as claimed) to create the invoice." };
+  if (can.submitReview) defs.push({ key: "submit_review", label: "Submit to client", icon: Send, variant: "default", confirm: submitToClient, success: "Bill submitted to client." });
+  if (can.approve) defs.push({ key: "approve", label: "Submit to client", icon: ThumbsUp, variant: "default", confirm: submitToClient, success: "Bill submitted to client." });
   if (can.returnForCorrection) defs.push({ key: "return", label: "Return for correction", icon: RotateCcw, confirm: { title: "Return for correction?", description: "It goes back to draft.", noteLabel: "What needs correcting", noteRequired: true }, success: "Returned to draft." });
   if (can.dispute) defs.push({ key: "dispute", label: "Client disputes", icon: Gavel, confirm: { title: "Record a client dispute?", description: "Note the client's objection. You can resubmit or certify later.", noteLabel: "Client's objection", noteRequired: true }, success: "Dispute recorded." });
   if (can.resubmit) defs.push({ key: "resubmit", label: "Resubmit to client", icon: Send, success: "Resubmitted." });
@@ -82,20 +87,32 @@ export function RaActions({ id, version, can }: { id: string; version: number; c
     <>
       {can.edit && <LinkButton href={`/running-bills/${id}/edit`} icon={Pencil}>Edit</LinkButton>}
       {can.invoice && <LinkButton href={`/client-invoices/new?raBillId=${id}`} icon={ReceiptIndianRupee}>Create invoice</LinkButton>}
+      {quick.length > 0 && (
+        <DocActions
+          actions={quick}
+          run={(_k, note) => callAction(acceptRaBillAndInvoiceAction, id, { clientCertRef: note, issue: true })}
+          onDone={(_k, res) => {
+            const d = (res as { data?: { invoiceId: string; issueError: string | null } }).data;
+            if (d?.issueError) toast.warning(`Invoice created as draft, not issued: ${d.issueError}`);
+            if (d?.invoiceId) router.push(`/client-invoices/${d.invoiceId}`);
+          }}
+        />
+      )}
       <DocActions actions={defs} run={(key, note) => callAction(raBillActionAction, id, key as never, { version, note })} />
-      <Hint text={can.approveBlockedReason} />
+      {can.requestChange && <RequestChangeButton kind="ra_bill" id={id} />}
     </>
   );
 }
 
-export function InvoiceActions({ id, version, partyId, can }: { id: string; version: number; partyId: string; can: { issue: boolean; cancel: boolean; receive: boolean } }) {
+export function InvoiceActions({ id, version, partyId, projectId, can }: { id: string; version: number; partyId: string; projectId?: string; can: { issue: boolean; cancel: boolean; receive: boolean; requestChange?: boolean } }) {
   const defs: DocActionDef[] = [];
-  if (can.issue) defs.push({ key: "issue", label: "Issue invoice", icon: CheckCircle2, variant: "default", confirm: { title: "Issue this tax invoice?", description: "A GST invoice number is allocated now and the invoice can no longer be edited." }, success: "Invoice issued." });
+  if (can.issue) defs.push({ key: "issue", label: "Issue invoice", icon: CheckCircle2, variant: "default", confirm: { title: "Issue this invoice?", description: "The invoice number is allocated now and the invoice can no longer be edited." }, success: "Invoice issued." });
   if (can.cancel) defs.push({ key: "cancel", label: "Cancel", icon: Ban, variant: "ghost", confirm: { title: "Cancel this invoice?", description: "Quantities return to the running bill / sales order so they can be invoiced again.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Invoice cancelled." });
   return (
     <>
-      {can.receive && <LinkButton href={`/payments/new?direction=IN&partyId=${partyId}&invoiceId=${id}`} icon={ReceiptIndianRupee}>Record receipt</LinkButton>}
+      {can.receive && <LinkButton href={`/payments/new?direction=IN&partyId=${partyId}&invoiceId=${id}${projectId ? `&projectId=${projectId}` : ""}`} icon={ReceiptIndianRupee}>Record client payment</LinkButton>}
       <DocActions actions={defs} run={(key, note) => callAction(clientInvoiceActionAction, id, key as never, { version, note })} />
+      {can.requestChange && <RequestChangeButton kind="client_invoice" id={id} />}
     </>
   );
 }

@@ -7,10 +7,11 @@ import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { addQty, cmpMoney, cmpQty, pctOf, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
-import { gstRateField, optMoney, optPct, priceDocument, projectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
+import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, isSuperAdmin, parseInput, projectScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
+import { gstRateField, optMoney, optPct, priceDocument, optionalProjectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSiteLocation, ensureSystemLocations } from "@/modules/inventory/engine";
+import { assertAllocations } from "@/modules/planning/allocation";
 import { refreshPrOrderStatus } from "./pr";
 import { advanceProjectStatus } from "@/modules/projects/lifecycle";
 
@@ -35,10 +36,12 @@ const poLineSchema = z.object({
   gstRate: gstRateField,
   prLineId: optId,
   quotationLineId: optId,
+  /** Planning requirement this line is allocated to (project or general inventory). */
+  requirementId: optId,
 });
 
 export const poSchema = z.object({
-  projectId: projectIdField,
+  projectId: optionalProjectIdField,
   partyId: uuid,
   deliveryLocationId: optId,
   deliveryAddress: optionalText("Delivery address", 500),
@@ -74,10 +77,11 @@ export const poInclude = {
   approvedBy: { select: { id: true, fullName: true } },
   rfq: { select: { id: true, number: true } },
   pr: { select: { id: true, number: true } },
-  lines: { orderBy: { lineNo: "asc" as const }, include: { itemBrand: { select: { id: true, item: { select: { id: true, code: true, name: true, unit: true, hsnCode: true } }, brand: { select: { id: true, name: true } } } } } },
+  lines: { orderBy: { lineNo: "asc" as const }, include: { itemBrand: { select: { id: true, item: { select: { id: true, code: true, name: true, unit: true, hsnCode: true } }, brand: { select: { id: true, name: true } } } }, requirement: { select: { id: true, project: { select: { id: true, code: true } } } } } },
   revisions: { orderBy: { revision: "desc" as const }, include: { createdBy: { select: { fullName: true } } } },
   grns: { select: { id: true, number: true, status: true, receiptDate: true }, orderBy: { createdAt: "desc" as const } },
-  bills: { select: { id: true, number: true, supplierInvoiceNo: true, status: true, total: true, paidAmount: true }, orderBy: { createdAt: "desc" as const } },
+  bills: { select: { id: true, number: true, supplierInvoiceNo: true, status: true, total: true, paidAmount: true, netPayable: true, adjustedAmount: true }, orderBy: { createdAt: "desc" as const } },
+  payments: { where: { status: "POSTED" }, select: { id: true, number: true, amount: true, allocatedAmount: true, paymentDate: true }, orderBy: { paymentDate: "asc" as const } },
 } satisfies Prisma.PurchaseOrderInclude;
 
 async function loadScoped(actor: Actor, id: string, client: Tx | typeof db = db) {
@@ -141,7 +145,7 @@ async function buildPo(tx: Tx, actor: Actor, data: z.output<typeof poSchema>) {
   };
   const lines = priced.lines.map((l, i) => {
     const ib = map.get(l.itemBrandId)!;
-    return { id: l.id, lineNo: i + 1, itemBrandId: l.itemBrandId, itemId: ib.itemId, description: l.description, hsnCode: ib.item.hsnCode, unit: ib.item.unit, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, taxable: l.amounts.taxable, taxAmount: l.amounts.tax, total: l.amounts.total, prLineId: l.prLineId, quotationLineId: l.quotationLineId };
+    return { id: l.id, lineNo: i + 1, itemBrandId: l.itemBrandId, itemId: ib.itemId, description: l.description, hsnCode: ib.item.hsnCode, unit: ib.item.unit, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, taxable: l.amounts.taxable, taxAmount: l.amounts.tax, total: l.amounts.total, prLineId: l.prLineId, quotationLineId: l.quotationLineId, requirementId: l.requirementId };
   });
   if (Number(data.advanceAmount) > Number(priced.totals.total)) throw new ValidationError("Advance cannot exceed the order value.", { advanceAmount: "More than the PO total." });
   return { header, lines, party };
@@ -163,13 +167,16 @@ async function applyPrOrdered(tx: Tx, deltas: Map<string, string>) {
   for (const id of prIds) await refreshPrOrderStatus(tx, id);
 }
 
-async function assertPrLinesUsable(tx: Tx, actor: Actor, lines: { prLineId: string | null }[]) {
+async function assertPrLinesUsable(tx: Tx, actor: Actor, lines: { prLineId: string | null; requirementId: string | null }[]) {
   const ids = lines.map((l) => l.prLineId).filter(Boolean) as string[];
   if (!ids.length) return;
-  const rows = await tx.prLine.findMany({ where: { id: { in: ids } }, select: { pr: { select: { organizationId: true, status: true, number: true } } } });
+  const rows = await tx.prLine.findMany({ where: { id: { in: ids } }, select: { id: true, requirementId: true, pr: { select: { organizationId: true, status: true, number: true } } } });
   if (rows.length !== new Set(ids).size || rows.some((r) => r.pr.organizationId !== actor.organizationId)) throw new ValidationError("A linked requisition line was not found.");
   const bad = rows.find((r) => !["APPROVED", "PARTIALLY_ORDERED", "ORDERED"].includes(r.pr.status));
   if (bad) throw new ValidationError(`Requisition ${bad.pr.number} is not approved.`);
+  // A line ordered from a requisition line is allocated to the requisition line's requirement.
+  const req = new Map(rows.map((r) => [r.id, r.requirementId]));
+  for (const l of lines) if (l.prLineId) l.requirementId = req.get(l.prLineId) ?? null;
 }
 
 export async function createPo(actor: Actor, input: unknown, existingTx?: Tx) {
@@ -179,6 +186,7 @@ export async function createPo(actor: Actor, input: unknown, existingTx?: Tx) {
   const create = async (tx: Tx) => {
     const { header, lines, party } = await buildPo(tx, actor, data);
     await assertPrLinesUsable(tx, actor, lines);
+    await assertAllocations(tx, actor.organizationId, { projectId: header.projectId, label: "This purchase order" }, lines);
     const number = await nextDocNumber(tx, actor.organizationId, "PO", header.orderDate);
     const po = await tx.purchaseOrder.create({ data: { organizationId: actor.organizationId, number, ...header, createdById: actor.id, lines: { create: lines.map(({ id: _id, ...l }) => l) } } });
     await applyPrOrdered(tx, new Map(lines.filter((l) => l.prLineId).map((l) => [l.prLineId!, l.quantity])));
@@ -198,8 +206,11 @@ export async function updatePo(actor: Actor, id: string, version: number, input:
   if (before.revision > 0 && (data.partyId !== before.partyId || data.projectId !== before.projectId)) throw new ValidationError("Supplier and project cannot change in an amendment. Cancel / short-close and raise a new PO.");
   return db.$transaction(async (tx) => {
     const { header, lines } = await buildPo(tx, actor, data);
-    await assertPrLinesUsable(tx, actor, lines);
     const existing = new Map(before.lines.map((l) => [l.id, l]));
+    // Keep a line's planning allocation when the form does not send it back.
+    for (const l of lines) if (!l.requirementId && l.id) l.requirementId = existing.get(l.id)?.requirementId ?? null;
+    await assertPrLinesUsable(tx, actor, lines);
+    await assertAllocations(tx, actor.organizationId, { projectId: header.projectId, label: "This purchase order" }, lines, { poId: id });
     const kept = new Set<string>();
     const prDelta = new Map<string, string>();
     const bump = (k: string | null, d: string) => k && prDelta.set(k, addQty(prDelta.get(k) ?? "0", d));
@@ -234,7 +245,7 @@ export async function updatePo(actor: Actor, id: string, version: number, input:
   });
 }
 
-export type PoAction = "submit" | "approve" | "reject" | "send" | "acknowledge" | "amend" | "cancel" | "close";
+export type PoAction = "finalize" | "submit" | "approve" | "reject" | "send" | "acknowledge" | "amend" | "cancel" | "close";
 
 export async function poAction(actor: Actor, id: string, action: PoAction, opts: { version: number; note?: string | null; via?: string | null }) {
   const po = await loadScoped(actor, id);
@@ -245,15 +256,27 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
   };
 
   switch (action) {
-    case "submit":
-      requirePermission(actor, "po.create");
+    case "finalize":
+    case "submit": {
+      // Simplified workflow: finalizing a PO approves it in one step for any po.create user —
+      // no second approver, no separation of duties, no amount limit. "submit" is kept as an alias.
+      requireAnyPermission(actor, ["po.create", "po.approve"]);
       return db.$transaction(async (tx) => {
-        await transition(tx.purchaseOrder, w, ["DRAFT", "REJECTED"], { status: "PENDING_APPROVAL", submittedById: actor.id, submittedAt: new Date(), statusNote: null }, "purchase order");
-        await log(tx, "Submitted", ` for approval (₹${dec2(po.total)})`);
+        const now = new Date();
+        // A re-finalized amendment keeps its receipt progress.
+        const anyReceived = po.lines.some((l) => cmpQty(dec3(l.receivedQty), "0") > 0);
+        const fully = po.lines.every((l) => cmpQty(dec3(l.acceptedQty), dec3(l.quantity)) >= 0);
+        const status = anyReceived ? (fully ? "FULLY_RECEIVED" : "PARTIALLY_RECEIVED") : "APPROVED";
+        await transition(tx.purchaseOrder, w, ["DRAFT", "REJECTED"], { status, submittedById: actor.id, submittedAt: now, approvedById: actor.id, approvedAt: now, statusNote: null }, "purchase order");
+        await log(tx, "Finalized", ` (₹${dec2(po.total)})`);
+        await advanceProjectStatus(tx, po.projectId, actor.id);
+        return { approved: true };
       });
+    }
     case "approve":
     case "reject": {
-      await assertCanApprove(actor, { permission: "po.approve", docType: "PO", amount: dec2(po.total), createdById: po.createdById, submittedById: po.submittedById, what: "purchase order" });
+      // Only for POs left waiting under the old two-step approval.
+      requireAnyPermission(actor, ["po.create", "po.approve"]);
       if (action === "reject") need(opts.note, "Give a reason for rejecting.");
       return db.$transaction(async (tx) => {
         const anyReceived = po.lines.some((l) => cmpQty(dec3(l.receivedQty), "0") > 0);
@@ -277,7 +300,7 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
         await log(tx, "Recorded supplier acknowledgement for");
       });
     case "amend":
-      requirePermission(actor, "po.create");
+      requireSuperAdmin(actor, "amend a finalized purchase order");
       need(opts.note, "Give the reason for the amendment.");
       return db.$transaction(async (tx) => {
         const full = await tx.purchaseOrder.findUniqueOrThrow({ where: { id }, include: { lines: true } });
@@ -286,7 +309,8 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
         await log(tx, "Opened amendment", ` ${full.revision + 1} of`);
       });
     case "cancel": {
-      requirePermission(actor, "po.cancel");
+      if (["DRAFT", "REJECTED", "PENDING_APPROVAL"].includes(po.status)) requireAnyPermission(actor, ["po.create", "po.cancel"]);
+      else requireSuperAdmin(actor, "cancel a finalized purchase order");
       need(opts.note, "Give a reason for cancelling.");
       if (po.lines.some((l) => cmpQty(dec3(l.receivedQty), "0") > 0)) throw new ValidationError("Material has already been received against this PO, so it cannot be cancelled. Use Short-close to stop further deliveries.");
       if (po.lines.some((l) => cmpQty(dec3(l.billedQty), "0") > 0)) throw new ValidationError("Supplier bills exist against this PO. Cancel those bills first.");
@@ -299,7 +323,7 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
       });
     }
     case "close": {
-      requirePermission(actor, "po.cancel");
+      requireSuperAdmin(actor, "short-close a purchase order");
       need(opts.note, "Give a reason for closing.");
       return db.$transaction(async (tx) => {
         await transition(tx.purchaseOrder, w, ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"], { status: "CLOSED", statusNote: opts.note, closedAt: new Date() }, "purchase order");
@@ -333,10 +357,36 @@ export async function getPo(actor: Actor, id: string) {
   const po = await db.purchaseOrder.findFirst({ where: { AND: [{ id }, projectScoped(actor) as Prisma.PurchaseOrderWhereInput] }, include: poInclude });
   if (!po) throw new NotFoundError("Purchase order");
   const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "po.approve", po, settings.enforceSegregation);
   const anyReceived = po.lines.some((l) => cmpQty(dec3(l.receivedQty), "0") > 0);
   const paid = po.bills.filter((b) => b.status !== "CANCELLED").reduce((a, b) => a + Number(b.paidAmount), 0);
+  // Financial position (workflow: PO drives the supplier side). The PO is a commitment, not a payable;
+  // only finalized supplier bills are liabilities. Each rupee once: bill payments + unallocated PO advance.
+  const r2 = (n: number) => (Math.round(n * 100) / 100).toFixed(2);
+  const lineShare = (l: (typeof po.lines)[number], q: number) => (Number(l.quantity) > 0 ? (Number(l.total) * Math.min(q, Number(l.quantity))) / Number(l.quantity) : 0);
+  const receivedValue = po.lines.reduce((a, l) => a + lineShare(l, Number(l.acceptedQty)), 0);
+  const pendingValue = po.lines.reduce((a, l) => a + lineShare(l, Math.max(0, Number(l.quantity) - Number(l.acceptedQty))), 0);
+  const finalBills = po.bills.filter((b) => ["APPROVED", "PARTIALLY_PAID", "PAID"].includes(b.status));
+  const billed = finalBills.reduce((a, b) => a + Number(b.total), 0);
+  const billPaid = finalBills.reduce((a, b) => a + Number(b.paidAmount), 0);
+  const billAdjusted = finalBills.reduce((a, b) => a + Number(b.adjustedAmount), 0);
+  const outstanding = finalBills.reduce((a, b) => a + Math.max(0, Number(b.netPayable) - Number(b.paidAmount) - Number(b.adjustedAmount)), 0);
+  const advance = po.payments.reduce((a, p) => a + Number(p.amount) - Number(p.allocatedAmount), 0);
+  const financial = po.status === "CANCELLED" || ["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(po.status)
+    ? null
+    : {
+        poValue: dec2(po.total),
+        receivedValue: r2(receivedValue),
+        pendingValue: r2(pendingValue),
+        billed: r2(billed),
+        paid: r2(billPaid + advance),
+        advance: r2(advance),
+        outstanding: r2(outstanding),
+        unbilledCommitment: r2(Math.max(0, Number(po.total) - billed)),
+        remainingPayment: r2(Math.max(0, Number(po.total) - billPaid - billAdjusted - advance)),
+        heldBills: po.bills.filter((b) => b.status === "PENDING_APPROVAL").length,
+      };
   return {
+    financial,
     po: {
       ...po,
       total: dec2(po.total),
@@ -350,20 +400,29 @@ export async function getPo(actor: Actor, id: string) {
       advanceAmount: dec2(po.advanceAmount),
       lines: po.lines.map((l) => ({ ...l, quantity: dec3(l.quantity), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: dec2(l.gstRate), taxable: dec2(l.taxable), taxAmount: dec2(l.taxAmount), total: dec2(l.total), receivedQty: dec3(l.receivedQty), acceptedQty: dec3(l.acceptedQty), rejectedQty: dec3(l.rejectedQty), returnedQty: dec3(l.returnedQty), billedQty: dec3(l.billedQty), pendingQty: cmpQty(dec3(l.quantity), dec3(l.acceptedQty)) > 0 ? subQty(dec3(l.quantity), dec3(l.acceptedQty)) : "0" })),
       bills: po.bills.map((b) => ({ ...b, total: dec2(b.total), paidAmount: dec2(b.paidAmount) })),
+      payments: po.payments.map((p) => ({ ...p, amount: dec2(p.amount), unallocated: (Number(p.amount) - Number(p.allocatedAmount)).toFixed(2) })),
     },
     paidToDate: paid.toFixed(2),
+    /** Paid against this PO but not yet set against its bills (supplier advance). */
+    advanceOnPo: po.payments.reduce((a, p) => a + Number(p.amount) - Number(p.allocatedAmount), 0).toFixed(2),
     can: {
       edit: can(actor, "po.create") && ["DRAFT", "REJECTED"].includes(po.status),
       submit: can(actor, "po.create") && ["DRAFT", "REJECTED"].includes(po.status),
-      approve: po.status === "PENDING_APPROVAL" && hint.canApprove,
-      approveBlockedReason: po.status === "PENDING_APPROVAL" ? hint.reason : null,
+      finalize: can(actor, "po.create") && ["DRAFT", "REJECTED"].includes(po.status),
+      /** Finalize always makes the PO final in one step (simplified workflow). */
+      finalizeApproves: can(actor, "po.create") && ["DRAFT", "REJECTED"].includes(po.status),
+      approve: po.status === "PENDING_APPROVAL" && (can(actor, "po.create") || can(actor, "po.approve")),
+      approveBlockedReason: null as string | null,
       send: can(actor, "po.create") && po.status === "APPROVED",
       acknowledge: can(actor, "po.create") && ["SENT", "APPROVED"].includes(po.status),
-      amend: can(actor, "po.create") && (AMENDABLE as readonly string[]).includes(po.status),
-      cancel: can(actor, "po.cancel") && !anyReceived && ["DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "SENT", "ACKNOWLEDGED"].includes(po.status),
-      close: can(actor, "po.cancel") && ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"].includes(po.status),
+      amend: isSuperAdmin(actor) && (AMENDABLE as readonly string[]).includes(po.status),
+      cancel: !anyReceived && (["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(po.status) ? can(actor, "po.create") || can(actor, "po.cancel") : isSuperAdmin(actor) && ["APPROVED", "SENT", "ACKNOWLEDGED"].includes(po.status)),
+      close: isSuperAdmin(actor) && ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"].includes(po.status),
+      /** Finalized: other users ask the Super Admin for a change. */
+      requestChange: !isSuperAdmin(actor) && can(actor, "po.create") && !["DRAFT", "REJECTED", "CANCELLED", "CLOSED"].includes(po.status),
       receive: can(actor, "grn.create") && isOpenForReceipt(po.status, settings.allowReceiptOnUnapprovedPo),
       bill: can(actor, "bills.manage") && ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED", "CLOSED"].includes(po.status),
+      pay: can(actor, "payments.manage") && !["DRAFT", "PENDING_APPROVAL", "REJECTED", "CANCELLED"].includes(po.status),
     },
   };
 }

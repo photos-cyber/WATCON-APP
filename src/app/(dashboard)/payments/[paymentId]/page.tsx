@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { NextStep } from "@/components/procurement/next-step";
 import Link from "next/link";
 import { DetailGrid, DocStatusBadge, Money, Section, ToneBadge } from "@/components/commercial/ui";
 import { ActivityTimeline } from "@/components/documents/activity-timeline";
 import { AttachmentsPanel } from "@/components/documents/attachments-panel";
 import { DocShare } from "@/components/documents/doc-share";
 import { payablesCrumbs } from "@/components/payables/crumbs";
-import { AllocateAdvance, PaymentActions, ReverseAllocation } from "@/components/payables/payment-actions";
+import { AllocateAdvance, PaymentActions, RefundAdvance, ReverseAllocation } from "@/components/payables/payment-actions";
 import { PageHeader } from "@/components/shared/page-header";
 import { requirePagePermission } from "@/lib/auth/session";
 import { formatDate, formatDateTime } from "@/lib/format";
@@ -46,16 +47,34 @@ export default async function PaymentPage({ params }: PageProps<"/payments/[paym
         actions={
           <>
             {can.allocate && <AllocateAdvance paymentId={p.id} unallocated={unallocated} docs={openDocs} direction={p.direction} />}
+            {can.refund && <RefundAdvance receiptId={p.id} unallocated={unallocated} today={new Date().toISOString().slice(0, 10)} />}
             <PaymentActions id={p.id} version={p.version} can={can} />
             <DocShare type="payment" id={p.id} summary={summary} phone={p.party.whatsappNumber ?? p.party.phone} email={p.party.email} subject={`${out ? "Payment advice" : "Receipt"} ${p.number}`} />
           </>
         }
       />
+      {p.refundOf && (
+        <p className="mb-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+          Refund of client advance from receipt <Link className="font-medium text-primary hover:underline" href={`/payments/${p.refundOf.id}`}>{p.refundOf.number}</Link>{p.remarks ? ` — ${p.remarks}` : ""}.
+        </p>
+      )}
+      {p.refunds.length > 0 && (
+        <p className="mb-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+          Refunded: {p.refunds.map((r, i) => (
+            <span key={r.id}>{i ? ", " : ""}<Link className="text-primary hover:underline" href={`/payments/${r.id}`}>{r.number}</Link> {formatINR(r.amount)}{r.status === "CANCELLED" ? " (cancelled)" : ""}</span>
+          ))}
+        </p>
+      )}
       {p.status === "CANCELLED" && (
         <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm">
           Cancelled by {p.cancelledBy?.fullName} on {formatDateTime(p.cancelledAt)}: {p.cancelReason}
         </p>
       )}
+      {p.status === "POSTED" && !p.refundOf && (unallocated !== "0.00" ? (
+        <NextStep tone="warn" title={`${formatINR(unallocated)} held as an advance`}>{can.allocate ? "Use “Allocate advance” to set it against " + (out ? "the supplier's bills" : "the client's invoices") + " when they are ready." : out ? "It will be set against the supplier's bills." : "It will be set against the client's invoices or recovered on running bills."}</NextStep>
+      ) : (
+        <NextStep tone="done" title={out ? "Fully set against bills" : "Fully set against invoices"}>Download or share the {out ? "payment voucher" : "receipt"} (top right).</NextStep>
+      ))}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="min-w-0 space-y-4 xl:col-span-2">
           <Section title={out ? "Payment" : "Receipt"}>

@@ -8,7 +8,7 @@ import { NotFoundError, ValidationError } from "@/lib/errors";
 import { addQty, cmpMoney, cmpQty, subMoney, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, dec2, dec3, dec4, getCommercialSettings, parseInput, projectRequiredScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { dec2, dec3, dec4, getCommercialSettings, isSuperAdmin, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
 import { priceDocument, qtyOrZero } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { cpoLineBilled, lockClientPo, netRate, optDate } from "./shared";
@@ -64,7 +64,7 @@ export async function createClientInvoice(actor: Actor, input: unknown) {
 
     if (data.source === "RA") {
       if (!data.raBillId) throw new ValidationError("Choose the certified running bill.", { raBillId: "Required." });
-      const ra = await tx.raBill.findFirst({ where: { AND: [{ id: data.raBillId }, projectRequiredScoped(actor) as Prisma.RaBillWhereInput] }, include: { lines: { include: { clientPoLine: true } }, clientPo: { select: { placeOfSupply: true } }, invoice: { select: { id: true, number: true, status: true } } } });
+      const ra = await tx.raBill.findFirst({ where: { AND: [{ id: data.raBillId }, projectRequiredScoped(actor) as Prisma.RaBillWhereInput] }, include: { lines: { include: { clientPoLine: true, soLine: true } }, clientPo: { select: { placeOfSupply: true } }, invoice: { select: { id: true, number: true, status: true } } } });
       if (!ra) throw new NotFoundError("Running bill");
       await tx.$queryRaw`SELECT id FROM ra_bills WHERE id = ${ra.id}::uuid FOR UPDATE`;
       if (ra.invoice && ra.invoice.status !== "CANCELLED") throw new ValidationError(`This running bill is already invoiced (${ra.invoice.number}).`);
@@ -72,13 +72,20 @@ export async function createClientInvoice(actor: Actor, input: unknown) {
       projectId = ra.projectId;
       partyId = ra.partyId;
       clientPoId = ra.clientPoId;
+      soId = ra.soId;
       raBillId = ra.id;
-      placeOfSupply = ra.clientPo.placeOfSupply;
+      placeOfSupply = ra.clientPo?.placeOfSupply ?? null;
       deductions = { retention: dec2(ra.retentionAmount), advance: dec2(ra.advanceRecovery), other: dec2(ra.otherDeductions) };
+      // Only this bill's certified quantities are invoiced (cumulative / previous figures are statement only),
+      // so nothing billed before is invoiced — or taxed — again.
       lines = [...ra.lines]
-        .sort((a, b) => a.clientPoLine.lineNo - b.clientPoLine.lineNo)
+        .sort((a, b) => (a.clientPoLine?.lineNo ?? a.soLine?.lineNo ?? 0) - (b.clientPoLine?.lineNo ?? b.soLine?.lineNo ?? 0))
         .filter((l) => l.certifiedQty && cmpQty(dec3(l.certifiedQty), "0") > 0)
-        .map((l) => ({ description: `${l.clientPoLine.boqRef ? `${l.clientPoLine.boqRef} – ` : ""}${l.clientPoLine.description}`, hsnSac: l.clientPoLine.hsnSac, unit: l.clientPoLine.unit, quantity: dec3(l.certifiedQty), rate: dec4(l.rate), discountPct: "0", gstRate: dec2(l.gstRate), soLineId: null, clientPoLineId: l.clientPoLineId }));
+        .map((l) =>
+          l.clientPoLine
+            ? { description: `${l.clientPoLine.boqRef ? `${l.clientPoLine.boqRef} – ` : ""}${l.clientPoLine.description}`, hsnSac: l.clientPoLine.hsnSac, unit: l.clientPoLine.unit, quantity: dec3(l.certifiedQty), rate: dec4(l.rate), discountPct: "0", gstRate: dec2(l.gstRate), soLineId: null, clientPoLineId: l.clientPoLineId }
+            : { description: l.soLine!.description, hsnSac: l.soLine!.hsnSac, unit: l.soLine!.unit, quantity: dec3(l.certifiedQty), rate: dec4(l.rate), discountPct: "0", gstRate: dec2(l.gstRate), soLineId: l.soLineId, clientPoLineId: null },
+        );
       if (!lines.length) throw new ValidationError("Nothing was certified on this running bill.");
       label = `RA-${ra.raNumber} (${ra.number})`;
     } else if (data.source === "SO") {
@@ -88,6 +95,7 @@ export async function createClientInvoice(actor: Actor, input: unknown) {
       if (!["APPROVED", "PARTIALLY_FULFILLED", "FULFILLED", "CLOSED"].includes(so.status)) throw new ValidationError("Only an approved sales order can be invoiced.");
       // One billing basis per order: with a payment schedule, bill through its milestones (prevents double billing).
       if (await tx.paymentMilestone.count({ where: { soId: so.id } })) throw new ValidationError(`${so.number} is billed by its payment milestones. Use “Raise invoice” on the sales order's payment schedule.`);
+      if (await tx.raBill.count({ where: { soId: so.id, status: { not: "CANCELLED" } } })) throw new ValidationError(`${so.number} is billed by cumulative running bills. Generate the next running bill instead.`);
       if (so.clientPoId) await lockClientPo(tx, so.clientPoId);
       const soLines = await tx.$queryRaw<{ id: string; line_no: number; delivered_qty: string; returned_qty: string; invoiced_qty: string }[]>`SELECT id::text, line_no, delivered_qty::text, returned_qty::text, invoiced_qty::text FROM so_lines WHERE so_id = ${so.id}::uuid FOR UPDATE`;
       const full = await tx.soLine.findMany({ where: { soId: so.id } });
@@ -178,7 +186,11 @@ export async function createClientInvoice(actor: Actor, input: unknown) {
         lines: { create: priced.lines.map((l, i) => ({ lineNo: i + 1, soLineId: l.soLineId, clientPoLineId: l.clientPoLineId, description: l.description, hsnSac: l.hsnSac, unit: l.unit, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, taxable: l.amounts.taxable, taxAmount: l.amounts.tax, total: l.amounts.total })) },
       },
     });
-    if (raBillId) await tx.raBill.update({ where: { id: raBillId }, data: { status: "INVOICED", version: { increment: 1 } } });
+    if (raBillId) {
+      await tx.raBill.update({ where: { id: raBillId }, data: { status: "INVOICED", version: { increment: 1 } } });
+      // Sales-order bills: keep the order's invoiced counters in step (reversed when the invoice is cancelled).
+      if (data.source === "RA") for (const l of lines) if (l.soLineId) await tx.soLine.update({ where: { id: l.soLineId }, data: { invoicedQty: { increment: l.quantity } } });
+    }
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "invoice.created", entityType: "client_invoice", entityId: inv.id, projectId, summary: `Drafted invoice for ${party.name} from ${label} – ₹${t.total}` }, tx);
     return inv;
   });
@@ -198,15 +210,13 @@ export async function updateClientInvoice(actor: Actor, id: string, version: num
 export type InvoiceAction = "issue" | "cancel";
 
 export async function clientInvoiceAction(actor: Actor, id: string, action: InvoiceAction, opts: { version: number; note?: string | null }) {
-  requirePermission(actor, "invoice.approve", "You do not have permission to issue or cancel invoices.");
+  requireAnyPermission(actor, ["invoice.manage", "invoice.approve"], "You do not have permission to issue or cancel invoices.");
   const inv = await db.clientInvoice.findFirst({ where: { AND: [{ id }, scoped(actor)] }, include: { lines: true, raBill: { select: { number: true, raNumber: true } } } });
   if (!inv) throw new NotFoundError("Invoice");
   const w = { id, organizationId: actor.organizationId, version: opts.version };
   if (action === "issue") {
     if (!inv.placeOfSupply) throw new ValidationError("This invoice has no place of supply. Set the client's state, then cancel this draft and create the invoice again.");
-    // Separation of duties, as for every other approved document: the person who drafted the
-    // invoice cannot also issue it.
-    await assertCanApprove(actor, { permission: "invoice.approve", docType: "INVOICE", amount: dec2(inv.total), createdById: inv.createdById, what: "an invoice" });
+    // Simplified workflow: the person who prepared the invoice may issue it (no second person).
     return db.$transaction(async (tx) => {
       // Proformas (advance requests) have their own PI series and never consume a tax-invoice number.
       const proforma = inv.kind === "PROFORMA";
@@ -217,6 +227,7 @@ export async function clientInvoiceAction(actor: Actor, id: string, action: Invo
     });
   }
   if (!opts.note?.trim()) throw new ValidationError("Give a reason for cancelling.", { note: "Reason required." });
+  if (inv.status !== "DRAFT") requireSuperAdmin(actor, "cancel an issued invoice");
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM client_invoices WHERE id = ${id}::uuid FOR UPDATE`;
     const fresh = await tx.clientInvoice.findUniqueOrThrow({ where: { id } });
@@ -257,9 +268,8 @@ export async function getClientInvoice(actor: Actor, id: string) {
   if (!inv) throw new NotFoundError("Invoice");
   const outstanding = subMoney(subMoney(dec2(inv.netReceivable), dec2(inv.receivedAmount)), dec2(inv.adjustedAmount));
   const overdue = !!inv.dueDate && inv.dueDate < new Date() && ["ISSUED", "PARTIALLY_PAID"].includes(inv.status) && cmpMoney(outstanding, "0") > 0;
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "invoice.approve", { createdById: inv.createdById }, settings.enforceSegregation);
-  const issueBlocked = inv.status !== "DRAFT" ? null : !inv.placeOfSupply ? "No place of supply — set the client's state, then recreate this invoice." : hint.reason;
+  const manager = can(actor, "invoice.manage") || can(actor, "invoice.approve");
+  const issueBlocked = inv.status !== "DRAFT" ? null : !inv.placeOfSupply ? "No place of supply — set the client's state, then recreate this invoice." : null;
   return {
     invoice: {
       ...inv,
@@ -282,9 +292,10 @@ export async function getClientInvoice(actor: Actor, id: string) {
     },
     can: {
       edit: can(actor, "invoice.manage") && inv.status === "DRAFT",
-      issue: hint.canApprove && inv.status === "DRAFT" && !!inv.placeOfSupply,
+      issue: manager && inv.status === "DRAFT" && !!inv.placeOfSupply,
       issueBlocked,
-      cancel: can(actor, "invoice.approve") && ["DRAFT", "ISSUED"].includes(inv.status) && cmpMoney(dec2(inv.receivedAmount), "0") === 0 && inv.allocations.length === 0,
+      cancel: (inv.status === "DRAFT" ? manager : isSuperAdmin(actor) && inv.status === "ISSUED") && cmpMoney(dec2(inv.receivedAmount), "0") === 0 && inv.allocations.length === 0,
+      requestChange: !isSuperAdmin(actor) && manager && inv.status !== "DRAFT" && inv.status !== "CANCELLED",
       receive: can(actor, "payments.manage") && ["ISSUED", "PARTIALLY_PAID"].includes(inv.status) && cmpMoney(outstanding, "0") > 0,
     },
   };
@@ -299,9 +310,9 @@ export function defaultDueDate(paymentTermsDays: number | null) {
 export async function invoicePrefill(actor: Actor, opts: { raBillId?: string | null; soId?: string | null; clientPoId?: string | null }) {
   requirePermission(actor, "invoice.manage");
   if (opts.raBillId) {
-    const ra = await db.raBill.findFirst({ where: { AND: [{ id: opts.raBillId }, projectRequiredScoped(actor) as Prisma.RaBillWhereInput] }, include: { party: { select: { name: true, stateCode: true, paymentTermsDays: true } }, project: { select: { id: true, code: true, name: true } }, lines: { include: { clientPoLine: { select: { lineNo: true, description: true, unit: true } } } } } });
+    const ra = await db.raBill.findFirst({ where: { AND: [{ id: opts.raBillId }, projectRequiredScoped(actor) as Prisma.RaBillWhereInput] }, include: { party: { select: { name: true, stateCode: true, paymentTermsDays: true } }, project: { select: { id: true, code: true, name: true } }, lines: { include: { clientPoLine: { select: { lineNo: true, description: true, unit: true } }, soLine: { select: { lineNo: true, description: true, unit: true } } } } } });
     if (!ra) throw new NotFoundError("Running bill");
-    return { source: "RA" as const, id: ra.id, title: `${ra.number} (RA-${ra.raNumber})`, project: ra.project, party: ra.party.name, partyState: ra.party.stateCode, paymentTermsDays: ra.party.paymentTermsDays, ready: ra.status === "CLIENT_CERTIFIED", blocker: ra.status === "CLIENT_CERTIFIED" ? null : ra.status === "INVOICED" ? "This running bill is already invoiced." : "Record the client's certification before invoicing.", deductions: { retention: dec2(ra.retentionAmount), advance: dec2(ra.advanceRecovery), other: dec2(ra.otherDeductions) }, lines: [...ra.lines].sort((a, b) => a.clientPoLine.lineNo - b.clientPoLine.lineNo).map((l) => ({ sourceLineId: l.id, label: l.clientPoLine.description, unit: l.clientPoLine.unit, max: l.certifiedQty ? dec3(l.certifiedQty) : "0", quantity: l.certifiedQty ? dec3(l.certifiedQty) : "0", rate: dec4(l.rate), discountPct: "0", gstRate: dec2(l.gstRate), fixed: true })) };
+    return { source: "RA" as const, id: ra.id, title: `${ra.number} (RA-${ra.raNumber})`, project: ra.project, party: ra.party.name, partyState: ra.party.stateCode, paymentTermsDays: ra.party.paymentTermsDays, ready: ra.status === "CLIENT_CERTIFIED", blocker: ra.status === "CLIENT_CERTIFIED" ? null : ra.status === "INVOICED" ? "This running bill is already invoiced." : "Record the client's certification before invoicing.", deductions: { retention: dec2(ra.retentionAmount), advance: dec2(ra.advanceRecovery), other: dec2(ra.otherDeductions) }, lines: [...ra.lines].sort((a, b) => (a.clientPoLine ?? a.soLine)!.lineNo - (b.clientPoLine ?? b.soLine)!.lineNo).filter((l) => l.certifiedQty && cmpQty(dec3(l.certifiedQty), "0") > 0).map((l) => ({ sourceLineId: l.id, label: (l.clientPoLine ?? l.soLine)!.description, unit: (l.clientPoLine ?? l.soLine)!.unit, max: l.certifiedQty ? dec3(l.certifiedQty) : "0", quantity: l.certifiedQty ? dec3(l.certifiedQty) : "0", rate: dec4(l.rate), discountPct: "0", gstRate: dec2(l.gstRate), fixed: true })) };
   }
   if (opts.soId) {
     const so = await db.salesOrder.findFirst({ where: { AND: [{ id: opts.soId }, projectRequiredScoped(actor) as Prisma.SalesOrderWhereInput] }, include: { party: { select: { name: true, stateCode: true, paymentTermsDays: true } }, project: { select: { id: true, code: true, name: true } }, lines: { orderBy: { lineNo: "asc" } } } });
@@ -333,6 +344,8 @@ export const invListQuerySchema = z.object({
   projectId: uuid.optional().catch(undefined),
   partyId: uuid.optional().catch(undefined),
   overdue: z.enum(["1"]).optional().catch(undefined),
+  /** Issued and not fully paid (workflow v2 · Phase 9 action links). */
+  outstanding: z.enum(["1"]).optional().catch(undefined),
   page: z.coerce.number().int().min(1).catch(1).default(1),
   pageSize: z.coerce.number().int().min(5).max(200).catch(20).default(20),
 });
@@ -348,6 +361,7 @@ export async function listClientInvoices(actor: Actor, raw: unknown) {
       q.status ? { status: q.status as Prisma.EnumInvoiceStatusFilter["equals"] } : {},
       q.partyId ? { partyId: q.partyId } : {},
       q.overdue ? { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, dueDate: { lt: today } } : {},
+      q.outstanding ? { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, kind: "TAX_INVOICE" } : {},
       q.q ? { OR: [{ number: { contains: q.q, mode: "insensitive" } }, { party: { name: { contains: q.q, mode: "insensitive" } } }] } : {},
     ],
   };

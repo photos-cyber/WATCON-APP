@@ -1,6 +1,7 @@
 "use server";
 
 import { runAction } from "@/lib/actions";
+import { issueMaterialToSite } from "./site-issue";
 import { challanAction, createChallan } from "./challan";
 import { createGrn, grnAction, postGrn, updateGrn } from "./grn";
 
@@ -32,4 +33,8 @@ export async function challanActionAction(id: string, action: "dispatch" | "deli
   return runAction(async (a) => {
     await challanAction(a, String(id), action, { version: Number(opts.version), note: opts.note ?? null, resolution: opts.resolution, deliveredDate: opts.deliveredDate ?? null, receiverName: opts.receiverName ?? null });
   }, P);
+}
+
+export async function issueMaterialToSiteAction(input: unknown) {
+  return runAction(async (a) => issueMaterialToSite(a, input), ["/challans", "/site-receipts", "/stock", "/projects", "/material-planning"]);
 }

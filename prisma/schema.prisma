@@ -748,6 +748,9 @@ model ItemBrand {
   currentQty          Decimal  @default(0) @map("current_qty") @db.Decimal(14, 3)
   /// Company-wide reorder threshold (all locations). NULL = not monitored.
   reorderLevel        Decimal? @map("reorder_level") @db.Decimal(14, 3)
+  /// General-inventory "order up to" level (warehouse stock). Used with reorderLevel (= minimum stock)
+  /// for reorder suggestions. NULL = order back up to the minimum only.
+  targetStock         Decimal? @map("target_stock") @db.Decimal(14, 3)
   /// Maintained from posted GRNs (unit rate before tax).
   lastPurchaseRate    Decimal? @map("last_purchase_rate") @db.Decimal(18, 4)
   preferredSupplierId String?  @map("preferred_supplier_id") @db.Uuid
@@ -1310,7 +1313,9 @@ enum StockCountStatus {
 model MaterialRequirement {
   id             String            @id @default(uuid()) @db.Uuid
   organizationId String            @map("organization_id") @db.Uuid
-  projectId      String            @map("project_id") @db.Uuid
+  /// NULL = general inventory (warehouse stock, no project). At most one OPEN general requirement per
+  /// item–brand (partial unique index `material_requirements_general_open_key`, hand-written SQL).
+  projectId      String?           @map("project_id") @db.Uuid
   itemBrandId    String            @map("item_brand_id") @db.Uuid
   itemId         String            @map("item_id") @db.Uuid
   requiredQty    Decimal           @map("required_qty") @db.Decimal(14, 3)
@@ -1324,14 +1329,17 @@ model MaterialRequirement {
   updatedAt      DateTime          @updatedAt @map("updated_at")
 
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  project          Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  project          Project?     @relation(fields: [projectId], references: [id], onDelete: Restrict)
   itemBrand        ItemBrand    @relation(fields: [itemBrandId], references: [id], onDelete: Restrict)
   /// Set when the requirement is driven by sales orders (the first contributing SO line).
   salesOrderLineId String?      @map("sales_order_line_id") @db.Uuid
 
-  createdBy      User     @relation("ReqCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  salesOrderLine SoLine?  @relation(fields: [salesOrderLineId], references: [id], onDelete: Restrict)
+  createdBy      User      @relation("ReqCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  salesOrderLine SoLine?   @relation(fields: [salesOrderLineId], references: [id], onDelete: Restrict)
   prLines        PrLine[]
+  /// Line-level allocations: RFQ / PO lines raised directly from planning (not via a requisition).
+  rfqLines       RfqLine[]
+  poLines        PoLine[]
 
   @@unique([projectId, itemBrandId])
   @@index([organizationId, status])
@@ -1459,10 +1467,13 @@ model RfqLine {
   specifications   String?
   prLineId         String? @map("pr_line_id") @db.Uuid
 
-  rfq            Rfq             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
-  item           Item            @relation(fields: [itemId], references: [id], onDelete: Restrict)
-  itemBrand      ItemBrand?      @relation(fields: [itemBrandId], references: [id], onDelete: Restrict)
-  prLine         PrLine?         @relation(fields: [prLineId], references: [id], onDelete: SetNull)
+  rfq            Rfq                  @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  item           Item                 @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  itemBrand      ItemBrand?           @relation(fields: [itemBrandId], references: [id], onDelete: Restrict)
+  prLine         PrLine?              @relation(fields: [prLineId], references: [id], onDelete: SetNull)
+  /// Requirement this line was raised for directly from material planning (allocation).
+  requirementId  String?              @map("requirement_id") @db.Uuid
+  requirement    MaterialRequirement? @relation(fields: [requirementId], references: [id], onDelete: Restrict)
   quotationLines QuotationLine[]
 
   @@unique([rfqId, lineNo])
@@ -1622,6 +1633,7 @@ model PurchaseOrder {
   grns             Grn[]
   challans         Challan[]
   bills            SupplierBill[]
+  payments         Payment[]
 
   /// Structured supplier payment terms carried from the awarded quotation.
   advancePct        Decimal? @map("advance_pct") @db.Decimal(5, 2)
@@ -1662,10 +1674,14 @@ model PoLine {
   prLineId        String? @map("pr_line_id") @db.Uuid
   quotationLineId String? @map("quotation_line_id") @db.Uuid
 
-  po            PurchaseOrder      @relation(fields: [poId], references: [id], onDelete: Cascade)
-  itemBrand     ItemBrand          @relation(fields: [itemBrandId], references: [id], onDelete: Restrict)
-  prLine        PrLine?            @relation(fields: [prLineId], references: [id], onDelete: SetNull)
-  quotationLine QuotationLine?     @relation(fields: [quotationLineId], references: [id], onDelete: SetNull)
+  po            PurchaseOrder        @relation(fields: [poId], references: [id], onDelete: Cascade)
+  itemBrand     ItemBrand            @relation(fields: [itemBrandId], references: [id], onDelete: Restrict)
+  prLine        PrLine?              @relation(fields: [prLineId], references: [id], onDelete: SetNull)
+  quotationLine QuotationLine?       @relation(fields: [quotationLineId], references: [id], onDelete: SetNull)
+  /// Requirement (project or general inventory) this line is allocated to. Copied from the PR line when
+  /// ordered from a requisition; set directly when ordered from planning or an RFQ raised from planning.
+  requirementId String?              @map("requirement_id") @db.Uuid
+  requirement   MaterialRequirement? @relation(fields: [requirementId], references: [id], onDelete: Restrict)
   grnLines      GrnLine[]
   billLines     SupplierBillLine[]
   challanLines  ChallanLine[]
@@ -1721,6 +1737,8 @@ model Challan {
   createdById    String        @map("created_by_id") @db.Uuid
   dispatchedById String?       @map("dispatched_by_id") @db.Uuid
   dispatchedAt   DateTime?     @map("dispatched_at")
+  /// One key per "Issue material" form: a repeated tap returns the same challan (workflow v2).
+  clientKey      String?       @map("client_key")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
@@ -1737,6 +1755,7 @@ model Challan {
   grns         Grn[]
 
   @@unique([organizationId, number])
+  @@unique([organizationId, clientKey])
   @@index([organizationId, status])
   @@index([projectId])
   @@map("challans")
@@ -1961,6 +1980,19 @@ model Payment {
   tdsAmount       Decimal          @default(0) @map("tds_amount") @db.Decimal(18, 2)
   /// Σ active allocations; never more than amount + tdsAmount.
   allocatedAmount Decimal          @default(0) @map("allocated_amount") @db.Decimal(18, 2)
+  /// Client receipts: part of the unallocated advance paid back to the client (authorised refunds).
+  refundedAmount  Decimal          @default(0) @map("refunded_amount") @db.Decimal(18, 2)
+  /// Set on a refund (direction OUT to a client): the receipt whose advance is being refunded.
+  refundOfId      String?          @map("refund_of_id") @db.Uuid
+  refundOf        Payment?         @relation("PaymentRefunds", fields: [refundOfId], references: [id], onDelete: Restrict)
+  refunds         Payment[]        @relation("PaymentRefunds")
+  /// Supplier payments: the purchase order an advance was paid against (workflow v2 · Phase 8).
+  poId            String?          @map("po_id") @db.Uuid
+  po              PurchaseOrder?   @relation(fields: [poId], references: [id], onDelete: Restrict)
+  /// Client receipts: the sales order the money was received against (an advance on that order until
+  /// set against its invoices). Optional; only direction IN (CHECK payments_so_direction_check).
+  soId            String?          @map("so_id") @db.Uuid
+  salesOrder      SalesOrder?      @relation(fields: [soId], references: [id], onDelete: Restrict)
   status          PaymentStatus    @default(POSTED)
   remarks         String?
   idempotencyKey  String           @map("idempotency_key")
@@ -2214,6 +2246,8 @@ model SalesOrder {
   amendmentRequests SoAmendmentRequest[]
 
   milestones      PaymentMilestone[]
+  raBills         RaBill[]
+  payments        Payment[]
   sourceQuotation ClientQuotation?   @relation("QtConvertedSo")
 
   @@unique([organizationId, number])
@@ -2223,25 +2257,27 @@ model SalesOrder {
 }
 
 model SoLine {
-  id             String  @id @default(uuid()) @db.Uuid
-  soId           String  @map("so_id") @db.Uuid
-  lineNo         Int     @map("line_no")
-  clientPoLineId String? @map("client_po_line_id") @db.Uuid
-  itemBrandId    String? @map("item_brand_id") @db.Uuid
+  id             String     @id @default(uuid()) @db.Uuid
+  soId           String     @map("so_id") @db.Uuid
+  lineNo         Int        @map("line_no")
+  clientPoLineId String?    @map("client_po_line_id") @db.Uuid
+  itemBrandId    String?    @map("item_brand_id") @db.Uuid
   description    String
-  hsnSac         String? @map("hsn_sac")
+  hsnSac         String?    @map("hsn_sac")
   unit           String
-  quantity       Decimal @db.Decimal(14, 3)
-  rate           Decimal @db.Decimal(18, 4)
-  discountPct    Decimal @default(0) @map("discount_pct") @db.Decimal(5, 2)
-  gstRate        Decimal @default(0) @map("gst_rate") @db.Decimal(5, 2)
-  taxable        Decimal @default(0) @db.Decimal(18, 2)
-  taxAmount      Decimal @default(0) @map("tax_amount") @db.Decimal(18, 2)
-  total          Decimal @default(0) @db.Decimal(18, 2)
+  quantity       Decimal    @db.Decimal(14, 3)
+  rate           Decimal    @db.Decimal(18, 4)
+  discountPct    Decimal    @default(0) @map("discount_pct") @db.Decimal(5, 2)
+  gstRate        Decimal    @default(0) @map("gst_rate") @db.Decimal(5, 2)
+  taxable        Decimal    @default(0) @db.Decimal(18, 2)
+  taxAmount      Decimal    @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  total          Decimal    @default(0) @db.Decimal(18, 2)
   /// Counters maintained by challan dispatch / returns and invoice issue (under row locks).
-  deliveredQty   Decimal @default(0) @map("delivered_qty") @db.Decimal(14, 3)
-  returnedQty    Decimal @default(0) @map("returned_qty") @db.Decimal(14, 3)
-  invoicedQty    Decimal @default(0) @map("invoiced_qty") @db.Decimal(14, 3)
+  /// MATERIAL lines (with an item–brand) drive material planning; SERVICE / INSTALLATION lines never do.
+  kind           SoLineKind @default(MATERIAL)
+  deliveredQty   Decimal    @default(0) @map("delivered_qty") @db.Decimal(14, 3)
+  returnedQty    Decimal    @default(0) @map("returned_qty") @db.Decimal(14, 3)
+  invoicedQty    Decimal    @default(0) @map("invoiced_qty") @db.Decimal(14, 3)
 
   so           SalesOrder            @relation(fields: [soId], references: [id], onDelete: Cascade)
   clientPoLine ClientPoLine?         @relation(fields: [clientPoLineId], references: [id], onDelete: Restrict)
@@ -2249,9 +2285,16 @@ model SoLine {
   challanLines ChallanLine[]
   invoiceLines InvoiceLine[]
   requirements MaterialRequirement[]
+  raLines      RaBillLine[]
 
   @@unique([soId, lineNo])
   @@map("so_lines")
+}
+
+enum SoLineKind {
+  MATERIAL
+  SERVICE
+  INSTALLATION
 }
 
 enum SoAmendmentStatus {
@@ -2301,7 +2344,15 @@ model RaBill {
   /// RA-1, RA-2 … per client PO.
   raNumber              Int          @map("ra_number")
   projectId             String       @map("project_id") @db.Uuid
-  clientPoId            String       @map("client_po_id") @db.Uuid
+  /// Contract basis: a client PO, or (workflow v2) a sales order — exactly one (CHECK ra_bills_basis_check).
+  clientPoId            String?      @map("client_po_id") @db.Uuid
+  soId                  String?      @map("so_id") @db.Uuid
+  /// Sales-order bills: cumulative statement snapshots (taken when the bill is generated / refreshed).
+  previousValue         Decimal      @default(0) @map("previous_value") @db.Decimal(18, 2)
+  previousBilled        Decimal      @default(0) @map("previous_billed") @db.Decimal(18, 2)
+  previousOutstanding   Decimal      @default(0) @map("previous_outstanding") @db.Decimal(18, 2)
+  receivedToDate        Decimal      @default(0) @map("received_to_date") @db.Decimal(18, 2)
+  isFinal               Boolean      @default(false) @map("is_final")
   partyId               String       @map("party_id") @db.Uuid
   billDate              DateTime     @map("bill_date") @db.Date
   periodFrom            DateTime     @map("period_from") @db.Date
@@ -2336,7 +2387,8 @@ model RaBill {
 
   organization        Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   project             Project        @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  clientPo            ClientPo       @relation(fields: [clientPoId], references: [id], onDelete: Restrict)
+  clientPo            ClientPo?      @relation(fields: [clientPoId], references: [id], onDelete: Restrict)
+  salesOrder          SalesOrder?    @relation(fields: [soId], references: [id], onDelete: Restrict)
   party               Party          @relation(fields: [partyId], references: [id], onDelete: Restrict)
   createdBy           User           @relation("RabCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   submittedBy         User?          @relation("RabSubmittedBy", fields: [submittedById], references: [id], onDelete: Restrict)
@@ -2347,6 +2399,7 @@ model RaBill {
 
   @@unique([organizationId, number])
   @@unique([clientPoId, raNumber])
+  @@unique([soId, raNumber])
   @@index([organizationId, status])
   @@index([projectId])
   @@map("ra_bills")
@@ -2355,7 +2408,11 @@ model RaBill {
 model RaBillLine {
   id               String   @id @default(uuid()) @db.Uuid
   raBillId         String   @map("ra_bill_id") @db.Uuid
-  clientPoLineId   String   @map("client_po_line_id") @db.Uuid
+  /// Exactly one of clientPoLineId / soLineId (CHECK ra_bill_lines_basis_check).
+  clientPoLineId   String?  @map("client_po_line_id") @db.Uuid
+  soLineId         String?  @map("so_line_id") @db.Uuid
+  /// Sales-order bills: material delivered to site / client to date (billing basis for MATERIAL lines).
+  deliveredQty     Decimal  @default(0) @map("delivered_qty") @db.Decimal(14, 3)
   /// Snapshots at bill creation, for an auditable bill print.
   contractQty      Decimal  @map("contract_qty") @db.Decimal(14, 3)
   prevCertifiedQty Decimal  @map("prev_certified_qty") @db.Decimal(14, 3)
@@ -2368,10 +2425,12 @@ model RaBillLine {
   measurementRef   String?  @map("measurement_ref")
   remarks          String?
 
-  raBill       RaBill       @relation(fields: [raBillId], references: [id], onDelete: Cascade)
-  clientPoLine ClientPoLine @relation(fields: [clientPoLineId], references: [id], onDelete: Restrict)
+  raBill       RaBill        @relation(fields: [raBillId], references: [id], onDelete: Cascade)
+  clientPoLine ClientPoLine? @relation(fields: [clientPoLineId], references: [id], onDelete: Restrict)
+  soLine       SoLine?       @relation(fields: [soLineId], references: [id], onDelete: Restrict)
 
   @@unique([raBillId, clientPoLineId])
+  @@unique([raBillId, soLineId])
   @@map("ra_bill_lines")
 }
 

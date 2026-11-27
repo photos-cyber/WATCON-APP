@@ -29,7 +29,7 @@
       {
         "title": "Save safely",
         "paragraphs": [
-          "Check the project, party, item, brand, quantity and date before saving. A draft often needs submission, approval, posting or issuing before it changes totals. Wait for confirmation before trying again."
+          "Check the project, party, item, brand, quantity and date before saving. A draft changes totals only once it is finalized, confirmed or issued. Wait for confirmation before trying again."
         ]
       },
       {
@@ -113,7 +113,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -125,7 +125,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -221,7 +221,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -233,7 +233,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -331,7 +331,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -343,7 +343,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -432,7 +432,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -444,7 +444,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -543,7 +543,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -555,7 +555,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -646,7 +646,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -658,7 +658,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -747,7 +747,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -759,7 +759,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -868,7 +868,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -880,7 +880,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -989,7 +989,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1001,7 +1001,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1086,7 +1086,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1098,7 +1098,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1167,7 +1167,7 @@
           "3. Choose the project and required materials.",
           "4. Enter quantities and dates.",
           "5. Save a draft.",
-          "6. Submit for approval from the record page."
+          "6. Press Finalize on the record page — no separate approval is needed."
         ]
       },
       {
@@ -1185,7 +1185,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1197,7 +1197,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1209,7 +1209,7 @@
       {
         "title": "What should I do next?",
         "paragraphs": [
-          "After approval, prepare the Rate Enquiry or Purchase Order."
+          "Once finalized, prepare the Rate Enquiry or Purchase Order."
         ]
       },
       {
@@ -1296,7 +1296,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1308,7 +1308,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1354,7 +1354,7 @@
       {
         "title": "Who should use it?",
         "paragraphs": [
-          "Purchase Team and authorized approver. Your granted permissions decide which actions you can use."
+          "Purchase Team. Your granted permissions decide which actions you can use."
         ]
       },
       {
@@ -1379,8 +1379,8 @@
           "5. Add item and brand lines, quantities, rates and GST.",
           "6. Enter freight and payment terms if needed.",
           "7. Click Create draft PO.",
-          "8. Review and submit the draft.",
-          "9. An authorized approver reviews the order."
+          "8. Press Save & finalize PO (or Finalize PO on a saved draft) — no approval wait.",
+          "9. Share the PDF with the supplier from the PO page."
         ]
       },
       {
@@ -1409,7 +1409,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1421,7 +1421,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1490,8 +1490,8 @@
           "3. Open its receipt action.",
           "4. Enter Received, Damaged and Rejected quantities.",
           "5. Check Receipt date and Received by.",
-          "6. Use Save draft to continue later, or submit for verification.",
-          "7. An authorized stock operator posts the verified receipt."
+          "6. Save, then add the material photos and the supplier challan on the next screen.",
+          "7. Press Confirm receipt — the accepted quantity is added to stock at once."
         ]
       },
       {
@@ -1517,7 +1517,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1529,7 +1529,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1623,7 +1623,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1635,7 +1635,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1704,8 +1704,8 @@
           "3. Select the project, supplier and Purchase Order where relevant.",
           "4. Enter the supplier invoice number, dates and bill lines.",
           "5. Check taxes and matching differences.",
-          "6. Save a draft and submit it.",
-          "7. An authorized approver approves the matched bill."
+          "6. Press Save & finalize.",
+          "7. A bill that matches the PO and receipts is ready to pay at once; a bill with differences is held until it is corrected or accepted with a reason."
         ]
       },
       {
@@ -1734,7 +1734,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1746,13 +1746,13 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
         "title": "Does it affect stock or accounts?",
         "paragraphs": [
-          "Approval creates the payable and updates billed quantities. This version does not receive stock from the bill. Do not add stock a second time after a GRN."
+          "Finalizing creates the payable and updates billed quantities. This version does not receive stock from the bill. Do not add stock a second time after a GRN."
         ]
       },
       {
@@ -1841,7 +1841,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1853,7 +1853,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -1923,7 +1923,7 @@
           "4. Enter the client reference and date.",
           "5. Add agreed lines, quantities, rates and terms.",
           "6. Click Save draft.",
-          "7. Review and submit for approval.",
+          "7. Review and press Finalize — the contract becomes active at once.",
           "8. Attach the original document in the record evidence panel."
         ]
       },
@@ -1955,7 +1955,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -1967,7 +1967,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2036,8 +2036,8 @@
           "3. Choose the project and client.",
           "4. Link the Client PO when applicable.",
           "5. Add materials or services and agreed prices.",
-          "6. Save a draft and submit it for approval.",
-          "7. Use the amendment process for approved changes."
+          "6. Press Save & confirm order (or save a draft and confirm it later). Confirming locks the order and starts material planning.",
+          "7. To change a confirmed order, request an amendment — only the Super Admin approves it."
         ]
       },
       {
@@ -2065,7 +2065,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2077,7 +2077,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2180,7 +2180,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2192,7 +2192,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2260,7 +2260,7 @@
           "2. Click New running bill for the project.",
           "3. Choose the relevant order.",
           "4. Enter current measurements and review previous quantities.",
-          "5. Save and submit for internal review.",
+          "5. Save, then press Submit to client (no internal review).",
           "6. Record client certification through the authorized action."
         ]
       },
@@ -2287,7 +2287,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2299,7 +2299,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2394,7 +2394,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2406,7 +2406,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2498,7 +2498,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2510,7 +2510,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2578,7 +2578,7 @@
           "2. Open the new note form.",
           "3. Choose the supplier bill or client invoice being adjusted.",
           "4. Enter the reference, date, reason and value.",
-          "5. Save and request approval."
+          "5. Save. The Super Admin applies the note (it changes a final bill or invoice)."
         ]
       },
       {
@@ -2599,7 +2599,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2611,7 +2611,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2696,7 +2696,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2708,7 +2708,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2793,7 +2793,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2805,7 +2805,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2890,7 +2890,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2902,7 +2902,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -2929,7 +2929,7 @@
   },
   {
     "id": "approvals",
-    "title": "Approvals",
+    "title": "Inbox",
     "category": "All Modules",
     "summary": "See records waiting for decisions you may make.",
     "sections": [
@@ -2948,7 +2948,7 @@
       {
         "title": "Who should use it?",
         "paragraphs": [
-          "Authorized approvers. Your granted permissions decide which actions you can use."
+          "Everyone with document rights. The Inbox shows items left waiting (old approvals, held supplier bills) and, for the Super Admin, sales-order amendment requests."
         ]
       },
       {
@@ -2960,16 +2960,16 @@
       {
         "title": "How do I open it?",
         "paragraphs": [
-          "Open Approvals from the left menu. Address: /approvals."
+          "Open Inbox from the left menu. Address: /approvals."
         ]
       },
       {
         "title": "How do I add or operate a record?",
         "paragraphs": [
-          "1. Open Approvals.",
+          "1. Open Inbox.",
           "2. Open a pending record.",
           "3. Check quantities, values and evidence.",
-          "4. Use the record approval or rejection action with a clear reason."
+          "4. Finalize it, or return it for changes with a clear reason."
         ]
       },
       {
@@ -2987,7 +2987,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -2999,13 +2999,13 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
         "title": "Does it affect stock or accounts?",
         "paragraphs": [
-          "Approval has module-specific effects. You may need another approver when separation of duties is enabled."
+          "Daily documents are finalized in one step by the person who prepares them — nobody else has to approve them. Once final, only the Super Admin can amend, cancel or reverse a document that affects stock or money; everyone else uses Request change, which notifies the Super Admin."
         ]
       },
       {
@@ -3085,7 +3085,7 @@
       {
         "title": "How do I view or edit?",
         "paragraphs": [
-          "Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit."
+          "Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask."
         ]
       },
       {
@@ -3097,7 +3097,7 @@
       {
         "title": "What happens after saving?",
         "paragraphs": [
-          "Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting."
+          "Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it."
         ]
       },
       {
@@ -3172,7 +3172,7 @@
       {
         "title": "Practical training in 19 steps",
         "paragraphs": [
-          "Use an isolated training application. The trainer needs the required permissions. Have another authorized employee approve records when separation of duties applies. Never share a login.",
+          "Use an isolated training application. The trainer needs the required permissions. Records are finalized by the person who prepares them; changes to final records need the Super Admin. Never share a login.",
           "1. Open Clients. Click Add client. Create a fictional client, or select the existing Acme Developers training record. Use the agreed test state for GST.",
           "2. Open Projects. Click Create new project. Enter ABC Hotel Swimming Pool Installation, a fictional Site address and Project description. Choose the manager and members. Click Create project.",
           "3. Open Team Members. Click Add member to create any missing training employees. Set their departments and temporary passwords. Existing training employees can be reused.",
@@ -3180,14 +3180,14 @@
           "5. In Items, create Training pool filter with unit Nos. In Brands, create Training brand. Link the brand from the item page. Use zero opening stock for this exercise.",
           "6. Open Suppliers. Click Add supplier to create a fictional supplier, or use the existing Shree Cement Traders training record. Set its correct test state.",
           "7. Open Rate Enquiries. Click New enquiry. Ask for 10 Training pool filters. Click Save enquiry. Record the supplier offer of ₹1,000 each with 18% GST and compare the offers.",
-          "8. Review the awarded Purchase Order. If the enquiry has created one, open that order instead of entering it twice. Otherwise use New purchase order. Set quantity 10, rate ₹1,000 and GST 18%. Review, submit and obtain approval. Stock is still zero.",
-          "9. Open Site Receipts. Find the PO under Waiting to be received. Record 6 received with no damage or rejection. Submit receipt, then use Verify & add to stock with the authorized operator. Repeat for the remaining 4. Stock is now 10 at the PO receiving location.",
-          "10. Open Supplier Bills. Click Enter supplier bill and select the PO. Copy the supplier invoice reference and date. Check 10 × ₹1,000 plus GST = ₹11,800. Save draft, submit and use Approve for payment. Stock remains 10.",
+          "8. Review the awarded Purchase Order. If the enquiry has created one, open that order instead of entering it twice. Otherwise use New purchase order. Set quantity 10, rate ₹1,000 and GST 18%. Review and press Save & finalize PO. Stock is still zero.",
+          "9. Open Site Receipts. Find the PO under Waiting to be received. Record 6 received with no damage or rejection. Upload the material photo and the supplier challan, then press Confirm receipt — stock is updated at once. Repeat for the remaining 4. Stock is now 10 at the PO receiving location.",
+          "10. Open Supplier Bills. Click Enter supplier bill and select the PO. Copy the supplier invoice reference and date. Check 10 × ₹1,000 plus GST = ₹11,800. Press Save & finalize — a bill that matches the PO and receipts is ready to pay at once. Stock remains 10.",
           "11. Open Inventory. Check Company stock, By location and Stock ledger. Confirm the exact item, brand and receiving location. Do not enter another inward movement for the bill.",
           "12. Open Client POs. Click New client PO. Record the client reference and the same project. Add 10 filters at ₹1,500 and 18% GST. Use zero retention and no advance recovery for this simple exercise. Save draft and obtain approval.",
-          "13. Open the Client PO and use Create sales order, or create New sales order with the contract linked. Check 10 filters at ₹1,500. Save draft, submit and obtain approval. Stock is still 10.",
+          "13. Open the Client PO and use Create sales order, or create New sales order with the contract linked. Check 10 filters at ₹1,500. Press Save & confirm order. Stock is still 10.",
           "14. Open Challans. Use New challan and Deliver to client, with the approved Sales Order and the location that holds the filters. Save challan and Dispatch 4 filters. Repeat for the remaining 6. Keep delivery proof. Stock becomes 6, then zero.",
-          "15. Open Running Bills. Use New running bill for the active Client PO. Enter the actual current measurement, review earlier quantities and Save draft. Submit for review, obtain internal approval and record client certification. Use Create invoice on the certified bill, then Create draft invoice and Issue invoice. A fully certified total of 10 gives ₹17,700 including GST.",
+          "15. Open Running Bills. Use New running bill for the active Client PO. Enter the actual current measurement, review earlier quantities and Save draft. Press Submit to client. When the client accepts it, press Client accepted — invoice now (certifies, creates and issues the invoice in one step). A fully certified total of 10 gives ₹17,700 including GST.",
           "16. Open the client invoice and use Record receipt. Enter ₹7,080, allocate it to the invoice and save. Later record ₹10,620 against the remaining due. Client due becomes zero. An unallocated receipt is an advance and does not settle the invoice.",
           "17. Open the supplier bill and use Record payment. Pay and allocate ₹5,000, then ₹6,800. Supplier due becomes zero.",
           "18. Open Project Accounts. Check client invoiced/received ₹17,700, supplier billed/paid ₹11,800, receivable zero and payable zero. The material margin is ₹5,000 before labour and overheads. Compare the underlying records if any number differs.",
@@ -3795,9 +3795,9 @@
         ]
       },
       {
-        "title": "Approval refused",
+        "title": "Action refused",
         "paragraphs": [
-          "Read the reason. Another approver may be required or the amount may exceed your limit."
+          "Read the reason. Your role may not have the permission, or the document is final — ask the Super Admin with Request change."
         ]
       },
       {

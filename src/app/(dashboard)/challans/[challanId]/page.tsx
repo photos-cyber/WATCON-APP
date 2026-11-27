@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Challan" };
 export default async function ChallanPage({ params }: PageProps<"/challans/[challanId]">) {
   const user = await requirePagePermission("grn.view");
   const { challanId } = await params;
-  const { challan: c, internal, can } = await orNotFound(getChallan(user, challanId));
+  const { challan: c, internal, can, podMissing } = await orNotFound(getChallan(user, challanId));
   const [files, activity] = await Promise.all([listAttachments(user, "challan", c.id), entityActivity(user, "challan", c.id)]);
   const to = c.toLocation?.name ?? c.party?.name ?? "—";
   const transit = c.lines.some((l) => l.inTransit !== "0");
@@ -38,11 +38,15 @@ export default async function ChallanPage({ params }: PageProps<"/challans/[chal
             The destination records a site receipt for what actually arrived. If something never arrives, close the challan to return or write off the shortfall.
           </NextStep>
         ) : (
-          <NextStep tone="info" title="Dispatched — confirm delivery">Once delivered, press “Confirm delivery” and attach the signed challan / proof of delivery.</NextStep>
+          podMissing ? (
+            <NextStep title="Dispatched — upload the proof of delivery">Upload the challan signed by the client (or other proof of delivery) under “Signed challan &amp; proof of delivery” below. “Confirm delivery” unlocks once it is uploaded.</NextStep>
+          ) : (
+            <NextStep tone="info" title="Dispatched — confirm delivery">Proof of delivery is uploaded. Press “Confirm delivery” and enter who received it.</NextStep>
+          )
         );
       case "RECEIVED":
       case "DELIVERED":
-        return <NextStep tone="done" title={c.status === "RECEIVED" ? "Fully received at destination" : "Delivered"}>All material is accounted for.</NextStep>;
+        return <NextStep tone="done" title={c.status === "RECEIVED" ? "Fully received at destination" : "Delivered"} links={c.project ? [{ href: `/projects/${c.project.id}?tab=running-bills`, label: "Running bills" }] : []}>All material is accounted for. Delivered material is picked up automatically by the project&apos;s next running bill.</NextStep>;
       case "CLOSED":
         return (
           <NextStep tone="warn" title="Closed with a discrepancy">

@@ -1,4 +1,5 @@
 import "server-only";
+import { storeEvidenceTx } from "@/modules/documents/attachments";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError, isUniqueViolation, zodFieldErrors } from "@/lib/errors";
 import { can, type Actor, type PermissionKey } from "@/lib/permissions/definitions";
 import { toDbDate } from "@/lib/validations/common";
@@ -18,7 +19,8 @@ function parse<T>(schema: { safeParse: (v: unknown) => { success: true; data: T 
 }
 
 export function inventoryCapabilities(actor: Actor) {
-  return { canView: can(actor, "items.view"), canManage: can(actor, "items.manage"), canPost: can(actor, "stock.post"), canAdjust: can(actor, "stock.adjust") };
+  // Manual stock changes are owner-only (workflow v2); inward / outward are offered only to them.
+  return { canView: can(actor, "items.view"), canManage: can(actor, "items.manage"), canPost: can(actor, "stock.adjust"), canAdjust: can(actor, "stock.adjust") };
 }
 
 // ─────────────────────────────── Items ───────────────────────────────
@@ -172,10 +174,18 @@ export async function listStockPositionOptions(actor: Actor) {
   return repo.findStockPositionOptions(actor.organizationId);
 }
 
-/** Inward / outward need `stock.post`; adjustments need `stock.adjust`. Negative stock is always rejected. */
-export async function postStockMovement(actor: Actor, input: unknown) {
+export type EvidenceFile = { fileName: string; bytes: Uint8Array };
+
+/**
+ * Manual stock change (inward, outward or adjustment) — owner / Super Admin only (`stock.adjust` is
+ * super-admin-only), always with a reason and an evidence file stored in the same transaction.
+ * Normal stock moves through receipts, challans and consumption. Negative stock is always rejected;
+ * the idempotency key makes a repeated submit return the original entry.
+ */
+export async function postStockMovement(actor: Actor, input: unknown, evidence?: EvidenceFile | null) {
   const data = parse(movementSchema, input);
-  requirePermission(actor, data.type === "ADJUSTMENT" ? "stock.adjust" : "stock.post");
+  requirePermission(actor, "stock.adjust");
+  if (!evidence) throw new ValidationError("Attach evidence for this manual stock change (photo, count sheet or document).", { evidence: "Evidence file is required." });
   const position = await repo.findItemBrand(actor.organizationId, data.itemBrandId);
   if (!position) throw new NotFoundError("Stock item");
   if (position.item.status !== "ACTIVE") throw new ValidationError("Stock cannot be posted for an inactive item.", { itemBrandId: "This item is inactive." });
@@ -192,9 +202,10 @@ export async function postStockMovement(actor: Actor, input: unknown) {
     today: startOfToday(),
     reference: data.reference,
     remarks: data.remarks,
-    reason: data.type === "ADJUSTMENT" ? data.reason : null,
+    reason: data.reason,
     idempotencyKey: data.idempotencyKey,
-  });
+    sourceType: "manual",
+  }, (tx, txn) => storeEvidenceTx(tx, actor, { entityType: "stock_txn", entityId: txn.id, projectId: null, label: `stock entry ${txn.code}`, category: "OTHER", description: `Evidence: ${data.reason}`, fileName: evidence.fileName, bytes: evidence.bytes }));
 }
 
 export async function getStockSummary(actor: Actor, rawQuery: unknown) {

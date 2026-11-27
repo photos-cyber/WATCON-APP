@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck, Loader2, MapPin, PackageCheck, Save } from "lucide-react";
+import { Camera, CheckCheck, Loader2, MapPin, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -21,7 +21,7 @@ export type ReceiptSourceView = {
   party: string;
   location: string;
   project: { id: string; code: string; name: string } | null;
-  lines: { sourceLineId: string; item: { name: string; code: string; unit: string }; brand: string; ordered: string; alreadyAccepted: string; expected: string }[];
+  lines: { sourceLineId: string; item: { name: string; code: string; unit: string }; image?: string | null; brand: string; ordered: string; alreadyAccepted: string; expected: string }[];
 };
 
 type LineState = { received: string; damaged: string; rejected: string; remarks: string };
@@ -93,8 +93,8 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
       return;
     }
     setDirty(false);
-    toast.success(submit ? "Receipt submitted for verification. Add photos of the material and the signed challan next." : "Receipt saved as draft.");
-    router.push(`/site-receipts/${res.data.id}`);
+    toast.success(submit ? "Receipt confirmed — stock updated." : `Receipt saved — now add the material photos and the ${challan ? "signed challan" : "supplier's delivery challan"}, then confirm the receipt.`);
+    router.push(`/site-receipts/${res.data.id}${submit ? "" : "#proof"}`);
   }
 
   const anyReceived = source.lines.some((l) => cmpQty(safe(lines[l.sourceLineId]!.received), "0") > 0);
@@ -102,7 +102,7 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
   return (
     <form className="space-y-4 pb-28" noValidate onSubmit={(e) => e.preventDefault()}>
       <div className="rounded-xl border bg-card p-4 text-sm">
-        <p className="text-xs text-muted-foreground">{challan ? "Receiving transfer challan" : "Receiving purchase order"}</p>
+        <p className="text-xs text-muted-foreground">{challan ? "Receiving transfer challan — material photos and the signed challan are required to confirm the receipt" : "Receiving purchase order — material photos and the supplier's delivery challan are required to confirm the receipt"}</p>
         <p className="text-lg font-semibold">{source.number}</p>
         <p>
           From <span className="font-medium">{source.party}</span> → <span className="font-medium">{source.location}</span>
@@ -141,16 +141,21 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
           return (
             <div key={l.sourceLineId} className="rounded-xl border bg-card p-3 sm:p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <p className="font-medium">
-                  {l.item.name} <span className="font-normal text-muted-foreground">· {l.brand}</span>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Expected <span className="font-semibold text-foreground">{formatQty(l.expected)}</span> {l.item.unit}
-                  {cmpQty(l.alreadyAccepted, "0") > 0 && ` (of ${formatQty(l.ordered)}, ${formatQty(l.alreadyAccepted)} already received)`}
+                <p className="flex items-center gap-2 font-medium">
+                  {l.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={l.image} alt="" className="size-9 rounded-md border bg-white object-contain" loading="lazy" />
+                  )}
+                  <span>{l.item.name} <span className="font-normal text-muted-foreground">· {l.brand}</span></span>
                 </p>
               </div>
+              <dl className="mt-2 grid grid-cols-3 gap-2 rounded-lg bg-muted/40 p-2 text-center text-xs">
+                <div><dt className="text-muted-foreground">Ordered</dt><dd className="font-semibold tabular-nums">{formatQty(l.ordered)} {l.item.unit}</dd></div>
+                <div><dt className="text-muted-foreground">Previously received</dt><dd className="font-semibold tabular-nums">{formatQty(l.alreadyAccepted)}</dd></div>
+                <div><dt className="text-muted-foreground">Pending</dt><dd className="font-semibold tabular-nums text-foreground">{formatQty(l.expected)}</dd></div>
+              </dl>
               <div className={`mt-3 grid gap-3 ${challan ? "grid-cols-2" : "grid-cols-3"}`}>
-                <QtyBox id={`rcv-${i}`} label="Received" unit={l.item.unit} value={x.received} onChange={(v) => setLine(l.sourceLineId, { received: v })} error={err("receivedQty")} />
+                <QtyBox id={`rcv-${i}`} label="Received today" unit={l.item.unit} value={x.received} onChange={(v) => setLine(l.sourceLineId, { received: v })} error={err("receivedQty")} />
                 <QtyBox id={`dmg-${i}`} label={challan ? "Damaged" : "Damaged"} unit={l.item.unit} value={x.damaged} onChange={(v) => setLine(l.sourceLineId, { damaged: v })} error={err("damagedQty")} />
                 {!challan && <QtyBox id={`rej-${i}`} label="Rejected" unit={l.item.unit} value={x.rejected} onChange={(v) => setLine(l.sourceLineId, { rejected: v })} error={err("rejectedQty")} />}
               </div>
@@ -159,7 +164,7 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
                   {bad ? "Damaged + rejected is more than received" : `Accepted into stock: ${formatQty(acc)} ${l.item.unit}`}
                 </span>
                 {short && <span className="text-amber-700 dark:text-amber-400">Short by {formatQty(subQty(l.expected, safe(x.received)))}</span>}
-                {over && <span className="text-amber-700 dark:text-amber-400">More than expected — the verifier will check it against the order.</span>}
+                {over && <span className="text-amber-700 dark:text-amber-400">More than expected — check it against the order before confirming.</span>}
               </div>
               <Input aria-label={`${l.item.name} remarks`} className="mt-2" placeholder="Remarks (optional), e.g. 2 bags torn" value={x.remarks} onChange={(e) => setLine(l.sourceLineId, { remarks: e.target.value })} />
             </div>
@@ -172,10 +177,16 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
           <Input id="grn-date" type="date" className="h-11" value={h.receiptDate} onChange={(e) => setHead({ receiptDate: e.target.value })} />
         </Field>
         {!challan && (
-          <Field id="grn-dc" label="Supplier challan no." error={errors.supplierChallanNo}>
+          <Field id="grn-dc" label="Supplier challan reference" error={errors.supplierChallanNo}>
             <Input id="grn-dc" className="h-11" value={h.supplierChallanNo} onChange={(e) => setHead({ supplierChallanNo: e.target.value })} />
           </Field>
         )}
+        <Field id="grn-by" label="Receiver name" error={errors.receivedByName}>
+          <Input id="grn-by" className="h-11" value={h.receivedByName} onChange={(e) => setHead({ receivedByName: e.target.value })} />
+        </Field>
+        <details className="group sm:col-span-2">
+          <summary className="cursor-pointer text-sm text-primary">More details (vehicle, supplier invoice, site location)</summary>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
         {!challan && (
           <Field id="grn-inv" label="Supplier invoice no." help="If the invoice came with the material." error={errors.supplierInvoiceNo}>
             <Input id="grn-inv" className="h-11" value={h.supplierInvoiceNo} onChange={(e) => setHead({ supplierInvoiceNo: e.target.value })} />
@@ -183,9 +194,6 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
         )}
         <Field id="grn-vehicle" label="Vehicle no." error={errors.vehicleNo}>
           <Input id="grn-vehicle" className="h-11 uppercase" autoCapitalize="characters" value={h.vehicleNo} onChange={(e) => setHead({ vehicleNo: e.target.value })} />
-        </Field>
-        <Field id="grn-by" label="Received by" error={errors.receivedByName}>
-          <Input id="grn-by" className="h-11" value={h.receivedByName} onChange={(e) => setHead({ receivedByName: e.target.value })} />
         </Field>
         <Field id="grn-gps" label="Site location (optional)" help="Proves the material was received at site.">
           <div className="flex items-center gap-2">
@@ -199,6 +207,8 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
             )}
           </div>
         </Field>
+          </div>
+        </details>
         <Field id="grn-remarks" label="Remarks" className="sm:col-span-2" error={errors.remarks}>
           <Textarea id="grn-remarks" rows={2} value={h.remarks} onChange={(e) => setHead({ remarks: e.target.value })} />
         </Field>
@@ -208,9 +218,11 @@ export function GrnForm({ source, header, lines: initialLines, grnId, version }:
         <Button type="button" variant="outline" className="h-11 flex-1 sm:flex-none" disabled={!!busy || !anyReceived} onClick={() => save(false)}>
           {busy === "draft" ? <Loader2 className="animate-spin" /> : <Save />} Save draft
         </Button>
-        <Button type="button" className="h-11 flex-1 sm:flex-none" disabled={!!busy || !anyReceived} onClick={() => save(true)}>
-          {busy === "submit" ? <Loader2 className="animate-spin" /> : <PackageCheck />} Submit receipt
-        </Button>
+        {(
+          <Button type="button" className="h-11 flex-1 sm:flex-none" disabled={!!busy || !anyReceived} onClick={() => save(false)} title="Photos and the supplier's challan are added on the next screen; the receipt is confirmed from there.">
+            {busy === "draft" ? <Loader2 className="animate-spin" /> : <Camera />} Next: add photos
+          </Button>
+        )}
       </div>
     </form>
   );

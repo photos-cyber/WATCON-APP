@@ -5,6 +5,7 @@ import { taskCountsByProject } from "@/modules/projects/service";
 import { clientPoAction, createClientPo, getClientPo, updateClientPo } from "@/modules/sales/client-po";
 import { clientInvoiceAction, createClientInvoice, getClientInvoice } from "@/modules/sales/invoice";
 import { certifyRaBill, createRaBill, getRaBill, raBillAction } from "@/modules/sales/ra-bill";
+import { acceptRaBillAndInvoice } from "@/modules/sales/quick-bill";
 import { createSalesOrder, decideSoAmendment, getSalesOrder, requestSoAmendment, salesOrderAction, updateSalesOrder, withdrawSoAmendment } from "@/modules/sales/sales-order";
 import { challanAction, createChallan } from "@/modules/stores/challan";
 import { commercialFixture, day, errorOf, type CFx } from "./commercial-helpers";
@@ -34,39 +35,35 @@ async function activeCpo(extra: Record<string, unknown> = {}, partyId = fx.clien
     ...extra,
   });
   await clientPoAction(fx.roles.pm.actor, cpo.id, "submit", { version: await v("clientPo", cpo.id) });
-  await clientPoAction(fx.actors.admin, cpo.id, "approve", { version: await v("clientPo", cpo.id) });
   return db.clientPo.findUniqueOrThrow({ where: { id: cpo.id }, include: { lines: { orderBy: { lineNo: "asc" } } } });
 }
 
 async function approvedSo(lines: Record<string, unknown>[], extra: Record<string, unknown> = {}) {
   const so = await createSalesOrder(fx.roles.pm.actor, { projectId: fx.p1.id, partyId: fx.client.id, orderDate: day(), deliveryDate: day(10), lines, ...extra });
   await salesOrderAction(fx.roles.pm.actor, so.id, "submit", { version: await v("salesOrder", so.id) });
-  await salesOrderAction(fx.actors.admin, so.id, "approve", { version: await v("salesOrder", so.id) });
   return db.salesOrder.findUniqueOrThrow({ where: { id: so.id }, include: { lines: { orderBy: { lineNo: "asc" } } } });
 }
 
 const cementLine = (qty = "30") => ({ itemBrandId: fx.ibUltra.id, quantity: qty, rate: "450", gstRate: "28" });
 
 describe("client POs", () => {
-  it("approves with separation of duties and keeps the original value; amendments snapshot a revision", async () => {
+  it("finalizes in one step and keeps the original value; variations (Super Admin) snapshot a revision", async () => {
     const cpo = await createClientPo(fx.roles.pm.actor, { projectId: fx.p1.id, partyId: fx.client.id, clientPoNumber: "ACME-1", poDate: day(), lines: [{ description: "Work", unit: "LS", quantity: "1", rate: "100000", gstRate: "18" }] });
     expect(cpo.number).toMatch(/^CPO\//);
     await clientPoAction(fx.roles.pm.actor, cpo.id, "submit", { version: await v("clientPo", cpo.id) });
-    // PM has no approve permission; admin cannot approve something they submitted? (admin did not) → approve ok
-    expect((await errorOf(clientPoAction(fx.roles.pm.actor, cpo.id, "approve", { version: await v("clientPo", cpo.id) }))).message).toMatch(/permission/);
-    await clientPoAction(fx.actors.admin, cpo.id, "approve", { version: await v("clientPo", cpo.id) });
     let row = await db.clientPo.findUniqueOrThrow({ where: { id: cpo.id } });
-    expect(row.status).toBe("ACTIVE");
+    expect([row.status, row.approvedById]).toEqual(["ACTIVE", fx.roles.pm.user.id]);
     expect(row.originalTotal?.toFixed(2)).toBe("118000.00");
 
-    await clientPoAction(fx.roles.pm.actor, cpo.id, "variation", { version: row.version, note: "Extra scope" });
+    // Changing an active contract is an amendment: Super Admin only.
+    expect((await errorOf(clientPoAction(fx.roles.pm.actor, cpo.id, "variation", { version: row.version, note: "Extra scope" }))).message).toMatch(/Only the Super Admin/);
+    await clientPoAction(fx.actors.superAdmin, cpo.id, "variation", { version: row.version, note: "Extra scope" });
     const rev = await db.clientPoRevision.findFirstOrThrow({ where: { clientPoId: cpo.id } });
     expect(rev.revision).toBe(0);
     expect(rev.isVariation).toBe(true);
     const lines = await db.clientPoLine.findMany({ where: { clientPoId: cpo.id } });
     await updateClientPo(fx.roles.pm.actor, cpo.id, await v("clientPo", cpo.id), { projectId: fx.p1.id, partyId: fx.client.id, clientPoNumber: "ACME-1", poDate: day(), lines: [{ id: lines[0]!.id, description: "Work", unit: "LS", quantity: "1.5", rate: "100000", gstRate: "18" }] });
     await clientPoAction(fx.roles.pm.actor, cpo.id, "submit", { version: await v("clientPo", cpo.id) });
-    await clientPoAction(fx.actors.admin, cpo.id, "approve", { version: await v("clientPo", cpo.id) });
     row = await db.clientPo.findUniqueOrThrow({ where: { id: cpo.id } });
     expect(row.revision).toBe(1);
     expect(row.total.toFixed(2)).toBe("177000.00");
@@ -75,10 +72,11 @@ describe("client POs", () => {
     expect(view.summary.variation).toBe("59000.00");
   });
 
-  it("enforces separation of duties for an approver who submitted", async () => {
+  it("users without client-PO rights cannot finalize one", async () => {
     const cpo = await createClientPo(fx.actors.admin, { projectId: fx.p1.id, partyId: fx.client.id, clientPoNumber: "ACME-2", poDate: day(), lines: [{ description: "Work", unit: "LS", quantity: "1", rate: "1000", gstRate: "18" }] });
+    expect((await errorOf(clientPoAction(fx.roles.sk.actor, cpo.id, "submit", { version: await v("clientPo", cpo.id) }))).message).toMatch(/permission|not found/i);
     await clientPoAction(fx.actors.admin, cpo.id, "submit", { version: await v("clientPo", cpo.id) });
-    expect((await errorOf(clientPoAction(fx.actors.admin, cpo.id, "approve", { version: await v("clientPo", cpo.id) }))).message).toMatch(/Separation of duties/);
+    expect((await db.clientPo.findUniqueOrThrow({ where: { id: cpo.id } })).status).toBe("ACTIVE");
   });
 
   it("sales orders cannot exceed what is left on the client PO", async () => {
@@ -105,6 +103,23 @@ describe("running bills", () => {
     expect((await db.raBill.findUniqueOrThrow({ where: { id: second.id } })).raNumber).toBe(2);
   });
 
+  it("client accepted as submitted: one click certifies at the claimed quantities, creates and issues the invoice", async () => {
+    const cpo = await activeCpo();
+    const [l1] = cpo.lines;
+    const ra = await createRaBill(fx.roles.pm.actor, { clientPoId: cpo.id, billDate: day(), periodFrom: day(-30), periodTo: day(), lines: [{ clientPoLineId: l1!.id, claimedQty: "10" }] });
+    expect((await errorOf(acceptRaBillAndInvoice(fx.actors.admin, ra.id, {}))).message).toMatch(/submitted to the client/);
+    await raBillAction(fx.roles.pm.actor, ra.id, "submit_review", { version: await v("raBill", ra.id) });
+    const res = await acceptRaBillAndInvoice(fx.actors.admin, ra.id, { clientCertRef: "Email 12 Nov" });
+    expect([res.issued, res.issueError]).toEqual([true, null]);
+    const bill = await db.raBill.findUniqueOrThrow({ where: { id: ra.id }, include: { lines: true } });
+    expect([bill.status, bill.clientCertRef, bill.certifiedAmount.toFixed(2)]).toEqual(["INVOICED", "Email 12 Nov", bill.claimedAmount.toFixed(2)]);
+    expect(bill.lines[0]!.certifiedQty?.toFixed(0)).toBe("10");
+    const inv = await db.clientInvoice.findUniqueOrThrow({ where: { id: res.invoiceId } });
+    expect([inv.status, inv.raBillId, inv.number]).toEqual(["ISSUED", ra.id, expect.stringMatching(/^INV\//)]);
+    // Never twice.
+    expect((await errorOf(acceptRaBillAndInvoice(fx.actors.admin, ra.id, {}))).message).toMatch(/submitted to the client/);
+  });
+
   it("certification ≤ claimed, retention and capped advance recovery, then one invoice only", async () => {
     const cpo = await activeCpo();
     const [l1, l2] = cpo.lines;
@@ -112,9 +127,9 @@ describe("running bills", () => {
     // 20 × 6000 + 10 × 900 (10% discount) = 129000
     let row = await db.raBill.findUniqueOrThrow({ where: { id: ra.id } });
     expect(row.claimedAmount.toFixed(2)).toBe("129000.00");
+    // The preparer submits straight to the client (no internal review step).
     await raBillAction(fx.roles.se.actor, ra.id, "submit_review", { version: row.version });
-    expect((await errorOf(raBillAction(fx.roles.se.actor, ra.id, "approve", { version: await v("raBill", ra.id) }))).message).toMatch(/permission/);
-    await raBillAction(fx.roles.pm.actor, ra.id, "approve", { version: await v("raBill", ra.id) });
+    expect((await db.raBill.findUniqueOrThrow({ where: { id: ra.id } })).status).toBe("SUBMITTED");
     const lines = await db.raBillLine.findMany({ where: { raBillId: ra.id }, orderBy: { claimedQty: "desc" } });
     const over = await errorOf(certifyRaBill(fx.roles.ac.actor, ra.id, await v("raBill", ra.id), { clientCertRef: "C-1", clientCertDate: day(), lines: [{ lineId: lines[0]!.id, certifiedQty: "21" }, { lineId: lines[1]!.id, certifiedQty: "10" }] }));
     expect(over.message).toMatch(/cannot exceed the claimed/);
@@ -145,7 +160,7 @@ describe("running bills", () => {
     expect(view.invoice.netReceivable).toBe("121710.00");
     const res = await clientInvoiceAction(fx.actors.admin, inv.id, "issue", { version: await v("clientInvoice", inv.id) });
     expect(res?.number).toMatch(/^INV\//);
-    await clientInvoiceAction(fx.actors.admin, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong date" });
+    await clientInvoiceAction(fx.actors.superAdmin, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong date" });
     expect((await db.raBill.findUniqueOrThrow({ where: { id: ra.id } })).status).toBe("CLIENT_CERTIFIED");
     const again = await createClientInvoice(fx.roles.ac.actor, { source: "RA", raBillId: ra.id, invoiceDate: day() });
     expect(again.raBillId).toBe(ra.id);
@@ -247,7 +262,6 @@ describe("sales orders drive the project", () => {
     const so = await createSalesOrder(fx.roles.pm.actor, { projectId: fx.p1.id, partyId: outOfState.id, orderDate: day(), lines: [cementLine("10")] });
     expect(so.taxMode).toBe("INTER");
     await salesOrderAction(fx.roles.pm.actor, so.id, "submit", { version: await v("salesOrder", so.id) });
-    await salesOrderAction(fx.actors.admin, so.id, "approve", { version: await v("salesOrder", so.id) });
     const line = await db.soLine.findFirstOrThrow({ where: { soId: so.id } });
     const c = await createChallan(fx.roles.sk.actor, { type: "CLIENT_DELIVERY", soId: so.id, partyId: so.partyId, fromLocationId: fx.warehouse.id, dispatchDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: "10", soLineId: line.id }] });
     await challanAction(fx.roles.sk.actor, c.id, "dispatch", { version: (await db.challan.findUniqueOrThrow({ where: { id: c.id } })).version });
@@ -262,7 +276,6 @@ describe("sales orders drive the project", () => {
     const noState = await createParty(fx.actors.admin, { name: "Stateless Builders", isClient: true });
     const so = await createSalesOrder(fx.roles.pm.actor, { projectId: fx.p1.id, partyId: noState.id, orderDate: day(), lines: [cementLine("5")] });
     await salesOrderAction(fx.roles.pm.actor, so.id, "submit", { version: await v("salesOrder", so.id) });
-    await salesOrderAction(fx.actors.admin, so.id, "approve", { version: await v("salesOrder", so.id) });
     const line = await db.soLine.findFirstOrThrow({ where: { soId: so.id } });
     const c = await createChallan(fx.roles.sk.actor, { type: "CLIENT_DELIVERY", soId: so.id, partyId: so.partyId, fromLocationId: fx.warehouse.id, dispatchDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: "5", soLineId: line.id }] });
     await challanAction(fx.roles.sk.actor, c.id, "dispatch", { version: (await db.challan.findUniqueOrThrow({ where: { id: c.id } })).version });
@@ -270,23 +283,24 @@ describe("sales orders drive the project", () => {
     expect(err.message).toMatch(/place of supply/);
   });
 
-  it("the person who drafted an invoice cannot issue it; another approver can", async () => {
+  it("the person who drafted an invoice issues it (no second person); cancelling an issued one is Super Admin only", async () => {
     const so = await approvedSo([cementLine("8")]);
     const line = so.lines[0]!;
     const c = await createChallan(fx.roles.sk.actor, { type: "CLIENT_DELIVERY", soId: so.id, partyId: so.partyId, fromLocationId: fx.warehouse.id, dispatchDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: "8", soLineId: line.id }] });
     await challanAction(fx.roles.sk.actor, c.id, "dispatch", { version: (await db.challan.findUniqueOrThrow({ where: { id: c.id } })).version });
     const inv = await createClientInvoice(fx.actors.admin, { source: "SO", soId: so.id, invoiceDate: day(), lines: [{ sourceLineId: line.id, quantity: "8" }] });
     const view = await getClientInvoice(fx.actors.admin, inv.id);
-    expect(view.can.issue).toBe(false);
-    expect(view.can.issueBlocked).toMatch(/another approver/);
-    expect((await errorOf(clientInvoiceAction(fx.actors.admin, inv.id, "issue", { version: await v("clientInvoice", inv.id) }))).message).toMatch(/Separation of duties/);
-    const res = await clientInvoiceAction(fx.actors.superAdmin, inv.id, "issue", { version: await v("clientInvoice", inv.id) });
+    expect([view.can.issue, view.can.issueBlocked]).toEqual([true, null]);
+    const res = await clientInvoiceAction(fx.actors.admin, inv.id, "issue", { version: await v("clientInvoice", inv.id) });
     expect(res?.number).toMatch(/^INV\//);
+    expect((await errorOf(clientInvoiceAction(fx.actors.admin, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong rate" }))).message).toMatch(/Only the Super Admin/);
+    await clientInvoiceAction(fx.actors.superAdmin, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong rate" });
   });
 
-  it("cancelling an approved order cancels its requirement (never deletes it)", async () => {
+  it("cancelling a confirmed order (Super Admin) cancels its requirement (never deletes it)", async () => {
     const so = await approvedSo([cementLine("12")]);
-    await salesOrderAction(fx.actors.admin, so.id, "cancel", { version: so.version, note: "Client dropped" });
+    expect((await errorOf(salesOrderAction(fx.actors.admin, so.id, "cancel", { version: so.version, note: "Client dropped" }))).message).toMatch(/Only the Super Admin/);
+    await salesOrderAction(fx.actors.superAdmin, so.id, "cancel", { version: so.version, note: "Client dropped" });
     const req = await db.materialRequirement.findUniqueOrThrow({ where: { projectId_itemBrandId: { projectId: fx.p1.id, itemBrandId: fx.ibUltra.id } } });
     expect(req.status).toBe("CANCELLED");
   });

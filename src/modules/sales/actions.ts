@@ -1,9 +1,12 @@
 "use server";
 
 import { runAction } from "@/lib/actions";
+import { db } from "@/lib/db";
 import { clientPoAction, createClientPo, setMilestoneStatus, updateClientPo, type CpoAction } from "./client-po";
 import { clientInvoiceAction, createClientInvoice, updateClientInvoice, type InvoiceAction } from "./invoice";
 import { certifyRaBill, createRaBill, raBillAction, updateRaBill, type RaAction } from "./ra-bill";
+import { generateSoRunningBill } from "./so-running-bill";
+import { acceptRaBillAndInvoice } from "./quick-bill";
 import { createSalesOrder, decideSoAmendment, requestSoAmendment, salesOrderAction, updateSalesOrder, withdrawSoAmendment, type SoAction } from "./sales-order";
 
 const P = ["/client-pos", "/sales-orders", "/running-bills", "/client-invoices", "/projects", "/material-planning", "/approvals", "/dashboard"];
@@ -31,13 +34,26 @@ export async function setMilestoneStatusAction(id: string, status: "PENDING" | "
 }
 
 // Sales orders
-export async function createSalesOrderAction(input: unknown) {
-  return runAction(async (a) => ({ id: (await createSalesOrder(a, input)).id }), P);
+/** `confirm: true` = "Save & confirm order" in one click (the draft is kept if confirming fails). */
+async function confirmAfterSave(a: Parameters<typeof salesOrderAction>[0], id: string) {
+  const { version } = await db.salesOrder.findUniqueOrThrow({ where: { id }, select: { version: true } });
+  try {
+    await salesOrderAction(a, id, "submit", { version });
+    return { confirmed: true, confirmError: null as string | null };
+  } catch (e) {
+    return { confirmed: false, confirmError: e instanceof Error ? e.message : "Could not confirm the order." };
+  }
 }
-export async function updateSalesOrderAction(id: string, version: number, input: unknown) {
+export async function createSalesOrderAction(input: unknown, opts?: { confirm?: boolean }) {
+  return runAction(async (a) => {
+    const id = (await createSalesOrder(a, input)).id;
+    return { id, ...(opts?.confirm ? await confirmAfterSave(a, id) : { confirmed: false, confirmError: null }) };
+  }, P);
+}
+export async function updateSalesOrderAction(id: string, version: number, input: unknown, opts?: { confirm?: boolean }) {
   return runAction(async (a) => {
     await updateSalesOrder(a, String(id), Number(version), input);
-    return { id };
+    return { id, ...(opts?.confirm ? await confirmAfterSave(a, String(id)) : { confirmed: false, confirmError: null }) };
   }, P);
 }
 export async function salesOrderActionAction(id: string, action: SoAction, opts: Opts) {
@@ -58,6 +74,10 @@ export async function decideSoAmendmentAction(requestId: string, decision: "appr
 }
 
 // Running bills
+/** Generate the next cumulative running bill for a sales order, or refresh (consolidate) its draft. */
+export async function generateSoRunningBillAction(input: unknown) {
+  return runAction(async (a) => generateSoRunningBill(a, input), P);
+}
 export async function createRaBillAction(input: unknown) {
   return runAction(async (a) => ({ id: (await createRaBill(a, input)).id }), P);
 }
@@ -76,6 +96,10 @@ export async function certifyRaBillAction(id: string, version: number, input: un
   return runAction(async (a) => {
     await certifyRaBill(a, String(id), Number(version), input);
   }, P);
+}
+/** "Client accepted — invoice now": certify as claimed + create + issue the invoice. */
+export async function acceptRaBillAndInvoiceAction(id: string, input: unknown) {
+  return runAction(async (a) => acceptRaBillAndInvoice(a, String(id), input), [...P, "/payments", "/accounts"]);
 }
 
 // Client invoices

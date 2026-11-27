@@ -15,11 +15,12 @@ import { Input } from "@/components/ui/input";
 import { callAction } from "@/lib/call-action";
 import { formatDate, formatQty } from "@/lib/format";
 import { formatINR } from "@/lib/money";
-import { addRfqSuppliersAction, createPosFromAwardAction, markRfqSupplierSharedAction, proposeAwardAction, recordQuotationAction, rfqActionAction } from "@/modules/procurement/actions";
+import { ConfirmDialog } from "@/components/shared/dialogs";
+import { addRfqSuppliersAction, convertQuotationToPoAction, createPosFromAwardAction, markRfqSupplierSharedAction, proposeAwardAction, recordQuotationAction, rfqActionAction } from "@/modules/procurement/actions";
 import type { ComparisonQuote } from "@/modules/procurement/rfq";
 
 type Line = { id: string; itemId: string; name: string; itemBrandId: string | null; quantity: string; unit: string; acceptableBrands: string | null };
-type Quote = { id: string; partyId: string; partyName: string; number: string; revision: number; status: string; quoteDate: string };
+type Quote = { id: string; partyId: string; partyName: string; number: string; revision: number; status: string; quoteDate: string; convertible?: boolean };
 type Can = { manage: boolean; send: boolean; award: boolean; approveAward: boolean; approveBlockedReason: string | null; createPos: boolean; cancel: boolean; close: boolean };
 type Entry = { enabled: boolean; itemBrandId: string; quantity: string; rate: string; discountPct: string; gstRate: string; leadTimeDays: string; paymentTerms: string };
 
@@ -35,7 +36,27 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
   const [partyId, setPartyId] = useState<string | null>(null);
   const [head, setHead] = useState({ quoteDate: today, validUntil: "", supplierRef: "", freight: "0", freightGstRate: "18", deliveryDays: "", paymentTerms: "", advancePct: "", creditDays: "", warranty: "" });
   const [entries, setEntries] = useState<Record<string, Entry>>(blank);
-  const [awards, setAwards] = useState<Record<string, string>>({});
+  // Award qty starts pre-filled: the existing award if one was proposed, else the full line qty on the recommended quote.
+  const defaultAwards = () => {
+    const next: Record<string, string> = {};
+    for (const c of comparison) {
+      const awarded = c.quotes.filter((q) => q.awardedQty !== "0");
+      if (awarded.length) for (const q of awarded) next[q.quotationLineId] = q.awardedQty;
+      else {
+        const best = c.quotes.find((q) => q.recommended);
+        if (best) next[best.quotationLineId] = c.quantity;
+      }
+    }
+    return next;
+  };
+  const awardsKey = comparison.map((c) => `${c.lineId}:${c.quotes.map((q) => `${q.quotationLineId}=${q.awardedQty}${q.recommended ? "*" : ""}`).join(",")}`).join("|");
+  const [awards, setAwards] = useState<Record<string, string>>(defaultAwards);
+  const [awardsFor, setAwardsFor] = useState(awardsKey);
+  if (awardsFor !== awardsKey) {
+    // New quotations or a saved award arrived (router.refresh) — re-seed the defaults.
+    setAwardsFor(awardsKey);
+    setAwards(defaultAwards());
+  }
   const [busy, setBusy] = useState<string | null>(null);
   const [newSuppliers, setNewSuppliers] = useState<string[]>([]);
   const unshared = status !== "DRAFT" && suppliers.some((s) => !s.shared);
@@ -162,7 +183,7 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
                 setBusy(null);
                 if (!r.ok) toast.error(r.error);
                 else {
-                  toast.success(`${r.data.length} draft purchase order(s) created — review and submit them for approval.`);
+                  toast.success(`${r.data.length} purchase order(s) created and finalized — share them with the suppliers.`);
                   router.refresh();
                 }
               }}
@@ -384,12 +405,12 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
               setBusy(null);
               if (!r.ok) toast.error(r.error);
               else {
-                toast.success("Award sent for approval.");
+                toast.success("Award saved — now create the purchase orders.");
                 router.refresh();
               }
             }}
           >
-            {busy === "award" && <Loader2 className="animate-spin" />} Send award for approval
+            {busy === "award" && <Loader2 className="animate-spin" />} Award to selected suppliers
           </Button>
         )}
       </Section>
@@ -404,6 +425,7 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
                   {q.number} · rev {q.revision} · {formatDate(q.quoteDate)}
                 </span>
                 <DocStatusBadge status={q.status === "RECEIVED" ? "RECEIVED_QUOTE" : q.status} />
+                {q.convertible && <ConvertQuote id={q.id} partyName={q.partyName} />}
               </li>
             ))}
           </ul>
@@ -412,5 +434,33 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
         )}
       </Section>
     </>
+  );
+}
+
+/** Comparison is optional: order straight from one supplier's quotation (draft PO, then Finalize). */
+function ConvertQuote({ id, partyName }: { id: string; partyName: string }) {
+  const router = useRouter();
+  return (
+    <span className="ml-auto">
+      <ConfirmDialog
+        trigger={
+          <Button size="sm" variant="outline">
+            <ShoppingCart /> Create PO
+          </Button>
+        }
+        title={`Order from ${partyName}?`}
+        description="Creates a draft purchase order with this supplier's quoted rates, GST, freight, delivery and payment terms for everything still open on the enquiry. Check it and press Finalize. Comparing other quotations first is optional."
+        confirmLabel="Create draft PO"
+        onConfirm={async () => {
+          const r = await callAction(convertQuotationToPoAction, { quotationId: id });
+          if (!r.ok) {
+            toast.error(r.error);
+            return false;
+          }
+          toast.success(`Purchase order ${r.data.number} created — check it and Finalize.`);
+          router.push(`/purchase-orders/${r.data.id}`);
+        }}
+      />
+    </span>
   );
 }

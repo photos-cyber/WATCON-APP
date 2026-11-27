@@ -54,9 +54,9 @@ Check the exact item, brand and source location. Review reservations and receipt
 
 Refresh the record and review its latest version before trying again.
 
-## Approval refused
+## Action refused
 
-Read the reason. Another approver may be required or the amount may exceed your limit.
+Read the reason. Your role may not have the permission, or the document is final — ask the Super Admin with Request change.
 
 ## Upload problem
 

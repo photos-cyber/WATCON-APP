@@ -7,13 +7,25 @@ import { ForbiddenError, NotFoundError, ValidationError, isUniqueViolation } fro
 import { addQty, cmpQty, divRound, fmtQty, qtyUnits, subQty, toUnits, unitRate } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertProjectUsable, dec2, dec3, getCommercialSettings, parseInput, projectScoped, requirePermission, segregationBlocks, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, getCommercialSettings, isSuperAdmin, parseInput, projectScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
 import { qtyOrZero } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSystemLocations, postMovementTx, reverseMovementTx } from "@/modules/inventory/engine";
 import { isOpenForReceipt, refreshPoReceiptStatus } from "@/modules/procurement/po";
 import { startOfToday } from "@/modules/tasks/rules";
 import { refreshChallanStatus } from "./challan";
+import { evaluateProof, missingProofMessage } from "./proof-rules";
+
+/** Mandatory proof for a receipt, from its current (non-deleted) attachments. */
+export async function receiptProofStatus(client: Tx | typeof db, grn: { id: string; poId: string | null; challanId: string | null; lines: { damagedQty: Prisma.Decimal | string; rejectedQty: Prisma.Decimal | string }[] }) {
+  const files = grn.poId || grn.challanId ? await client.attachment.findMany({ where: { entityType: "grn", entityId: grn.id, deletedAt: null }, select: { id: true, category: true, mimeType: true, fileName: true } }) : [];
+  return evaluateProof({ poId: grn.poId, challanId: grn.challanId, lines: grn.lines.map((l) => ({ damagedQty: String(l.damagedQty), rejectedQty: String(l.rejectedQty) })) }, files);
+}
+
+async function assertProof(client: Tx | typeof db, grn: Parameters<typeof receiptProofStatus>[1]) {
+  const proof = await receiptProofStatus(client, grn);
+  if (!proof.complete) throw new ValidationError(missingProofMessage(proof.missing), { proof: proof.missing.join(", ") });
+}
 
 /**
  * Goods receipt notes (site material receiving).
@@ -111,6 +123,9 @@ export async function createGrn(actor: Actor, input: unknown) {
   const head = headerFrom(source);
   if (head.projectId) await assertProjectUsable(actor, head.projectId);
   const lines = await buildLines(source, data.lines, settings.allowReceiptOnUnapprovedPo);
+  // Proof is mandatory for supplier receipts and is uploaded to the saved draft, so a brand-new
+  // receipt can only be submitted once its photos / challan exist (submit from the receipt page).
+  if (data.submit) throw new ValidationError(missingProofMessage(evaluateProof({ poId: source.kind === "po" ? source.po.id : null, challanId: source.kind === "challan" ? source.challan.id : null, lines: lines.map((l) => ({ damagedQty: String(l.damagedQty ?? "0"), rejectedQty: String(l.rejectedQty ?? "0") })) }, []).missing) + " Save it as a draft, add the files, then submit.", { proof: "Proof required." });
   try {
     return await db.$transaction(async (tx) => {
       const number = await nextDocNumber(tx, actor.organizationId, "GRN", toDbDate(data.receiptDate)!);
@@ -162,11 +177,17 @@ export async function updateGrn(actor: Actor, id: string, version: number, input
   const settings = await getCommercialSettings(actor.organizationId);
   const source = await loadSource(actor, data);
   const lines = await buildLines(source, data.lines, settings.allowReceiptOnUnapprovedPo);
+  if (data.submit) await assertProof(db, { id, poId: grn.poId, challanId: grn.challanId, lines: lines.map((l) => ({ damagedQty: String(l.damagedQty ?? "0"), rejectedQty: String(l.rejectedQty ?? "0") })) });
   await db.$transaction(async (tx) => {
     await transition(tx.grn, { id, organizationId: actor.organizationId, version }, ["DRAFT", "REJECTED"], { receiptDate: toDbDate(data.receiptDate)!, supplierChallanNo: data.supplierChallanNo, supplierInvoiceNo: data.supplierInvoiceNo, vehicleNo: data.vehicleNo, receivedByName: data.receivedByName, remarks: data.remarks, latitude: data.latitude, longitude: data.longitude, status: data.submit ? "SUBMITTED" : "DRAFT", submittedById: data.submit ? actor.id : null, submittedAt: data.submit ? new Date() : null, statusNote: null }, "receipt");
     await tx.grnLine.deleteMany({ where: { grnId: id } });
     await tx.grnLine.createMany({ data: lines.map((l) => ({ ...l, grnId: id })) });
-    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "grn.updated", entityType: "grn", entityId: id, projectId: grn.projectId, summary: `Edited receipt ${grn.number}${data.submit ? " and submitted it" : ""}` }, tx);
+    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "grn.updated", entityType: "grn", entityId: id, projectId: grn.projectId, summary: `Edited receipt ${grn.number}${data.submit ? " and confirmed it" : ""}` }, tx);
+    if (data.submit) {
+      // Confirming posts to stock in the same transaction (no separate verification step).
+      const fresh = await tx.grn.findUniqueOrThrow({ where: { id }, include: { lines: true } });
+      await postGrnTx(tx, actor, fresh, { id, organizationId: actor.organizationId, version: version + 1 }, ["SUBMITTED"]);
+    }
   });
 }
 
@@ -176,14 +197,26 @@ export async function updateGrn(actor: Actor, id: string, version: number, input
  * posting the same receipt, or two receipts racing for the same PO quantity, cannot double-count.
  */
 export async function postGrn(actor: Actor, id: string, version: number) {
-  requirePermission(actor, "grn.post", "You do not have permission to verify and post receipts.");
+  // Simplified workflow: the receiver (grn.create) or a store verifier (grn.post) may post; no second person.
+  requireAnyPermission(actor, ["grn.create", "grn.post"], "You do not have permission to post receipts.");
   const grn = await loadGrn(actor, id);
   if (grn.status !== "SUBMITTED") throw new ValidationError(grn.status === "POSTED" ? "This receipt is already posted." : "Only submitted receipts can be posted.");
-  const settings = await getCommercialSettings(actor.organizationId);
-  if (segregationBlocks(actor, settings.enforceSegregation, grn.createdById, grn.submittedById)) throw new ForbiddenError("Separation of duties: a receipt must be verified and posted by someone other than the person who recorded it.");
+  // Re-checked at posting: proof files could have been removed after submission.
+  await assertProof(db, grn);
+  await db.$transaction((tx) => postGrnTx(tx, actor, grn, { id, organizationId: actor.organizationId, version }, ["SUBMITTED"]));
+}
+
+/**
+ * Posts a receipt to stock inside the caller's transaction: guarded status change `from` → POSTED,
+ * PO / challan counters under row locks and idempotent stock movements. The caller checks proof.
+ */
+async function postGrnTx(tx: Tx, actor: Actor, grn: Awaited<ReturnType<typeof loadGrn>>, w: { id: string; organizationId: string; version: number }, from: string[]) {
+  const id = grn.id;
+  const settings = await getCommercialSettings(actor.organizationId, tx);
   const today = startOfToday();
-  await db.$transaction(async (tx) => {
-    await transition(tx.grn, { id, organizationId: actor.organizationId, version }, ["SUBMITTED"], { status: "POSTED", postedById: actor.id, postedAt: new Date() }, "receipt");
+  {
+    const now = new Date();
+    await transition(tx.grn, w, from, { status: "POSTED", postedById: actor.id, postedAt: now, ...(from.includes("SUBMITTED") ? {} : { submittedById: actor.id, submittedAt: now, statusNote: null }) }, "receipt");
     const sys = await ensureSystemLocations(tx, actor.organizationId);
     let poNumber: string | null = null;
     if (grn.poId) {
@@ -218,8 +251,8 @@ export async function postGrn(actor: Actor, id: string, version: number) {
       }
       await refreshChallanStatus(tx, grn.challanId);
     }
-    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "grn.posted", entityType: "grn", entityId: id, projectId: grn.projectId, summary: `Verified and posted receipt ${grn.number}${poNumber ? ` against ${poNumber}` : ""} to stock` }, tx);
-  });
+    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "grn.posted", entityType: "grn", entityId: id, projectId: grn.projectId, summary: `Posted receipt ${grn.number}${poNumber ? ` against ${poNumber}` : ""} to stock` }, tx);
+  }
 }
 
 export async function grnAction(actor: Actor, id: string, action: "submit" | "reject" | "cancel" | "reverse", opts: { version: number; note?: string | null }) {
@@ -227,15 +260,16 @@ export async function grnAction(actor: Actor, id: string, action: "submit" | "re
   const w = { id, organizationId: actor.organizationId, version: opts.version };
   const log = (tx: Tx, verb: string) => writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: `grn.${action}`, entityType: "grn", entityId: id, projectId: grn.projectId, summary: `${verb} receipt ${grn.number}${opts.note ? ` – ${opts.note}` : ""}` }, tx);
   if (action === "submit") {
+    // Simplified workflow: "Confirm receipt" (with complete proof) posts straight to stock.
     requirePermission(actor, "grn.create");
+    await assertProof(db, grn);
     return db.$transaction(async (tx) => {
-      await transition(tx.grn, w, ["DRAFT", "REJECTED"], { status: "SUBMITTED", submittedById: actor.id, submittedAt: new Date(), statusNote: null }, "receipt");
-      await log(tx, "Submitted");
+      await postGrnTx(tx, actor, grn, w, ["DRAFT", "REJECTED"]);
     });
   }
   if (!opts.note) throw new ValidationError("Give a reason.", { note: "Reason is required." });
   if (action === "reject") {
-    requirePermission(actor, "grn.post");
+    requireAnyPermission(actor, ["grn.create", "grn.post"]);
     return db.$transaction(async (tx) => {
       await transition(tx.grn, w, ["SUBMITTED"], { status: "REJECTED", statusNote: opts.note }, "receipt");
       await log(tx, "Returned for correction");
@@ -249,7 +283,8 @@ export async function grnAction(actor: Actor, id: string, action: "submit" | "re
     });
   }
   // Reverse a posted receipt: opposite stock entries + counters back, never edits the original postings.
-  requirePermission(actor, "grn.reverse");
+  // A correction to finalized stock — Super Admin only.
+  requireSuperAdmin(actor, "reverse a posted receipt");
   if (grn.lines.some((l) => cmpQty(dec3(l.billedQty), "0") > 0)) throw new ValidationError("Supplier bills are matched to this receipt. Cancel those bills before reversing it.");
   const today = startOfToday();
   return db.$transaction(async (tx) => {
@@ -299,14 +334,14 @@ export async function receiptSource(actor: Actor, kind: "po" | "challan", id: st
   requirePermission(actor, "grn.create");
   const source = await loadSource(actor, kind === "po" ? { poId: id, challanId: null } : { poId: null, challanId: id });
   const ibIds = source.kind === "po" ? source.po.lines.map((l) => l.itemBrandId) : source.challan.lines.map((l) => l.itemBrandId);
-  const ibs = await db.itemBrand.findMany({ where: { id: { in: ibIds } }, select: { id: true, item: { select: { name: true, code: true, unit: true } }, brand: { select: { name: true } } } });
+  const ibs = await db.itemBrand.findMany({ where: { id: { in: ibIds } }, select: { id: true, item: { select: { name: true, code: true, unit: true, images: { select: { path: true }, orderBy: { sortOrder: "asc" }, take: 1 } } }, brand: { select: { name: true } } } });
   const name = new Map(ibs.map((i) => [i.id, i]));
   if (source.kind === "po") {
     const po = await db.purchaseOrder.findUniqueOrThrow({ where: { id }, include: { party: { select: { name: true } }, deliveryLocation: { select: { name: true } }, project: { select: { id: true, code: true, name: true } } } });
-    return { kind, id, number: po.number, status: po.status, party: po.party.name, location: po.deliveryLocation.name, project: po.project, lines: source.po.lines.map((l) => ({ sourceLineId: l.id, itemBrandId: l.itemBrandId, item: name.get(l.itemBrandId)!.item, brand: name.get(l.itemBrandId)!.brand.name, ordered: dec3(l.quantity), alreadyAccepted: dec3(l.acceptedQty), expected: pendingOnPoLine(l) })) };
+    return { kind, id, number: po.number, status: po.status, party: po.party.name, location: po.deliveryLocation.name, project: po.project, lines: source.po.lines.map((l) => ({ sourceLineId: l.id, itemBrandId: l.itemBrandId, item: { name: name.get(l.itemBrandId)!.item.name, code: name.get(l.itemBrandId)!.item.code, unit: name.get(l.itemBrandId)!.item.unit }, image: name.get(l.itemBrandId)!.item.images[0]?.path ?? null, brand: name.get(l.itemBrandId)!.brand.name, ordered: dec3(l.quantity), alreadyAccepted: dec3(l.acceptedQty), expected: pendingOnPoLine(l) })) };
   }
   const c = await db.challan.findUniqueOrThrow({ where: { id }, include: { fromLocation: { select: { name: true } }, toLocation: { select: { name: true } }, project: { select: { id: true, code: true, name: true } } } });
-  return { kind, id, number: c.number, status: c.status, party: c.fromLocation?.name ?? "—", location: c.toLocation?.name ?? "—", project: c.project, lines: source.challan.lines.map((l) => ({ sourceLineId: l.id, itemBrandId: l.itemBrandId, item: name.get(l.itemBrandId)!.item, brand: name.get(l.itemBrandId)!.brand.name, ordered: dec3(l.quantity), alreadyAccepted: dec3(l.receivedQty), expected: inTransitOnChallanLine(l) })) };
+  return { kind, id, number: c.number, status: c.status, party: c.fromLocation?.name ?? "—", location: c.toLocation?.name ?? "—", project: c.project, lines: source.challan.lines.map((l) => ({ sourceLineId: l.id, itemBrandId: l.itemBrandId, item: { name: name.get(l.itemBrandId)!.item.name, code: name.get(l.itemBrandId)!.item.code, unit: name.get(l.itemBrandId)!.item.unit }, image: name.get(l.itemBrandId)!.item.images[0]?.path ?? null, brand: name.get(l.itemBrandId)!.brand.name, ordered: dec3(l.quantity), alreadyAccepted: dec3(l.receivedQty), expected: inTransitOnChallanLine(l) })) };
 }
 
 export async function getGrn(actor: Actor, id: string) {
@@ -327,18 +362,20 @@ export async function getGrn(actor: Actor, id: string) {
     },
   });
   if (!grn) throw new NotFoundError("Receipt");
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "grn.post", grn, settings.enforceSegregation);
+  const proof = await receiptProofStatus(db, grn);
+  const receiver = can(actor, "grn.create") || can(actor, "grn.post");
   return {
+    proof,
     grn: { ...grn, latitude: grn.latitude?.toFixed(6) ?? null, longitude: grn.longitude?.toFixed(6) ?? null, lines: grn.lines.map((l) => ({ ...l, expectedQty: dec3(l.expectedQty), receivedQty: dec3(l.receivedQty), acceptedQty: dec3(l.acceptedQty), damagedQty: dec3(l.damagedQty), rejectedQty: dec3(l.rejectedQty), billedQty: dec3(l.billedQty), shortQty: cmpQty(dec3(l.expectedQty), dec3(l.receivedQty)) > 0 ? subQty(dec3(l.expectedQty), dec3(l.receivedQty)) : "0", unitCost: l.unitCost?.toFixed(4) ?? null })) },
     can: {
       edit: can(actor, "grn.create") && ["DRAFT", "REJECTED"].includes(grn.status),
       submit: can(actor, "grn.create") && ["DRAFT", "REJECTED"].includes(grn.status),
-      post: grn.status === "SUBMITTED" && hint.canApprove,
-      postBlockedReason: grn.status === "SUBMITTED" ? hint.reason : null,
-      reject: grn.status === "SUBMITTED" && can(actor, "grn.post"),
+      post: grn.status === "SUBMITTED" && receiver,
+      postBlockedReason: null as string | null,
+      reject: grn.status === "SUBMITTED" && receiver,
       cancel: ["DRAFT", "SUBMITTED", "REJECTED"].includes(grn.status) && (can(actor, "grn.post") || grn.createdById === actor.id),
-      reverse: grn.status === "POSTED" && can(actor, "grn.reverse"),
+      reverse: grn.status === "POSTED" && isSuperAdmin(actor),
+      requestChange: grn.status === "POSTED" && !isSuperAdmin(actor) && receiver,
     },
   };
 }

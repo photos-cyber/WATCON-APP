@@ -3,7 +3,7 @@ import { attachmentModuleWhere } from "./visibility";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
-import { db } from "@/lib/db";
+import { db, type Tx } from "@/lib/db";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { activeDriver, driverFor, maxUploadBytes } from "@/lib/storage";
@@ -249,4 +249,26 @@ export async function listProjectDocuments(actor: Actor, projectId: string, opts
     db.attachment.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * pageSize, take: pageSize, include: { uploadedBy: { select: { fullName: true } } } }),
   ]);
   return { total, page, pageSize, rows: rows.map((r) => ({ id: r.id, fileName: r.fileName, mimeType: r.mimeType, sizeBytes: r.sizeBytes, category: r.category, entityType: r.entityType, entityId: r.entityId, verificationStatus: r.verificationStatus, uploadedBy: r.uploadedBy.fullName, createdAt: r.createdAt.toISOString(), version: r.version })) };
+}
+
+/**
+ * Stores an evidence file inside the caller's transaction (database driver: bytes + row commit
+ * together with the business change). The caller has already authorised the change.
+ */
+export async function storeEvidenceTx(tx: Tx, actor: Actor, opts: { entityType: string; entityId: string; projectId: string | null; label: string; category: (typeof ATTACHMENT_CATEGORIES)[number]; description?: string | null; fileName: string; bytes: Uint8Array }) {
+  if (!opts.bytes.length) throw new ValidationError("The evidence file is empty.", { evidence: "Empty file." });
+  if (opts.bytes.length > maxUploadBytes()) throw new ValidationError(`Files must be ${Math.round(maxUploadBytes() / 1048576)} MB or smaller.`, { evidence: "File is too large." });
+  const mime = sniffMime(opts.bytes, opts.fileName);
+  if (!mime) throw new ValidationError(`Unsupported evidence file. Allowed: ${Object.values(ALLOWED_TYPES).map((t) => t.label).join(", ")}.`, { evidence: "Unsupported file type." });
+  const bytes = Buffer.from(opts.bytes);
+  const driver = activeDriver();
+  const key = `${actor.organizationId}/${new Date().toISOString().slice(0, 7)}/${randomUUID()}`.replace(/-/g, "_");
+  await driver.put(key, bytes, driver.name === "database" ? tx : undefined);
+  const fileName = safeFileName(opts.fileName, mime);
+  const row = await tx.attachment.create({
+    data: { organizationId: actor.organizationId, projectId: opts.projectId, entityType: opts.entityType, entityId: opts.entityId, category: opts.category, description: opts.description ?? null, fileName, mimeType: mime, sizeBytes: bytes.length, sha256: createHash("sha256").update(bytes).digest("hex"), storageDriver: driver.name, storageKey: key, uploadedById: actor.id },
+    select: { id: true },
+  });
+  await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "attachment.uploaded", entityType: "attachment", entityId: row.id, projectId: opts.projectId, summary: `Attached evidence ${fileName} to ${opts.label}` }, tx);
+  return row;
 }

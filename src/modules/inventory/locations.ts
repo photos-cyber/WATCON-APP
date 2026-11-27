@@ -228,3 +228,11 @@ export async function itemBrandOptions(actor: Actor): Promise<ItemBrandOption[]>
   });
   return rows.map((r) => ({ id: r.id, itemId: r.itemId, itemCode: r.item.code, itemName: r.item.name, brandName: r.brand.name, unit: r.item.unit, currentQty: dec3(r.currentQty), hsnCode: r.item.hsnCode, gstRate: r.item.gstRate ? String(Number(r.item.gstRate)) : null, lastRate: r.lastPurchaseRate ? String(Number(r.lastPurchaseRate)) : null }));
 }
+
+/** Evidence on a manual stock entry: visible with inventory access, added by the owner, never deleted. */
+export async function stockTxnAccess(actor: Actor, id: string): Promise<import("@/modules/documents/access").EntityAccess | null> {
+  if (!can(actor, "items.view")) return null;
+  const t = await db.stockTransaction.findFirst({ where: { id, organizationId: actor.organizationId }, select: { code: true, projectId: true } });
+  if (!t) return null;
+  return { projectId: t.projectId, label: `stock entry ${t.code}`, canView: true, canUpload: can(actor, "stock.adjust"), locked: true };
+}

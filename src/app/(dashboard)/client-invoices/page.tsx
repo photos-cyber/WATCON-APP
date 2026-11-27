@@ -49,11 +49,12 @@ export default async function ClientInvoicesPage({ searchParams }: PageProps<"/c
           { label: "Paid", value: n("PAID"), tone: "good", href: "/client-invoices?status=PAID" },
         ]}
       />
-      <FilterBar params={["projectId", "q", "status", "partyId", "overdue"]}>
+      <FilterBar params={["projectId", "q", "status", "partyId", "overdue", "outstanding"]}>
         <FilterSelect param="projectId" label="Project" allLabel="All my projects" options={projects.map((p) => ({ value: p.id, label: `${p.code} – ${p.name}` }))} />
         <SearchInput placeholder="Search invoice or client…" />
         <FilterSelect param="status" label="Status" options={STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ").toLowerCase() }))} />
         <FilterSelect param="partyId" label="Client" options={clients.map((p) => ({ value: p.id, label: p.name }))} />
+        <FilterSelect param="outstanding" label="Payment" allLabel="All" options={[{ value: "1", label: "Outstanding" }]} />
       </FilterBar>
       <InvoiceTable rows={result.rows} />
       <Pagination total={result.total} page={result.page} pageSize={result.pageSize} />

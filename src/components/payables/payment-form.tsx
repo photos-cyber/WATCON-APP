@@ -37,13 +37,28 @@ const isAmount = (s: string) => /^\d{1,14}(\.\d{1,2})?$/.test(s.trim());
  * with them in the URL so the list of open bills / invoices comes from the server); amounts can
  * be split by hand or auto-allocated oldest-due first. Anything left over is kept as an advance.
  */
-export function PaymentForm({ direction, partyId, projectId, parties, projects, openDocs, preselect, lockProject, today }: { direction: "OUT" | "IN"; partyId: string | null; projectId: string | null; parties: PartyOpt[]; projects: ProjectOpt[]; openDocs: OpenDoc[]; preselect: string | null; lockProject: boolean; today: string }) {
+export function PaymentForm({ direction, partyId, projectId, parties, projects, openDocs, preselect, lockProject, today, po = null, so = null }: { direction: "OUT" | "IN"; partyId: string | null; projectId: string | null; parties: PartyOpt[]; projects: ProjectOpt[]; openDocs: OpenDoc[]; preselect: string | null; lockProject: boolean; today: string; po?: { id: string; number: string; generalStock: boolean } | null; so?: { id: string; number: string } | null }) {
   const router = useRouter();
   const out = direction === "OUT";
   const pre = openDocs.find((d) => d.id === preselect);
   const [idempotencyKey] = useState(() => newId());
   const [v, setV] = useState({ paymentDate: today, mode: "BANK_TRANSFER", reference: "", bankAccount: "", amount: pre?.outstanding ?? "", tdsAmount: "", remarks: "" });
-  const [alloc, setAlloc] = useState<Record<string, string>>(pre ? { [pre.id]: pre.outstanding } : {});
+  const [alloc, setAllocRaw] = useState<Record<string, string>>(pre ? { [pre.id]: pre.outstanding } : {});
+  /** Until the user edits allocations by hand, the preselected document follows the amount typed (capped at its outstanding). */
+  const [allocTouched, setAllocTouched] = useState(false);
+  const setAlloc: typeof setAllocRaw = (next) => {
+    setAllocTouched(true);
+    setAllocRaw(next);
+  };
+  const followAmount = (amount: string, tds: string) => {
+    if (allocTouched || !pre) return;
+    if (!isAmount(amount || "0") || !isAmount(tds || "0")) return;
+    const g = addMoney(amount || "0", tds || "0");
+    setAllocRaw({ [pre.id]: cmpMoney(g, pre.outstanding) >= 0 ? pre.outstanding : g });
+  };
+  /** Client receipts: settle invoices now, or keep the whole amount as an advance. */
+  const [settle, setSettle] = useState<"invoices" | "advance">(openDocs.length || pre ? "invoices" : "advance");
+  const [proof, setProof] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -54,7 +69,7 @@ export function PaymentForm({ direction, partyId, projectId, parties, projects, 
   };
   const nav = (p: Record<string, string | null>) => {
     const qs = new URLSearchParams({ direction });
-    const next = { partyId, projectId, ...p };
+    const next = { partyId, projectId, poId: po?.id ?? null, soId: so?.id ?? null, ...p };
     for (const [k, val] of Object.entries(next)) if (val) qs.set(k, val);
     if ("projectId" in p || !lockProject) qs.set("pick", "1");
     router.replace(`/payments/new?${qs}`);
@@ -87,10 +102,15 @@ export function PaymentForm({ direction, partyId, projectId, parties, projects, 
 
   async function save() {
     setBusy(true);
-    const allocations = Object.entries(alloc)
+    const allocations = settle === "advance" ? [] : Object.entries(alloc)
       .filter(([, a]) => a.trim() && Number(a) > 0)
       .map(([documentId, amount]) => ({ documentId, amount: amount.trim() }));
-    const res = await callAction(createPaymentAction, { direction, partyId, projectId, ...v, tdsAmount: out ? "" : v.tdsAmount, idempotencyKey, allocations });
+    let fd: FormData | null = null;
+    if (proof) {
+      fd = new FormData();
+      fd.set("file", proof);
+    }
+    const res = await callAction(createPaymentAction, { direction, partyId, projectId, poId: po?.id ?? null, soId: so?.id ?? null, ...v, tdsAmount: out ? "" : v.tdsAmount, idempotencyKey, allocations }, fd);
     setBusy(false);
     if (!res.ok) {
       setErrors(res.fieldErrors ?? {});
@@ -112,15 +132,17 @@ export function PaymentForm({ direction, partyId, projectId, parties, projects, 
       }}
     >
       <FormSection title={out ? "1. Who are you paying?" : "1. Who paid you?"} description="A payment belongs to one project and settles that project's documents only.">
-        <Field id="pay-project" label="Project" required error={errors.projectId}>
-          <SingleSelect id="pay-project" options={projects.map((p) => ({ value: p.id, label: p.name, hint: p.code }))} value={projectId} disabled={lockProject} onChange={(x) => nav({ projectId: x })} placeholder="Select project" />
+        {po && <p className="text-sm sm:col-span-2">Against purchase order <span className="font-medium">{po.number}</span>{po.generalStock ? " — general stock (not charged to a project)" : ""}. Anything not set against its bills stays as an advance on this PO.</p>}
+        {so && <p className="text-sm sm:col-span-2">Against sales order <span className="font-medium">{so.number}</span>. Anything not set against its invoices stays as an advance on this order and is offered against its next invoice.</p>}
+        <Field id="pay-project" label="Project" required={!po?.generalStock} error={errors.projectId}>
+          <SingleSelect id="pay-project" options={projects.map((p) => ({ value: p.id, label: p.name, hint: p.code }))} value={projectId} disabled={lockProject} onChange={(x) => nav({ projectId: x })} placeholder={po?.generalStock ? "General stock" : "Select project"} />
         </Field>
         <Field id="pay-party" label={out ? "Supplier" : "Client"} required error={errors.partyId}>
           <SingleSelect id="pay-party" options={parties.filter((p) => p.status === "ACTIVE" || p.id === partyId).map((p) => ({ value: p.id, label: p.name }))} value={partyId} onChange={(x) => nav({ partyId: x })} placeholder={out ? "Select supplier" : "Select client"} />
         </Field>
       </FormSection>
 
-      {partyId && projectId && (
+      {partyId && (projectId || po) && (
         <>
           <FormSection title="2. Payment details">
             <Field id="pay-date" label="Date" required error={errors.paymentDate}>
@@ -138,19 +160,28 @@ export function PaymentForm({ direction, partyId, projectId, parties, projects, 
             <Field id="pay-ref" label={v.mode === "CHEQUE" ? "Cheque number" : "UTR / transaction reference"} error={errors.reference}>
               <Input id="pay-ref" value={v.reference} onChange={(e) => set({ reference: e.target.value })} />
             </Field>
-            <Field id="pay-bank" label="Bank account" error={errors.bankAccount}>
-              <Input id="pay-bank" value={v.bankAccount} placeholder="e.g. HDFC current a/c …1234" onChange={(e) => set({ bankAccount: e.target.value })} />
-            </Field>
+
             <Field id="pay-amount" label={out ? "Amount paid ₹" : "Amount received ₹"} required error={errors.amount}>
-              <Input id="pay-amount" inputMode="decimal" className="text-right text-base font-semibold" value={v.amount} onChange={(e) => set({ amount: e.target.value })} aria-invalid={!!errors.amount} />
+              <Input id="pay-amount" inputMode="decimal" className="text-right text-base font-semibold" value={v.amount} onChange={(e) => { set({ amount: e.target.value }); followAmount(e.target.value, v.tdsAmount); }} aria-invalid={!!errors.amount} />
             </Field>
             {!out && (
               <Field id="pay-tds" label="TDS deducted by client ₹" error={errors.tdsAmount} help="Counts towards settling the invoice; claim it against Form 26AS.">
-                <Input id="pay-tds" inputMode="decimal" className="text-right" value={v.tdsAmount} onChange={(e) => set({ tdsAmount: e.target.value })} />
+                <Input id="pay-tds" inputMode="decimal" className="text-right" value={v.tdsAmount} onChange={(e) => { set({ tdsAmount: e.target.value }); followAmount(v.amount, e.target.value); }} />
               </Field>
             )}
           </FormSection>
 
+          {!out && (
+            <div role="radiogroup" aria-label="Settlement" className="flex flex-wrap gap-2">
+              {([["invoices", "Settle invoices"], ["advance", "Keep as advance (no invoice yet)"]] as const).map(([k, l]) => (
+                <label key={k} className={cn("flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm", settle === k && "border-primary bg-primary/5 font-medium")}>
+                  <input type="radio" name="settle" className="accent-primary" checked={settle === k} onChange={() => { setDirty(true); setSettle(k); }} /> {l}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {(out || settle === "invoices") && (
           <section className="rounded-xl border bg-card">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
               <div>
@@ -225,10 +256,23 @@ export function PaymentForm({ direction, partyId, projectId, parties, projects, 
               {errors.allocations && <p className="text-xs text-destructive">{errors.allocations}</p>}
             </div>
           </section>
+          )}
+          {!out && settle === "advance" && <p className="rounded-lg border bg-muted/40 px-3 py-2 text-sm">The whole {formatINR(gross)} is kept as a client advance. Set it against invoices later from the receipt (“Allocate advance”), or recover it on running bills.</p>}
 
-          <FormSection title="Remarks">
+          <FormSection title="Remarks & proof">
             <Field id="pay-remarks" label="Remarks" className="sm:col-span-2">
               <Textarea id="pay-remarks" rows={2} value={v.remarks} onChange={(e) => set({ remarks: e.target.value })} />
+            </Field>
+            <details className="sm:col-span-2">
+              <summary className="cursor-pointer text-sm text-primary">More details (bank account)</summary>
+              <div className="mt-3">
+                <Field id="pay-bank" label="Bank account" error={errors.bankAccount}>
+                  <Input id="pay-bank" value={v.bankAccount} placeholder="e.g. HDFC current a/c …1234" onChange={(e) => set({ bankAccount: e.target.value })} />
+                </Field>
+              </div>
+            </details>
+            <Field id="pay-proof" label="Supporting proof (optional)" className="sm:col-span-2" help="Bank advice, UTR screenshot or cheque photo — saved with the payment.">
+              <Input id="pay-proof" type="file" accept="image/*,application/pdf" onChange={(e) => { setDirty(true); setProof(e.target.files?.[0] ?? null); }} />
             </Field>
           </FormSection>
         </>
@@ -238,7 +282,7 @@ export function PaymentForm({ direction, partyId, projectId, parties, projects, 
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
-        <Button type="submit" disabled={busy || !partyId || !projectId || over}>
+        <Button type="submit" disabled={busy || !partyId || (!projectId && !po) || over}>
           {busy && <Loader2 className="animate-spin" />}
           {out ? "Record payment" : "Record receipt"}
         </Button>

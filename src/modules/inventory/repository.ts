@@ -230,11 +230,15 @@ async function findByIdempotencyKey(organizationId: string, key: string) {
  * posting again (also when two identical requests race — the loser's whole
  * transaction, including its balance change, rolls back on the unique key).
  */
-export async function postMovement(m: MovementData): Promise<{ txn: ReturnType<typeof toTxn>; duplicate: boolean }> {
+export async function postMovement(m: MovementData, afterPost?: (tx: Tx, txn: { id: string; code: string }) => Promise<unknown>): Promise<{ txn: ReturnType<typeof toTxn>; duplicate: boolean }> {
   const existing = await findByIdempotencyKey(m.organizationId, m.idempotencyKey);
   if (existing) return assertSamePosting(existing, m);
   try {
-    const txn = await db.$transaction((tx) => postMovementTx(tx, m));
+    const txn = await db.$transaction(async (tx) => {
+      const t = await postMovementTx(tx, m);
+      if (afterPost) await afterPost(tx, t);
+      return t;
+    });
     return { txn: { ...txn, locationId: txn.locationId }, duplicate: false };
   } catch (e) {
     if (isUniqueViolation(e)) {

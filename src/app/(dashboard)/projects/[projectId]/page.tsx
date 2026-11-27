@@ -1,9 +1,14 @@
-import { CalendarDays, MapPin, Pencil, Plus, ShoppingBag, UserRound } from "lucide-react";
+import { CalendarDays, MapPin, Pencil, Plus, ShoppingBag, Truck, UserRound } from "lucide-react";
+import { RecordClientPaymentButton } from "@/components/payables/client-account";
+import { projectAccountsDashboard, projectTransactions } from "@/modules/insights/project-accounts";
+import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocStatusBadge, Money, Section } from "@/components/commercial/ui";
 import { ActivityTimeline } from "@/components/documents/activity-timeline";
-import { KpiDefinitions, KpiGrid, MiniStat, NeedsAttention, OrderFlow, type Kpi } from "@/components/insights/command-center";
+import { PdfButtons } from "@/components/documents/pdf-buttons";
+import { ActionRequired, KpiDefinitions, KpiGrid, MiniStat, NeedsAttention, OrderFlow, type Kpi } from "@/components/insights/command-center";
+import { projectActionRequired } from "@/modules/insights/action-required";
 import { DocList } from "@/components/insights/doc-list";
 import { WorkspaceTabs, type WorkspaceGroup } from "@/components/insights/workspace-tabs";
 import { ConsumptionButton, LocationBalancesTable, ReservationsTable } from "@/components/inventory/location-ui";
@@ -72,13 +77,18 @@ function buildGroups(user: Actor, counts: Partial<Record<DocKind, DocCount>>, ta
     return [{ key, label: PROJECT_TABS[key], count: c?.total ?? 0, badge }];
   };
   const perm = (p: PermissionKey, key: keyof typeof PROJECT_TABS) => (can(user, p) ? [{ key, label: PROJECT_TABS[key] }] : []);
+  // Workflow v2 · Phase 9: Overview · Tasks · Sales Orders · Materials · Purchases · Site Challans ·
+  // Running Bills · Accounts · Documents. Tab keys are unchanged so existing links keep working.
   const groups: WorkspaceGroup[] = [
     { key: "overview", label: "Overview", tabs: [{ key: "overview", label: "Overview" }] },
-    { key: "sales", label: "Sales", tabs: [...doc("sales-orders"), ...doc("client-pos"), ...doc("running-bills"), ...doc("invoices"), ...doc("client-receipts")] },
-    { key: "materials", label: "Materials", tabs: [...perm("mrp.view", "planning"), ...doc("requisitions"), ...doc("rate-enquiries"), ...doc("purchase-orders")] },
-    { key: "site", label: "Site & stores", tabs: [...doc("site-receipts"), ...doc("challans"), ...perm("items.view", "stock")] },
-    { key: "accounts", label: "Accounts", tabs: [...perm("accounts.view", "accounts"), ...doc("supplier-bills"), ...doc("payments"), ...doc("notes")] },
-    { key: "records", label: "Records", tabs: [{ key: "tasks", label: PROJECT_TABS.tasks, count: taskTotal }, { key: "documents", label: PROJECT_TABS.documents }, { key: "activity", label: PROJECT_TABS.activity }, { key: "history", label: PROJECT_TABS.history }, { key: "team", label: PROJECT_TABS.team }] },
+    { key: "tasks", label: "Tasks", tabs: [{ key: "tasks", label: PROJECT_TABS.tasks, count: taskTotal }] },
+    { key: "sales", label: "Sales Orders", tabs: [...doc("sales-orders"), ...doc("client-pos")] },
+    { key: "materials", label: "Materials", tabs: [...perm("mrp.view", "planning"), ...perm("items.view", "stock")] },
+    { key: "purchases", label: "Purchases", tabs: [...doc("purchase-orders"), ...doc("rate-enquiries"), ...doc("requisitions"), ...doc("supplier-bills"), ...doc("payments")] },
+    { key: "site", label: "Site Challans", tabs: [...doc("challans"), ...doc("site-receipts")] },
+    { key: "billing", label: "Running Bills", tabs: [...doc("running-bills"), ...doc("invoices"), ...doc("client-receipts")] },
+    { key: "accounts", label: "Accounts", tabs: [...perm("accounts.view", "accounts"), ...doc("notes")] },
+    { key: "records", label: "Documents", tabs: [{ key: "documents", label: PROJECT_TABS.documents }, { key: "activity", label: PROJECT_TABS.activity }, { key: "history", label: PROJECT_TABS.history }, { key: "team", label: PROJECT_TABS.team }] },
   ];
   return groups.filter((g) => g.tabs.length > 0);
 }
@@ -116,6 +126,13 @@ export default async function ProjectDetailPage({ params, searchParams }: PagePr
               <Button asChild size="sm">
                 <Link href={`/sales-orders/new?projectId=${project.id}`}>
                   <ShoppingBag /> Create sales order
+                </Link>
+              </Button>
+            )}
+            {!archived && can(user, "stock.transfer") && (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/projects/${project.id}/issue`}>
+                  <Truck /> Issue material to site
                 </Link>
               </Button>
             )}
@@ -178,7 +195,7 @@ export default async function ProjectDetailPage({ params, searchParams }: PagePr
 type ProjectData = Awaited<ReturnType<typeof getProject>>;
 
 async function Overview({ user, project, counts, capabilities, sp }: { user: Actor; project: ProjectData["project"]; counts: ProjectData["counts"]; capabilities: ProjectData["capabilities"]; sp: SP }) {
-  const [flow, cc] = await Promise.all([projectOrderFlow(user, project.id), projectCommandCenter(user, project.id)]);
+  const [flow, cc, actions] = await Promise.all([projectOrderFlow(user, project.id), projectCommandCenter(user, project.id), projectActionRequired(user, project.id)]);
   const latest = project.statusUpdates[0];
   const f = cc.financials;
   const nonZero = (v: string) => cmpMoney(v, "0") !== 0;
@@ -203,6 +220,7 @@ async function Overview({ user, project, counts, capabilities, sp }: { user: Act
     : [];
   return (
     <div className="space-y-6">
+      <ActionRequired cards={actions} />
       <OrderFlow steps={flow} projectId={project.id} />
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -237,7 +255,7 @@ async function Overview({ user, project, counts, capabilities, sp }: { user: Act
               <MiniStat label="Shortages to order" value={cc.material.shortages} tone={cc.material.shortages ? "bad" : undefined} href={`${t("planning")}&status=SHORTAGE`} />
               <MiniStat label="POs awaiting delivery" value={cc.material.openPos} href={t("purchase-orders")} />
               <MiniStat label="Deliveries overdue" value={cc.material.overduePos} tone={cc.material.overduePos ? "bad" : undefined} href={t("purchase-orders")} />
-              <MiniStat label="Receipts to verify" value={cc.material.grnsToPost} tone={cc.material.grnsToPost ? "warn" : undefined} href={`${t("site-receipts")}&status=SUBMITTED`} />
+              <MiniStat label="Receipts to confirm" value={cc.material.grnsToPost} tone={cc.material.grnsToPost ? "warn" : undefined} href={`${t("site-receipts")}&status=SUBMITTED`} />
             </dl>
           </section>
           <section className="rounded-xl border bg-card p-4" aria-label="Project details">
@@ -395,48 +413,90 @@ async function SiteStock({ user, projectId, sp }: { user: Actor; projectId: stri
 }
 
 async function AccountsTab({ user, projectId }: { user: Actor; projectId: string }) {
-  const cc = await projectCommandCenter(user, projectId);
-  const f = cc.financials;
-  if (!f) return <EmptyState title="No access to project accounts" description="Ask an administrator for the Project accounts permission." />;
-  const row = (label: string, value: string, help: string, strong = false) => (
-    <div className="flex items-start justify-between gap-4 py-2">
-      <div>
-        <dt className={strong ? "font-medium" : ""}>{label}</dt>
-        <dd className="text-xs text-muted-foreground">{help}</dd>
-      </div>
-      <Money value={value} className={strong ? "font-semibold" : ""} />
+  if (!can(user, "accounts.view")) return <EmptyState title="No access to project accounts" description="Ask an administrator for the Project accounts permission." />;
+  const [dash, txns] = await Promise.all([projectAccountsDashboard(user, projectId), projectTransactions(user, projectId, 100)]);
+  const { client: c, supplier: s, summary: f } = dash;
+  const tile = (label: string, value: string | null, hint?: string, tone?: "bad" | "good") => (
+    <div key={label}>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className={cn("font-semibold tabular-nums", tone === "bad" && "text-rose-700", tone === "good" && "text-emerald-700")}>{value === null ? "—" : formatINR(value)}</dd>
+      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
     </div>
   );
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Operational project accounts built from approved documents. This is not a general ledger; it tracks what is billed, received, owed and paid for this project.</p>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Client side">
-          <dl className="divide-y text-sm">
-            {row("Contract value", f.contractValue, KPI_HELP.contractValue)}
-            {row("Certified", f.certified, KPI_HELP.certified)}
-            {row("Billed", f.billed, KPI_HELP.billed)}
-            {row("Received", f.received, KPI_HELP.received)}
-            {row("Receivable", f.receivable, KPI_HELP.receivable, true)}
-          </dl>
-        </Section>
-        <Section title="Supplier side">
-          <dl className="divide-y text-sm">
-            {row("Committed (POs)", f.committed, KPI_HELP.committed)}
-            {row("Material received", f.receivedValue, KPI_HELP.receivedValue)}
-            {row("Supplier billed", f.supplierBilled, KPI_HELP.supplierBilled)}
-            {row("Paid", f.paid, KPI_HELP.paid)}
-            {row("Payable", f.payable, KPI_HELP.payable, true)}
-          </dl>
-        </Section>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="max-w-3xl text-sm text-muted-foreground">Operational project accounts from approved documents — not a general ledger. Purchase orders are commitments, not expenses; the contract value is not revenue until it is invoiced.</p>
+        <PdfButtons href={`/api/documents/pdf?type=project_accounts&id=${projectId}`} />
       </div>
-      <Section title="Margin">
-        <dl className="divide-y text-sm">
-          {row("Billed revenue (excl. GST)", f.billedTaxable, "Taxable value of issued client invoices.")}
-          {row("Material cost", f.materialCost, KPI_HELP.materialCost)}
-          {row("Gross material margin", f.margin, KPI_HELP.margin, true)}
+      {c && (
+        <Section title="Client side" actions={can(user, "payments.manage") ? <RecordClientPaymentButton projectId={projectId} partyId={c.clients.length === 1 ? c.clients[0]!.id : null} /> : null}>
+          <dl className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+            {tile("Contract value", c.contractValue)}
+            {tile("Total billed", c.invoiced, "issued tax invoices")}
+            {tile("Payment received", c.paymentReceived, "allocated + advances")}
+            {tile("Outstanding invoices", c.outstandingBilled, cmpMoney(c.overdue, "0") > 0 ? `${formatINR(c.overdue)} overdue` : undefined, cmpMoney(c.overdue, "0") > 0 ? "bad" : undefined)}
+            {tile("Unbilled amount", c.unbilled)}
+            {tile("Advances", c.clientAdvances, "not yet set against invoices")}
+            {tile("Total remaining payment", c.remainingContract)}
+          </dl>
+          {c.nextMilestone && <p className="mt-3 text-sm text-muted-foreground">Next payment milestone: <span className="font-medium text-foreground">{c.nextMilestone.label}</span> ({c.nextMilestone.soNumber}) — {formatINR(c.nextMilestone.dueNow)} to receive.</p>}
+        </Section>
+      )}
+      <Section title="Supplier side">
+        <dl className="grid grid-cols-2 gap-3 text-sm md:grid-cols-5">
+          {tile("PO value", s.poValue, "commitment, not an expense")}
+          {tile("Supplier bills", s.supplierBills)}
+          {tile("Payments made", s.paymentsMade)}
+          {tile("Advances", s.advances, "paid, not yet set against bills")}
+          {tile("Outstanding to suppliers", s.outstanding)}
         </dl>
-        {f.marginPct !== null && <p className="mt-2 text-xs text-muted-foreground">{f.marginPct}% of billed revenue.</p>}
+      </Section>
+      <Section title="Project financial summary (excl. GST)">
+        <dl className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+          {tile("Actual material cost", f.materialCost, "material that reached the project")}
+          {tile("Other project expenses", f.otherExpenses, "services, labour, freight on supplier bills")}
+          {tile("Estimated remaining costs", f.estRemaining, f.unpricedLines ? `${f.unpricedLines} line(s) without a price not included` : "open requirements × last rate")}
+          {tile("Estimated profit", f.estProfit, f.estProfitPct !== null ? `${f.estProfitPct}% of contract ${formatINR(f.contractTaxable)}` : undefined, cmpMoney(f.estProfit, "0") < 0 ? "bad" : "good")}
+          {tile("Recognised revenue", f.revenue, "invoiced, excl. GST")}
+          {tile("Actual margin", f.actualMargin, f.actualMarginPct !== null ? `${f.actualMarginPct}% of invoiced revenue` : "after the first invoice")}
+        </dl>
+        <p className="mt-2 text-xs text-muted-foreground">General-stock purchases count as project cost only when the material is issued to this project.</p>
+      </Section>
+      <Section title="Transaction history" bodyClassName="p-0">
+        {txns.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-muted-foreground">No transactions yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead className="bg-muted/40 text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Date</th>
+                  <th className="px-3 py-2 text-left font-medium">Record</th>
+                  <th className="px-3 py-2 text-left font-medium">Party</th>
+                  <th className="px-3 py-2 text-right font-medium">Amount</th>
+                  <th className="px-3 py-2 text-left font-medium">Status</th>
+                  <th className="px-3 py-2 text-right font-medium">Proofs</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {txns.map((t) => (
+                  <tr key={t.key}>
+                    <td className="px-3 py-2 whitespace-nowrap">{formatDate(t.date)}</td>
+                    <td className="px-3 py-2">
+                      <Link href={t.href} className="font-medium hover:text-primary hover:underline">{t.number}</Link>
+                      <div className="text-xs text-muted-foreground">{t.kind}</div>
+                    </td>
+                    <td className="px-3 py-2 text-xs">{t.party ?? "—"}</td>
+                    <td className={cn("px-3 py-2 text-right tabular-nums", t.flow === "IN" && "text-emerald-700", t.flow === "OUT" && "text-rose-700")}>{t.amount === null ? "—" : `${t.flow === "IN" ? "+" : t.flow === "OUT" ? "−" : ""}${formatINR(t.amount)}`}</td>
+                    <td className="px-3 py-2"><DocStatusBadge status={t.status} /></td>
+                    <td className="px-3 py-2 text-right text-xs">{t.proofs ? <Link href={`${t.href}#documents`} className="text-primary hover:underline">{t.proofs} file{t.proofs > 1 ? "s" : ""}</Link> : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Section>
       <p className="text-sm">
         <Link href="/accounts" className="text-primary hover:underline">

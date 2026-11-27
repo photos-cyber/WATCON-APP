@@ -38,7 +38,7 @@ export default async function NotesPage({ searchParams }: PageProps<"/notes">) {
           )
         }
       />
-      <SummaryCards items={[{ label: "Waiting for approval", value: r.drafts, tone: r.drafts ? "warn" : "default", href: "/notes?status=DRAFT" }]} />
+      <SummaryCards items={[{ label: "Waiting for Super Admin", value: r.drafts, tone: r.drafts ? "warn" : "default", href: "/notes?status=DRAFT" }]} />
       <FilterBar params={project ? ["q", "partyRole", "status"] : ["q", "partyRole", "status", "projectId"]}>
         <SearchInput placeholder="Search number, party or reason…" />
         <FilterSelect param="partyRole" label="Side" options={[{ value: "SUPPLIER", label: "Supplier" }, { value: "CLIENT", label: "Client" }]} />

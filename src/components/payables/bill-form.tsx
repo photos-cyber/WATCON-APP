@@ -133,7 +133,7 @@ export function BillForm({ initial, initialRefs, billId, version, pos, suppliers
       return;
     }
     setDirty(false);
-    toast.success(billId ? "Bill saved." : "Bill saved as draft. Submit it for approval when ready.");
+    toast.success(billId ? "Bill saved." : "Bill saved as draft — attach the supplier's invoice and finalize it.");
     router.push(`/supplier-bills/${res.data.id}`);
   }
 

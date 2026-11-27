@@ -4,14 +4,16 @@ import { writeAudit } from "@/lib/audit";
 import { db, type Prisma, type Tx } from "@/lib/db";
 import { nextDocNumber } from "@/lib/doc-numbering";
 import { NotFoundError, ValidationError } from "@/lib/errors";
-import { addMoney, addQty, cmpMoney, cmpQty, divRound, fmtMoney, lineAmounts, money, qtyUnits, SCALE, subQty, taxModeFor, toUnits, unitRate } from "@/lib/money";
+import { addQty, cmpMoney, cmpQty, divRound, fmtMoney, fmtQty, lineAmounts, money, qtyUnits, SCALE, subQty, taxModeFor, toUnits, unitRate } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
-import { gstRateField, optMoney, optPct, projectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
+import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
+import { gstRateField, optMoney, optPct, optionalProjectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
 import { milestonesSchema } from "@/modules/commercial/payment-terms";
 import type { EntityAccess } from "@/modules/documents/access";
 import { startOfToday } from "@/modules/tasks/rules";
+import { advanceProjectStatus } from "@/modules/projects/lifecycle";
+import { assertAllocations } from "@/modules/planning/allocation";
 import { createPo } from "./po";
 import { supplierPerformance } from "./performance";
 
@@ -25,7 +27,7 @@ const optDate = z.union([dateString, z.literal(""), z.null()]).optional().transf
 const optId = uuid.optional().nullable().or(z.literal("")).transform((v) => (v ? v : null));
 
 export const rfqSchema = z.object({
-  projectId: projectIdField,
+  projectId: optionalProjectIdField,
   prId: optId,
   title: text("Title", 200, 3),
   deliveryLocationId: optId,
@@ -39,7 +41,7 @@ export const rfqSchema = z.object({
   specifications: optionalText("Specifications", 5000),
   supplierIds: z.array(uuid).min(1, "Invite at least one supplier."),
   lines: z
-    .array(z.object({ itemId: uuid, itemBrandId: optId, acceptableBrands: optionalText("Acceptable brands", 300), quantity: qtyField, specifications: optionalText("Specifications", 500), prLineId: optId }))
+    .array(z.object({ itemId: uuid, itemBrandId: optId, acceptableBrands: optionalText("Acceptable brands", 300), quantity: qtyField, specifications: optionalText("Specifications", 500), prLineId: optId, requirementId: optId }))
     .min(1, "Add at least one material.")
     .max(200),
 });
@@ -72,11 +74,11 @@ async function loadRfq(actor: Actor, id: string, client: Tx | typeof db = db) {
   return r;
 }
 
-export async function createRfq(actor: Actor, input: unknown) {
+export async function createRfq(actor: Actor, input: unknown, existingTx?: Tx) {
   requirePermission(actor, "rfq.manage");
   const data = parseInput(rfqSchema, input);
   if (data.projectId) await assertProjectUsable(actor, data.projectId);
-  return db.$transaction(async (tx) => {
+  const run = async (tx: Tx) => {
     if (data.deliveryLocationId) {
       const location = await tx.stockLocation.findFirst({ where: { id: data.deliveryLocationId, organizationId: actor.organizationId, status: "ACTIVE", type: { in: ["WAREHOUSE", "SITE"] } } });
       if (!location || (location.type === "SITE" && location.projectId !== data.projectId)) throw new ValidationError("Choose an active delivery location for this project.", { deliveryLocationId: "Invalid location." });
@@ -99,6 +101,7 @@ export async function createRfq(actor: Actor, input: unknown) {
     data.lines.forEach((l, i) => {
       if (!units.has(l.itemId)) throw new ValidationError("Item not found.", { [`lines.${i}.itemId`]: "Not found." });
     });
+    await assertAllocations(tx, actor.organizationId, { projectId: data.projectId, label: "This rate enquiry" }, data.lines.map((l) => ({ requirementId: l.requirementId, itemBrandId: l.itemBrandId ?? "", quantity: l.quantity, prLineId: l.prLineId })));
     const number = await nextDocNumber(tx, actor.organizationId, "RFQ", startOfToday());
     const rfq = await tx.rfq.create({
       data: {
@@ -117,23 +120,24 @@ export async function createRfq(actor: Actor, input: unknown) {
         validityDays: data.validityDays,
         specifications: data.specifications,
         createdById: actor.id,
-        lines: { create: data.lines.map((l, i) => ({ lineNo: i + 1, itemId: l.itemId, itemBrandId: l.itemBrandId, acceptableBrands: l.acceptableBrands, quantity: l.quantity, unit: units.get(l.itemId)!, specifications: l.specifications, prLineId: l.prLineId })) },
+        lines: { create: data.lines.map((l, i) => ({ lineNo: i + 1, itemId: l.itemId, itemBrandId: l.itemBrandId, acceptableBrands: l.acceptableBrands, quantity: l.quantity, unit: units.get(l.itemId)!, specifications: l.specifications, prLineId: l.prLineId, requirementId: l.requirementId })) },
         suppliers: { create: [...new Set(data.supplierIds)].map((partyId) => ({ partyId })) },
       },
     });
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "rfq.created", entityType: "rfq", entityId: rfq.id, projectId: rfq.projectId, summary: `Created rate enquiry ${number} – ${data.title} (${data.lines.length} items, ${data.supplierIds.length} suppliers)` }, tx);
     return rfq;
-  });
+  };
+  return existingTx ? run(existingTx) : db.$transaction(run);
 }
 
 const addSuppliersSchema = z.object({ supplierIds: z.array(uuid).min(1, "Choose at least one supplier.") });
 
-/** Invite more suppliers to an open enquiry (any number, until the award is sent for approval). */
+/** Invite more suppliers to an open enquiry (any number, until the award is made). */
 export async function addRfqSuppliers(actor: Actor, id: string, input: unknown) {
   requirePermission(actor, "rfq.manage");
   const data = parseInput(addSuppliersSchema, input);
   const rfq = await loadRfq(actor, id);
-  if (!["DRAFT", "SENT", "RESPONSES_IN"].includes(rfq.status)) throw new ValidationError("Suppliers can only be added while the enquiry is open (before the award is sent for approval).");
+  if (!["DRAFT", "SENT", "RESPONSES_IN"].includes(rfq.status)) throw new ValidationError("Suppliers can only be added while the enquiry is open (before the award is made).");
   const already = new Set(rfq.suppliers.map((s) => s.partyId));
   const ids = [...new Set(data.supplierIds)].filter((p) => !already.has(p));
   if (!ids.length) throw new ValidationError("These suppliers are already on the enquiry.", { supplierIds: "Already invited." });
@@ -180,8 +184,8 @@ export async function rfqAction(actor: Actor, id: string, action: RfqAction, opt
     });
   }
   if (action === "approve_award" || action === "reject_award") {
-    const value = await awardValue(id);
-    await assertCanApprove(actor, { permission: "rfq.approve", docType: "PO", amount: value, createdById: rfq.awardProposedById, submittedById: rfq.awardProposedById, what: "supplier award" });
+    // Only for awards left waiting under the old two-step approval.
+    requireAnyPermission(actor, ["rfq.manage", "rfq.approve"]);
     if (action === "reject_award" && !opts.note) throw new ValidationError("Give a reason.", { note: "Reason is required." });
     return db.$transaction(async (tx) => {
       if (action === "approve_award") {
@@ -200,11 +204,6 @@ export async function rfqAction(actor: Actor, id: string, action: RfqAction, opt
     await transition(tx.rfq, w, action === "cancel" ? ["DRAFT", "SENT", "RESPONSES_IN", "AWARD_PENDING"] : ["AWARDED", "RESPONSES_IN", "SENT"], { status: action === "cancel" ? "CANCELLED" : "CLOSED", awardNote: opts.note }, "rate enquiry");
     await log(tx, action === "cancel" ? "Cancelled" : "Closed");
   });
-}
-
-async function awardValue(rfqId: string) {
-  const lines = await db.quotationLine.findMany({ where: { quotation: { rfqId }, awardedQty: { gt: 0 } }, include: { quotation: { select: { taxMode: true } } } });
-  return addMoney(...lines.map((l) => lineAmounts({ qty: dec3(l.awardedQty), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: dec2(l.gstRate) }, l.quotation.taxMode).total));
 }
 
 /** Manual entry of a supplier quotation (or a revised one, superseding the previous). */
@@ -430,22 +429,24 @@ export async function getRfq(actor: Actor, id: string) {
     return { line: { ...line, quantity: dec3(line.quantity) }, quotes, awarded };
   });
 
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "rfq.approve", { createdById: rfq.awardProposedById, submittedById: rfq.awardProposedById }, settings.enforceSegregation);
   const awardedSuppliers = new Set(rfq.quotations.filter((q) => q.lines.some((l) => cmpQty(dec3(l.awardedQty), "0") > 0)).map((q) => q.partyId));
   const poPartyNames = new Set(rfq.purchaseOrders.filter((p) => p.status !== "CANCELLED").map((p) => p.party.name));
+  const ordered = await orderedByRfqLine(db, rfq.id);
+  const openQty = new Map(rfq.lines.map((l) => [l.id, cmpQty(dec3(l.quantity), ordered.get(l.id) ?? "0") > 0 ? subQty(dec3(l.quantity), ordered.get(l.id) ?? "0") : "0"]));
+  const canConvert = can(actor, "po.create") && ["DRAFT", "SENT", "RESPONSES_IN", "AWARDED"].includes(rfq.status);
   return {
-    rfq: { ...rfq, lines: rfq.lines.map((l) => ({ ...l, quantity: dec3(l.quantity) })), quotations: rfq.quotations.map((q) => ({ ...q, freight: dec2(q.freight), freightGstRate: dec2(q.freightGstRate), lines: q.lines.map((l) => ({ ...l, quantity: dec3(l.quantity), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: dec2(l.gstRate), awardedQty: dec3(l.awardedQty) })) })), purchaseOrders: rfq.purchaseOrders.map((p) => ({ ...p, total: dec2(p.total) })) },
+    rfq: { ...rfq, lines: rfq.lines.map((l) => ({ ...l, quantity: dec3(l.quantity), orderedQty: ordered.get(l.id) ?? "0", openQty: openQty.get(l.id)! })), quotations: rfq.quotations.map((q) => ({ ...q, convertible: canConvert && ["RECEIVED", "AWARDED"].includes(q.status) && q.lines.some((l) => !!l.rfqLineId && cmpQty(openQty.get(l.rfqLineId) ?? "0", "0") > 0), freight: dec2(q.freight), freightGstRate: dec2(q.freightGstRate), lines: q.lines.map((l) => ({ ...l, quantity: dec3(l.quantity), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: dec2(l.gstRate), awardedQty: dec3(l.awardedQty) })) })), purchaseOrders: rfq.purchaseOrders.map((p) => ({ ...p, total: dec2(p.total) })) },
     comparison,
     can: {
       manage: can(actor, "rfq.manage") && ["DRAFT", "SENT", "RESPONSES_IN"].includes(rfq.status),
       send: can(actor, "rfq.manage") && ["DRAFT", "SENT", "RESPONSES_IN"].includes(rfq.status),
       award: can(actor, "rfq.manage") && rfq.status === "RESPONSES_IN",
-      approveAward: rfq.status === "AWARD_PENDING" && hint.canApprove,
-      approveBlockedReason: rfq.status === "AWARD_PENDING" ? hint.reason : null,
+      approveAward: rfq.status === "AWARD_PENDING" && (can(actor, "rfq.manage") || can(actor, "rfq.approve")),
+      approveBlockedReason: null as string | null,
       createPos: can(actor, "po.create") && rfq.status === "AWARDED" && [...awardedSuppliers].length > 0 && rfq.purchaseOrders.filter((p) => p.status !== "CANCELLED").length === 0,
       cancel: can(actor, "rfq.manage") && ["DRAFT", "SENT", "RESPONSES_IN", "AWARD_PENDING"].includes(rfq.status),
       close: can(actor, "rfq.manage") && ["AWARDED", "RESPONSES_IN", "SENT"].includes(rfq.status),
+      convert: canConvert,
     },
     poSuppliers: [...poPartyNames],
   };
@@ -474,8 +475,11 @@ export async function proposeAward(actor: Actor, rfqId: string, input: unknown) 
   await db.$transaction(async (tx) => {
     await tx.quotationLine.updateMany({ where: { quotation: { rfqId } }, data: { awardedQty: 0 } });
     for (const a of data.awards) if (cmpQty(a.quantity, "0") > 0) await tx.quotationLine.update({ where: { id: a.quotationLineId }, data: { awardedQty: a.quantity } });
-    await transition(tx.rfq, { id: rfqId, organizationId: actor.organizationId, version: data.version }, ["RESPONSES_IN"], { status: "AWARD_PENDING", awardNote: data.note, awardProposedById: actor.id, awardProposedAt: new Date() }, "rate enquiry");
-    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "rfq.award_proposed", entityType: "rfq", entityId: rfqId, projectId: rfq.projectId, summary: `Proposed award on ${rfq.number} for approval${data.note ? ` – ${data.note}` : ""}` }, tx);
+    // Simplified workflow: the award is final at once (no separate award approval).
+    const now = new Date();
+    await transition(tx.rfq, { id: rfqId, organizationId: actor.organizationId, version: data.version }, ["RESPONSES_IN"], { status: "AWARDED", awardNote: data.note, awardProposedById: actor.id, awardProposedAt: now, awardApprovedById: actor.id, awardApprovedAt: now }, "rate enquiry");
+    await tx.supplierQuotation.updateMany({ where: { rfqId, status: "RECEIVED", lines: { some: { awardedQty: { gt: 0 } } } }, data: { status: "AWARDED" } });
+    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "rfq.award_proposed", entityType: "rfq", entityId: rfqId, projectId: rfq.projectId, summary: `Awarded ${rfq.number}${data.note ? ` – ${data.note}` : ""}` }, tx);
   });
 }
 
@@ -508,12 +512,124 @@ export async function createPosFromAward(actor: Actor, rfqId: string) {
       chargesGstRate: dec2(q.freightGstRate),
       rfqId: rfq.id,
       prId: rfq.prId,
-      lines: q.lines.map((l) => ({ itemBrandId: l.itemBrandId, quantity: dec3(l.awardedQty), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: String(Number(dec2(l.gstRate))), prLineId: l.rfqLineId ? (lineById.get(l.rfqLineId)?.prLineId ?? null) : null, quotationLineId: l.id, description: l.remarks })),
+      lines: q.lines.map((l) => ({ itemBrandId: l.itemBrandId, quantity: dec3(l.awardedQty), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: String(Number(dec2(l.gstRate))), prLineId: l.rfqLineId ? (lineById.get(l.rfqLineId)?.prLineId ?? null) : null,
+        // Keep the planning allocation when the supplier quoted the planned brand (an alternative brand is a new decision).
+        requirementId: l.rfqLineId && lineById.get(l.rfqLineId)?.itemBrandId === l.itemBrandId ? (lineById.get(l.rfqLineId)?.requirementId ?? null) : null,
+        quotationLineId: l.id, description: l.remarks })),
     }, tx);
+    // The award was approved against the PO approval limit, so its POs need no second approval.
+    if (rfq.awardApprovedById) {
+      await tx.purchaseOrder.update({ where: { id: po.id }, data: { status: "APPROVED", submittedById: rfq.awardProposedById, submittedAt: rfq.awardProposedAt, approvedById: rfq.awardApprovedById, approvedAt: rfq.awardApprovedAt ?? new Date(), statusNote: `Approved with the award of ${rfq.number}`, version: { increment: 1 } } });
+      await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "po.approve", entityType: "purchase_order", entityId: po.id, projectId: po.projectId, summary: `PO ${po.number} approved with the supplier award of ${rfq.number} (no second approval)` }, tx);
+      await advanceProjectStatus(tx, po.projectId, actor.id);
+    }
     created.push({ id: po.id, number: po.number });
   }
   return created;
   }, { timeout: 20000 });
+}
+
+/** Quantity already on live purchase orders per enquiry line (through the quotation lines). */
+async function orderedByRfqLine(client: Tx | typeof db, rfqId: string) {
+  const rows = await client.$queryRaw<{ id: string; qty: string }[]>`
+    SELECT ql.rfq_line_id::text AS id, SUM(pl.quantity)::text AS qty
+    FROM po_lines pl JOIN quotation_lines ql ON ql.id = pl.quotation_line_id JOIN purchase_orders po ON po.id = pl.po_id
+    WHERE po.rfq_id = ${rfqId}::uuid AND po.status <> 'CANCELLED' AND ql.rfq_line_id IS NOT NULL
+    GROUP BY 1`;
+  return new Map(rows.map((r) => [r.id, fmtQty(qtyUnits(r.qty))]));
+}
+
+export const convertQuotationSchema = z.object({
+  quotationId: uuid,
+  expectedDate: optDate,
+  /** Optional per-line quantities; default = what the supplier quoted, up to what is still open on the enquiry. */
+  lines: z.array(z.object({ quotationLineId: uuid, quantity: z.union([z.string(), z.number()]).transform((v) => String(v).trim() || "0").pipe(z.string().regex(/^\d{1,11}(\.\d{1,3})?$/, "Quantity.")) })).max(200).optional(),
+});
+
+/**
+ * Comparison and award are optional: turn one supplier's quotation straight into a draft purchase
+ * order (the PO then needs the normal single approval — "Finalize"). Rates, GST, freight, delivery and
+ * payment terms come from the quotation; items, project, delivery and planning allocations from the
+ * enquiry. Quantities can never exceed what is still open on each enquiry line across all POs from it,
+ * so the same need cannot be ordered twice (the enquiry row is locked).
+ */
+export async function convertQuotationToPo(actor: Actor, input: unknown) {
+  requirePermission(actor, "po.create");
+  const data = parseInput(convertQuotationSchema, input);
+  const head = await db.supplierQuotation.findFirst({ where: { id: data.quotationId, organizationId: actor.organizationId }, select: { rfqId: true } });
+  if (!head?.rfqId) throw new NotFoundError("Quotation");
+  await loadRfq(actor, head.rfqId);
+  return db.$transaction(
+    async (tx) => {
+      await tx.$queryRaw`SELECT id FROM rfqs WHERE id = ${head.rfqId}::uuid FOR UPDATE`;
+      const rfq = await tx.rfq.findUniqueOrThrow({ where: { id: head.rfqId! }, include: { lines: { include: { item: { select: { name: true } } } } } });
+      if (rfq.status === "AWARD_PENDING") throw new ValidationError("An award is waiting to be confirmed on this enquiry. Confirm or reject it first.");
+      if (!["DRAFT", "SENT", "RESPONSES_IN", "AWARDED"].includes(rfq.status)) throw new ValidationError("This enquiry is closed.");
+      const q = await tx.supplierQuotation.findUniqueOrThrow({ where: { id: data.quotationId }, include: { lines: true, party: { select: { name: true } } } });
+      if (!["RECEIVED", "AWARDED"].includes(q.status)) throw new ValidationError("Only the supplier's current quotation can be ordered (this one was revised or rejected).");
+      const ordered = await orderedByRfqLine(tx, rfq.id);
+      const rfqLines = new Map(rfq.lines.map((l) => [l.id, l]));
+      const wanted = new Map((data.lines ?? []).map((l) => [l.quotationLineId, l.quantity]));
+      for (const id of wanted.keys()) if (!q.lines.some((l) => l.id === id)) throw new ValidationError("A line does not belong to this quotation.");
+      const open = new Map<string, string>();
+      const picks: { ql: (typeof q.lines)[number]; rl: (typeof rfq.lines)[number]; qty: string }[] = [];
+      for (const ql of q.lines) {
+        const rl = ql.rfqLineId ? rfqLines.get(ql.rfqLineId) : undefined;
+        if (!rl) continue;
+        const done = ordered.get(rl.id) ?? "0";
+        const left = open.get(rl.id) ?? (cmpQty(dec3(rl.quantity), done) > 0 ? subQty(dec3(rl.quantity), done) : "0");
+        const quoted = dec3(ql.quantity);
+        const qty = wanted.has(ql.id) ? wanted.get(ql.id)! : cmpQty(quoted, left) < 0 ? quoted : left;
+        if (cmpQty(qty, "0") <= 0) continue;
+        if (cmpQty(qty, left) > 0) throw new ValidationError(`${rl.item.name}: only ${left} ${rl.unit} is still open on this enquiry (already ordered ${done}).`, { lines: "More than is open on the enquiry." });
+        open.set(rl.id, subQty(left, qty));
+        picks.push({ ql, rl, qty });
+      }
+      if (!picks.length) throw new ValidationError("Nothing left to order from this quotation — the enquiry quantities are already on purchase orders.");
+      for (const p of picks) await tx.quotationLine.update({ where: { id: p.ql.id }, data: { awardedQty: { increment: p.qty } } });
+      if (q.status !== "AWARDED") await tx.supplierQuotation.update({ where: { id: q.id }, data: { status: "AWARDED" } });
+      const today = startOfToday();
+      const byDays = q.deliveryDays !== null ? new Date(today.getTime() + q.deliveryDays * 86_400_000) : null;
+      const po = await createPo(
+        actor,
+        {
+          projectId: rfq.projectId,
+          partyId: q.partyId,
+          deliveryLocationId: rfq.deliveryLocationId,
+          deliveryAddress: rfq.deliveryAddress,
+          orderDate: today.toISOString().slice(0, 10),
+          expectedDate: data.expectedDate ?? (byDays ?? rfq.requiredBy)?.toISOString().slice(0, 10) ?? null,
+          paymentTerms: supplierTermsSummary(q)?.slice(0, 500) ?? null,
+          advancePct: q.advancePct ? dec2(q.advancePct) : null,
+          creditDays: q.creditDays,
+          warranty: q.warranty,
+          paymentMilestones: q.paymentMilestones,
+          charges: dec2(q.freight),
+          chargesGstRate: dec2(q.freightGstRate),
+          rfqId: rfq.id,
+          prId: rfq.prId,
+          lines: picks.map(({ ql, rl, qty }) => ({
+            itemBrandId: ql.itemBrandId,
+            quantity: qty,
+            rate: dec4(ql.rate),
+            discountPct: dec2(ql.discountPct),
+            gstRate: String(Number(dec2(ql.gstRate))),
+            prLineId: rl.prLineId,
+            requirementId: rl.itemBrandId === ql.itemBrandId ? rl.requirementId : null,
+            quotationLineId: ql.id,
+            description: ql.remarks,
+          })),
+        },
+        tx,
+      );
+      const after = await orderedByRfqLine(tx, rfq.id);
+      const allOrdered = rfq.lines.every((l) => cmpQty(after.get(l.id) ?? "0", dec3(l.quantity)) >= 0);
+      if (allOrdered && rfq.status !== "AWARDED") await tx.rfq.update({ where: { id: rfq.id }, data: { status: "AWARDED", awardNote: "Ordered directly from the quotation(s)", version: { increment: 1 } } });
+      await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "rfq.quotation_ordered", entityType: "rfq", entityId: rfq.id, projectId: rfq.projectId, summary: `Created PO ${po.number} directly from ${q.party.name}'s quotation ${q.number} on ${rfq.number}` }, tx);
+      return { id: po.id, number: po.number };
+    },
+    { timeout: 20000 },
+  );
 }
 
 export const rfqListQuerySchema = z.object({

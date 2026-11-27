@@ -19,7 +19,7 @@ export async function MyWork({ user }: { user: Actor }) {
   const toVerify = approvals.filter((a) => a.mine && a.kind === "grn").length;
   const tiles = [
     showApprovals && { href: "/approvals", icon: Inbox, label: "Waiting for your approval", value: toApprove, tone: toApprove > 0 },
-    showApprovals && can(user, "grn.post") && { href: "/approvals?kind=grn", icon: PackageCheck, label: "Site receipts to verify", value: toVerify, tone: toVerify > 0 },
+    showApprovals && can(user, "grn.post") && { href: "/approvals?kind=grn", icon: PackageCheck, label: "Site receipts to confirm", value: toVerify, tone: toVerify > 0 },
     can(user, "po.view") && { href: "/reports?r=pending-deliveries", icon: Truck, label: "Overdue supplier deliveries", value: overdue, tone: overdue > 0 },
   ].filter(Boolean) as { href: string; icon: typeof Inbox; label: string; value: number; tone: boolean }[];
   if (!tiles.length) return null;

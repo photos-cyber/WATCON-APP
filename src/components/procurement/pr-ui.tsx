@@ -89,10 +89,10 @@ type PrCan = { edit: boolean; submit: boolean; approve: boolean; approveBlockedR
 
 export function PrActions({ id, version, can }: { id: string; version: number; can: PrCan }) {
   const defs: DocActionDef[] = [];
-  if (can.submit) defs.push({ key: "submit", label: "Submit", icon: Send, variant: "default", success: "Requisition submitted." });
+  if (can.submit) defs.push({ key: "submit", label: "Finalize", icon: Send, variant: "default", success: "Requisition finalized — purchasing can order it." });
   if (can.approve) {
-    defs.push({ key: "approve", label: "Approve", icon: ThumbsUp, variant: "default", confirm: { title: "Approve this requisition?", description: "Purchasing can then request rates and raise purchase orders." }, success: "Requisition approved." });
-    defs.push({ key: "reject", label: "Reject", icon: ThumbsDown, confirm: { title: "Reject this requisition?", description: "It returns to the requester.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Requisition rejected." });
+    defs.push({ key: "approve", label: "Finalize", icon: ThumbsUp, variant: "default", confirm: { title: "Finalize this requisition?", description: "Purchasing can then request rates and raise purchase orders." }, success: "Requisition finalized." });
+    defs.push({ key: "reject", label: "Return for changes", icon: ThumbsDown, confirm: { title: "Return this requisition?", description: "It goes back to the requester.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Returned to the requester." });
   }
   if (can.close) defs.push({ key: "close", label: "Close", icon: Lock, confirm: { title: "Close this requisition?", description: "Remaining unordered quantities will no longer be considered open.", noteLabel: "Reason", noteRequired: false }, success: "Requisition closed." });
   if (can.cancel) defs.push({ key: "cancel", label: "Cancel", icon: Ban, variant: "ghost", confirm: { title: "Cancel this requisition?", description: "This cannot be undone.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Requisition cancelled." });

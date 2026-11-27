@@ -314,7 +314,8 @@ export function FinancialSummary({ doc }: { doc: PdfDoc }) {
 
 export function TextSection({ section }: { section: PdfSection }) {
   return (
-    <View style={{ marginTop: 5 }}>
+    // A short section never splits (its heading would otherwise be left alone at a page foot); long ones flow.
+    <View style={{ marginTop: 5 }} wrap={(section.body?.length ?? 0) + (section.items ?? []).join(" ").length > 900 || (section.items?.length ?? 0) > 8}>
       <Text style={S.sectionTitle} minPresenceAhead={30}>
         {section.title}
       </Text>

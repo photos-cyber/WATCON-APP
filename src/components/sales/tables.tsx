@@ -54,13 +54,13 @@ export function SoTable({ rows }: { rows: SoRow[] }) {
   return <DataTable columns={columns} data={rows} getRowId={(r) => r.id} empty={<EmptyState icon={FileText} title="No sales orders yet" description="Create the project's sales order — it drives material planning, purchasing, deliveries and billing." />} />;
 }
 
-export type RaRow = { id: string; number: string; raNumber: number; status: string; billDate: string; claimed: string; certified: string; net: string; party: { id: string; name: string }; project: Proj; clientPo: { id: string; number: string } };
+export type RaRow = { id: string; number: string; raNumber: number; status: string; billDate: string; claimed: string; certified: string; net: string; party: { id: string; name: string }; project: Proj; contract: { id: string; number: string; href: string } | null };
 
 export function RaTable({ rows }: { rows: RaRow[] }) {
   const columns: DataTableColumn<RaRow>[] = [
     { id: "number", header: "Bill", cell: ({ row }) => <Link href={`/running-bills/${row.original.id}`} className="font-medium hover:text-primary hover:underline">RA-{row.original.raNumber}<span className="block text-xs font-normal text-muted-foreground">{row.original.number}</span></Link> },
     { id: "date", header: "Date", cell: ({ row }) => formatDate(row.original.billDate) },
-    { id: "client", header: "Client / contract", cell: ({ row }) => <span>{row.original.party.name}<span className="block text-xs text-muted-foreground">{row.original.clientPo.number}</span></span> },
+    { id: "client", header: "Client / contract", cell: ({ row }) => <span>{row.original.party.name}<span className="block text-xs text-muted-foreground">{row.original.contract?.number ?? "—"}</span></span> },
     { id: "project", header: "Project", cell: ({ row }) => projectCell(row.original.project) },
     { id: "claimed", header: "Claimed", className: "text-right", cell: ({ row }) => <Money value={row.original.claimed} /> },
     { id: "cert", header: "Certified", className: "text-right", cell: ({ row }) => (row.original.certified === "0.00" ? <span className="text-xs text-muted-foreground">—</span> : <Money value={row.original.certified} />) },

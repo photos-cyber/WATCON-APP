@@ -38,6 +38,7 @@ const RESOLVERS: Record<string, () => Promise<AccessResolver>> = {
   supplier_bill: async () => (await import("@/modules/payables/bills")).billAccess,
   payment: async () => (await import("@/modules/payables/payments")).paymentAccess,
   adjustment_note: async () => (await import("@/modules/payables/notes")).noteAccess,
+  stock_txn: async () => (await import("@/modules/inventory/locations")).stockTxnAccess,
 };
 
 export async function resolveAccess(actor: Actor, entityType: string, entityId: string): Promise<EntityAccess | null> {

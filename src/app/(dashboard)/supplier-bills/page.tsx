@@ -45,7 +45,7 @@ export default async function SupplierBillsPage({ searchParams }: PageProps<"/su
       <SummaryCards
         items={[
           { label: "Drafts", value: n("DRAFT") + n("REJECTED"), hint: n("REJECTED") ? `${n("REJECTED")} sent back` : undefined, href: `/supplier-bills?status=DRAFT${projectQs}` },
-          { label: "Waiting for approval", value: n("PENDING_APPROVAL"), tone: n("PENDING_APPROVAL") ? "warn" : "default", href: `/supplier-bills?view=approval${projectQs}` },
+          { label: "Held for checking", value: n("PENDING_APPROVAL"), tone: n("PENDING_APPROVAL") ? "warn" : "default", href: `/supplier-bills?view=approval${projectQs}` },
           { label: "Don't match PO", value: r.exceptions, tone: r.exceptions ? "bad" : "default", hint: "quantity / rate / GSTIN differences", href: `/supplier-bills?view=exceptions${projectQs}` },
           { label: "Overdue", value: r.overdueCount, tone: r.overdueCount ? "bad" : "default", hint: formatINRCompact(r.overdueValue), href: `/supplier-bills?view=overdue${projectQs}` },
           { label: "Unpaid (approved)", value: formatINRCompact(r.unpaidValue), href: `/supplier-bills?view=unpaid${projectQs}` },
@@ -57,7 +57,7 @@ export default async function SupplierBillsPage({ searchParams }: PageProps<"/su
         <FilterSelect param="status" label="Status" options={STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ").toLowerCase() }))} />
         {!project && <FilterSelect param="projectId" label="Project" options={projects.map((p) => ({ value: p.id, label: `${p.code} – ${p.name}` }))} />}
         <FilterSelect param="partyId" label="Supplier" options={suppliers.map((p) => ({ value: p.id, label: p.name }))} />
-        <FilterSelect param="view" label="Show" options={[{ value: "approval", label: "Waiting for approval" }, { value: "exceptions", label: "Don't match PO" }, { value: "overdue", label: "Overdue" }, { value: "unpaid", label: "Unpaid" }]} />
+        <FilterSelect param="view" label="Show" options={[{ value: "approval", label: "Held for checking" }, { value: "exceptions", label: "Don't match PO" }, { value: "overdue", label: "Overdue" }, { value: "unpaid", label: "Unpaid" }]} />
       </FilterBar>
       <BillTable rows={r.rows} />
       <Pagination total={r.total} page={r.page} pageSize={r.pageSize} />

@@ -16,10 +16,17 @@ import { callAction } from "@/lib/call-action";
 import { formatQty } from "@/lib/format";
 import { formatINR, taxModeFor } from "@/lib/money";
 import { cn, newId } from "@/lib/utils";
+import { MilestoneBuilder } from "@/components/commercial/milestone-builder";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { MilestoneInput } from "@/modules/commercial/payment-terms";
 import { createSalesOrderAction, requestSoAmendmentAction, updateSalesOrderAction } from "@/modules/sales/actions";
 import type { ClientOpt, ProjectOpt } from "./cpo-form";
 
-export type SoLine = EditableLine & { clientPoLineId?: string | null; floor?: string };
+export type SoLineKind = "MATERIAL" | "SERVICE" | "INSTALLATION";
+export type SoLine = EditableLine & { clientPoLineId?: string | null; floor?: string; kind?: SoLineKind | null };
+const KIND_LABEL: Record<SoLineKind, string> = { MATERIAL: "Material", SERVICE: "Service", INSTALLATION: "Installation" };
+/** Material lines (with an item – brand) drive material planning; services / installation never do. */
+const kindOf = (l: SoLine): SoLineKind => l.kind ?? (l.itemBrandId ? "MATERIAL" : "SERVICE");
 export type CpoOpt = { id: string; label: string; hint: string; projectId: string; partyId: string };
 
 export type SoFormValues = {
@@ -34,6 +41,8 @@ export type SoFormValues = {
   paymentTerms: string;
   notes: string;
   lines: SoLine[];
+  /** Payment schedule (create only; edit it later from the order's billing panel). */
+  milestones?: MilestoneInput[];
 };
 
 const GST = ["0", "0.25", "3", "5", "12", "18", "28"];
@@ -48,6 +57,7 @@ export function SoForm({ mode, initial, soId, version, projects, clients, client
   const router = useRouter();
   const [v, setV] = useState<SoFormValues>({ ...initial, lines: initial.lines.length ? initial.lines : [blank()] });
   const [reason, setReason] = useState("");
+  const [useSchedule, setUseSchedule] = useState((initial.milestones?.length ?? 0) > 0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -68,11 +78,13 @@ export function SoForm({ mode, initial, soId, version, projects, clients, client
   const origMap = new Map((original ?? []).map((l) => [l.id, l]));
   const diff = amend ? computeDiff(original ?? [], v.lines, optMap) : [];
 
-  async function save() {
+  async function save(confirm = false) {
     setBusy(true);
-    const lines = v.lines.map((l) => ({ id: l.id ?? null, clientPoLineId: l.clientPoLineId ?? null, itemBrandId: l.itemBrandId || null, description: l.description || null, hsnSac: l.hsnSac || null, unit: l.unit || null, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate }));
+    const lines = v.lines.map((l) => ({ id: l.id ?? null, clientPoLineId: l.clientPoLineId ?? null, itemBrandId: kindOf(l) === "MATERIAL" ? l.itemBrandId || null : null, kind: kindOf(l), description: l.description || null, hsnSac: l.hsnSac || null, unit: l.unit || null, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate }));
     const header = { deliveryDate: v.deliveryDate, deliveryAddress: v.deliveryAddress, deliverySchedule: v.deliverySchedule, billingSchedule: v.billingSchedule, paymentTerms: v.paymentTerms, notes: v.notes, lines };
-    const res = amend ? await callAction(requestSoAmendmentAction, soId!, { reason, ...header }) : soId ? await callAction(updateSalesOrderAction, soId, version!, { ...v, ...header }) : await callAction(createSalesOrderAction, { ...v, ...header });
+    const base = { ...v, milestones: undefined };
+    const schedule = initial.milestones !== undefined ? (useSchedule ? (v.milestones ?? []) : []) : undefined;
+    const res = amend ? await callAction(requestSoAmendmentAction, soId!, { reason, ...header }) : soId ? await callAction(updateSalesOrderAction, soId, version!, { ...base, ...header }, { confirm }) : await callAction(createSalesOrderAction, { ...base, ...header, milestones: schedule }, { confirm });
     setBusy(false);
     if (!res.ok) {
       setErrors(res.fieldErrors ?? {});
@@ -80,7 +92,9 @@ export function SoForm({ mode, initial, soId, version, projects, clients, client
       return;
     }
     setDirty(false);
-    toast.success(amend ? "Amendment request sent to Super Admin for approval." : soId ? "Sales order saved." : "Sales order created as draft — submit it for approval when ready.");
+    const d = res.data as { confirmed?: boolean; confirmError?: string | null } | undefined;
+    if (confirm && d?.confirmError) toast.warning(`Saved as draft, but not confirmed: ${d.confirmError}`);
+    else toast.success(amend ? "Amendment request sent to Super Admin for approval." : d?.confirmed ? "Sales order confirmed — material planning updated." : soId ? "Sales order saved." : "Sales order saved as draft — confirm the order when ready.");
     router.push(`/sales-orders/${amend ? soId : res.data!.id}${amend ? "#amendments" : ""}`);
   }
 
@@ -120,7 +134,7 @@ export function SoForm({ mode, initial, soId, version, projects, clients, client
       <section className="space-y-2">
         <div>
           <h2 className="text-sm font-semibold">What is being sold</h2>
-          <p className="text-xs text-muted-foreground">Pick an item – brand for material (it flows into material planning and purchasing), or just type a description for services / labour.</p>
+          <p className="text-xs text-muted-foreground">Material lines need an item – brand: when the order is approved they become material requirements automatically (no re-entry). Service and installation lines are billed but never planned or purchased.</p>
         </div>
         <div className="space-y-2 md:hidden">
           {v.lines.map((l, i) => <MobileLine key={l.key} l={l} i={i} setLine={setLine} options={options} optMap={optMap} errors={errors} orig={l.id ? origMap.get(l.id) : undefined} amend={amend} onRemove={() => set({ lines: v.lines.filter((_, j) => j !== i) })} canRemove={v.lines.length > 1 && !(l.floor && Number(l.floor) > 0)} taxMode={taxMode} />)}
@@ -150,7 +164,12 @@ export function SoForm({ mode, initial, soId, version, projects, clients, client
                   <tr key={l.key} className={cn("align-top", amend && !o && "bg-emerald-50/60")}>
                     <td className="px-2 py-2 text-xs text-muted-foreground">{i + 1}</td>
                     <td className="px-2 py-2">
-                      <SingleSelect options={options.map((x) => ({ value: x.id, label: `${x.itemName} — ${x.brandName}`, hint: `${x.itemCode} · stock ${formatQty(x.currentQty)} ${x.unit}` }))} value={l.itemBrandId ?? null} disabled={!!(l.floor && Number(l.floor) > 0)} placeholder="Material (optional)" searchPlaceholder="Search item, code or brand…" onChange={(x) => { const ob = x ? optMap.get(x) : undefined; setLine(i, { itemBrandId: x, unit: ob?.unit ?? l.unit, hsnSac: ob?.hsnCode ?? l.hsnSac, gstRate: ob?.gstRate ? n(ob.gstRate) : l.gstRate, description: l.description || (ob ? `${ob.itemName} – ${ob.brandName}` : "") }); }} />
+                      <div className="flex gap-1">
+                        <KindSelect l={l} i={i} setLine={setLine} />
+                        <div className="min-w-0 flex-1">
+                          <SingleSelect options={options.map((x) => ({ value: x.id, label: `${x.itemName} — ${x.brandName}`, hint: `${x.itemCode} · stock ${formatQty(x.currentQty)} ${x.unit}` }))} value={kindOf(l) === "MATERIAL" ? (l.itemBrandId ?? null) : null} disabled={!!(l.floor && Number(l.floor) > 0) || kindOf(l) !== "MATERIAL"} placeholder={kindOf(l) === "MATERIAL" ? "Pick the material" : "No stock item (service)"} searchPlaceholder="Search item, code or brand…" onChange={(x) => { const ob = x ? optMap.get(x) : undefined; setLine(i, { itemBrandId: x, kind: x ? "MATERIAL" : l.kind, unit: ob?.unit ?? l.unit, hsnSac: ob?.hsnCode ?? l.hsnSac, gstRate: ob?.gstRate ? n(ob.gstRate) : l.gstRate, description: l.description || (ob ? `${ob.itemName} – ${ob.brandName}` : "") }); }} />
+                        </div>
+                      </div>
                       <Input aria-label={`Line ${i + 1} description`} className="mt-1 h-8 text-xs" placeholder="Description (required for services)" value={l.description ?? ""} onChange={(e) => setLine(i, { description: e.target.value })} aria-invalid={!!err("description")} />
                       {(err("description") || err("itemBrandId")) && <p className="mt-1 text-xs text-destructive">{err("description") ?? err("itemBrandId")}</p>}
                       {l.note && <p className="mt-1 text-xs text-muted-foreground">{l.note}</p>}
@@ -188,6 +207,21 @@ export function SoForm({ mode, initial, soId, version, projects, clients, client
         </div>
       </section>
 
+      {mode === "create" && initial.milestones !== undefined && (
+        <section className="space-y-2 rounded-xl border bg-card p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold">Payment milestones</h2>
+              <p className="text-xs text-muted-foreground">Default 50% advance · 40% on delivery · 10% on installation — edit freely. Untick to invoice by delivered quantity instead.</p>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={useSchedule} onCheckedChange={(c) => { setDirty(true); setUseSchedule(c === true); }} /> Bill by payment schedule
+            </label>
+          </div>
+          {useSchedule && <MilestoneBuilder total={totals?.total ?? "0"} value={v.milestones ?? []} onChange={(m) => set({ milestones: m })} error={errors.milestones} />}
+        </section>
+      )}
+
       <FormSection title="Schedules & terms">
         <Field id="so-dsched" label="Delivery schedule" error={errors.deliverySchedule}><Textarea id="so-dsched" rows={2} value={v.deliverySchedule} onChange={(e) => set({ deliverySchedule: e.target.value })} placeholder="e.g. 50% by 15 Dec, balance by 31 Jan" /></Field>
         <Field id="so-bsched" label="Billing schedule" error={errors.billingSchedule}><Textarea id="so-bsched" rows={2} value={v.billingSchedule} onChange={(e) => set({ billingSchedule: e.target.value })} /></Field>
@@ -214,7 +248,8 @@ export function SoForm({ mode, initial, soId, version, projects, clients, client
       <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border">
         {totals && <span className="mr-auto text-sm text-muted-foreground">Total <span className="font-semibold text-foreground">{formatINR(totals.total)}</span></span>}
         <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" disabled={busy || (amend && reason.trim().length < 5)}>{amend ? "Send amendment request" : soId ? "Save" : "Save draft"}</Button>
+        <Button type={amend ? "submit" : "button"} variant={amend ? "default" : "outline"} disabled={busy || (amend && reason.trim().length < 5)} onClick={amend ? undefined : () => save(false)}>{amend ? "Send amendment request" : "Save draft"}</Button>
+        {!amend && <Button type="button" disabled={busy} onClick={() => save(true)} title="Saves and confirms the order: it is locked and material planning starts.">Save &amp; confirm order</Button>}
       </div>
     </form>
   );
@@ -225,7 +260,8 @@ function MobileLine({ l, i, setLine, options, optMap, errors, orig, amend, onRem
   return (
     <div className={cn("space-y-2 rounded-xl border bg-card p-3", amend && !orig && "border-emerald-300")}>
       <div className="flex items-center justify-between text-xs text-muted-foreground"><span>Line {i + 1}</span><Button type="button" variant="ghost" size="icon-sm" aria-label={`Remove line ${i + 1}`} disabled={!canRemove} onClick={onRemove}><Trash2 /></Button></div>
-      <SingleSelect options={options.map((x) => ({ value: x.id, label: `${x.itemName} — ${x.brandName}`, hint: x.itemCode }))} value={l.itemBrandId ?? null} placeholder="Material (optional)" onChange={(x) => { const ob = x ? optMap.get(x) : undefined; setLine(i, { itemBrandId: x, unit: ob?.unit ?? l.unit, description: l.description || (ob ? `${ob.itemName} – ${ob.brandName}` : "") }); }} />
+      <KindSelect l={l} i={i} setLine={setLine} />
+      <SingleSelect options={options.map((x) => ({ value: x.id, label: `${x.itemName} — ${x.brandName}`, hint: x.itemCode }))} value={kindOf(l) === "MATERIAL" ? (l.itemBrandId ?? null) : null} disabled={kindOf(l) !== "MATERIAL"} placeholder={kindOf(l) === "MATERIAL" ? "Pick the material" : "No stock item (service)"} onChange={(x) => { const ob = x ? optMap.get(x) : undefined; setLine(i, { itemBrandId: x, kind: x ? "MATERIAL" : l.kind, unit: ob?.unit ?? l.unit, description: l.description || (ob ? `${ob.itemName} – ${ob.brandName}` : "") }); }} />
       <Input aria-label={`Line ${i + 1} description`} placeholder="Description" value={l.description ?? ""} onChange={(e) => setLine(i, { description: e.target.value })} />
       <div className="grid grid-cols-3 gap-2">
         <Input aria-label={`Line ${i + 1} quantity`} inputMode="decimal" placeholder="Qty" value={l.quantity} onChange={(e) => setLine(i, { quantity: e.target.value })} />
@@ -249,6 +285,15 @@ function MobileLine({ l, i, setLine, options, optMap, errors, orig, amend, onRem
       {(errors[`lines.${i}.quantity`] || errors[`lines.${i}.description`]) && <p className="text-xs text-destructive">{errors[`lines.${i}.quantity`] ?? errors[`lines.${i}.description`]}</p>}
       <p className="text-right text-sm tabular-nums">{amt ? formatINR(amt.total) : "—"}</p>
     </div>
+  );
+}
+
+function KindSelect({ l, i, setLine }: { l: SoLine; i: number; setLine: (i: number, p: Partial<SoLine>) => void }) {
+  const locked = !!(l.floor && Number(l.floor) > 0);
+  return (
+    <select aria-label={`Line ${i + 1} type`} disabled={locked} className="h-9 shrink-0 rounded-md border bg-card px-2 text-sm" value={kindOf(l)} onChange={(e) => { const k = e.target.value as SoLineKind; setLine(i, k === "MATERIAL" ? { kind: k } : { kind: k, itemBrandId: null }); }}>
+      {(Object.keys(KIND_LABEL) as SoLineKind[]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
+    </select>
   );
 }
 

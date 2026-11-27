@@ -75,18 +75,18 @@ export const DOC_STATUSES: Record<DocKind, string[]> = {
   invoice: ["DRAFT", "ISSUED", "PARTIALLY_PAID", "PAID", "CANCELLED"],
 };
 
-/** What counts as "needs action" per kind, shown as a badge on the tab (e.g. "3 awaiting approval"). */
+/** What counts as "needs action" per kind, shown as a badge on the tab (e.g. "3 to finalize"). */
 export const DOC_PENDING: Partial<Record<DocKind, { statuses: string[]; label: string }>> = {
-  pr: { statuses: ["SUBMITTED"], label: "awaiting approval" },
-  rfq: { statuses: ["AWARD_PENDING"], label: "award to approve" },
-  po: { statuses: ["PENDING_APPROVAL"], label: "awaiting approval" },
-  grn: { statuses: ["SUBMITTED"], label: "to verify" },
+  pr: { statuses: ["DRAFT", "SUBMITTED"], label: "to finalize" },
+  rfq: { statuses: ["AWARD_PENDING"], label: "award to confirm" },
+  po: { statuses: ["DRAFT", "PENDING_APPROVAL"], label: "to finalize" },
+  grn: { statuses: ["DRAFT", "SUBMITTED"], label: "to confirm" },
   challan: { statuses: ["DISPATCHED"], label: "in transit" },
-  bill: { statuses: ["PENDING_APPROVAL"], label: "awaiting approval" },
+  bill: { statuses: ["DRAFT", "PENDING_APPROVAL"], label: "to finalize" },
   note: { statuses: ["DRAFT"], label: "drafts" },
-  cpo: { statuses: ["PENDING_APPROVAL"], label: "awaiting approval" },
-  so: { statuses: ["PENDING_APPROVAL"], label: "awaiting approval" },
-  rabill: { statuses: ["INTERNAL_REVIEW"], label: "in review" },
+  cpo: { statuses: ["DRAFT", "PENDING_APPROVAL"], label: "to finalize" },
+  so: { statuses: ["DRAFT", "PENDING_APPROVAL"], label: "to confirm" },
+  rabill: { statuses: ["DRAFT", "INTERNAL_REVIEW"], label: "to submit" },
   invoice: { statuses: ["DRAFT"], label: "drafts" },
 };
 
@@ -158,7 +158,7 @@ export async function listProjectDocs(actor: Actor, projectId: string, kind: Doc
     }
     case "rabill": {
       const where = { ...base, ...or() };
-      return out(where, (a) => db.raBill.count(a), () => db.raBill.findMany({ where, orderBy: { billDate: "desc" }, skip, take: pageSize, include: { party: { select: { name: true } }, clientPo: { select: { number: true } } } }), (r) => ({ id: r.id, number: `${r.number} (RA-${r.raNumber})`, href: `${path}/${r.id}`, date: iso(r.billDate), title: `${r.clientPo.number} · ${day(r.periodFrom)} to ${day(r.periodTo)}`, party: r.party.name, status: r.status, amount: dec2(r.certifiedAmount.gt(0) ? r.certifiedAmount : r.claimedAmount), secondary: r.certifiedAmount.gt(0) ? `Claimed ${dec2(r.claimedAmount)}` : "Claimed (not yet certified)", overdue: false }));
+      return out(where, (a) => db.raBill.count(a), () => db.raBill.findMany({ where, orderBy: { billDate: "desc" }, skip, take: pageSize, include: { party: { select: { name: true } }, clientPo: { select: { number: true } } } }), (r) => ({ id: r.id, number: `${r.number} (RA-${r.raNumber})`, href: `${path}/${r.id}`, date: iso(r.billDate), title: `${r.clientPo?.number ?? "Sales order"} · ${day(r.periodFrom)} to ${day(r.periodTo)}`, party: r.party.name, status: r.status, amount: dec2(r.certifiedAmount.gt(0) ? r.certifiedAmount : r.claimedAmount), secondary: r.certifiedAmount.gt(0) ? `Claimed ${dec2(r.claimedAmount)}` : "Claimed (not yet certified)", overdue: false }));
     }
     case "invoice": {
       const where = { ...base, ...or() };
@@ -228,12 +228,12 @@ export async function projectCommandCenter(actor: Actor, projectId: string) {
   ]);
 
   const attention: AttentionItem[] = [];
-  for (const a of approvals) attention.push({ key: `ap-${a.id}`, tone: "warn", title: `${a.action}: ${a.number}`, detail: a.mine ? `Waiting for your approval${a.party ? ` · ${a.party}` : ""}` : (a.blockedReason ?? "Waiting for another approver"), href: a.href });
+  for (const a of approvals) attention.push({ key: `ap-${a.id}`, tone: "warn", title: `${a.action}: ${a.number}`, detail: `Waiting to be finalized${a.party ? ` · ${a.party}` : ""}`, href: a.href });
   for (const p of overduePos) attention.push({ key: `po-${p.id}`, tone: "bad", title: `Delivery overdue: ${p.number}`, detail: `${p.party.name} · expected ${p.expectedDate!.toISOString().slice(0, 10)}`, href: `/purchase-orders/${p.id}` });
   for (const c of transitLate) attention.push({ key: `ch-${c.id}`, tone: "bad", title: `Transfer not received: ${c.number}`, detail: `In transit since ${c.dispatchDate?.toISOString().slice(0, 10) ?? "—"}`, href: `/challans/${c.id}` });
   for (const b of billExceptions) attention.push({ key: `sb-${b.id}`, tone: "bad", title: `Bill mismatch: ${b.number}`, detail: `${b.party.name} · invoice ${b.supplierInvoiceNo} does not match the PO / receipts`, href: `/supplier-bills/${b.id}` });
   for (const i of overdueInvoices) attention.push({ key: `inv-${i.id}`, tone: "bad", title: `Payment overdue: ${i.number}`, detail: `${i.party.name} · due ${i.dueDate!.toISOString().slice(0, 10)}`, href: `/client-invoices/${i.id}` });
-  if (shortages) attention.push({ key: "mrp", tone: "warn", title: `${shortages} material shortage${shortages === 1 ? "" : "s"} still to order`, detail: "Open material planning to raise a requisition for the shortfall.", href: `/projects/${projectId}?tab=planning&status=SHORTAGE` });
+  if (shortages) attention.push({ key: "mrp", tone: "warn", title: `${shortages} material shortage${shortages === 1 ? "" : "s"} still to order`, detail: "Open material planning to request rates or create a purchase order for the shortfall.", href: `/projects/${projectId}?tab=planning&status=SHORTAGE` });
 
   return {
     financials: fin,
@@ -285,47 +285,67 @@ export type FlowStep = {
   state: "done" | "active" | "todo";
   tab: string;
   action: { label: string; href: string } | null;
+  /** Optional step (shown, but never picked as "Next"). */
+  optional?: boolean;
 };
 
 /**
- * The sales-order-driven order flow for a project: SO → planning → requisitions → enquiries / POs →
- * site receipts → client delivery → invoices & receipts. Each step shows live counts and the next
- * action the user can take (only actions they hold the permission for).
+ * The project's order flow (simplified workflow): optional client quotation / PO → sales order →
+ * material planning → rates & purchase orders → receive material → issue to site (+ site receipt) →
+ * running bills & invoices → client payments. Requisitions are optional and not a step. Each step
+ * shows live counts and the next action the user can take (only actions they hold the permission for).
  */
 export async function projectOrderFlow(actor: Actor, projectId: string): Promise<FlowStep[]> {
   await assertProjectVisible(actor, projectId);
   const w = { organizationId: actor.organizationId, projectId };
   const cnt = (perm: PermissionKey, p: () => Promise<number>) => (can(actor, perm) ? p() : Promise.resolve(0));
-  const [soAll, soApproved, soPending, reqOpen, shortages, prAll, prPending, rfqAll, poAll, poOpen, grnPosted, grnToPost, delivAll, invAll, invOpen, rcpAll] = await Promise.all([
+  const INTERNAL_OUT = ["ISSUE_TO_SITE", "SITE_TO_SITE"] as never;
+  const [quoteAll, cpoAll, cpoActive, soAll, soApproved, soPending, reqOpen, shortages, rfqAll, poAll, poOpen, supplierGrns, grnToConfirm, issueAll, inTransit, siteGrns, delivAll, raAll, raOpen, invAll, invOpen, rcpAll, firstSo] = await Promise.all([
+    cnt("so.view", () => db.clientQuotation.count({ where: { ...w, status: { notIn: ["CANCELLED"] } } })),
+    cnt("cpo.view", () => db.clientPo.count({ where: { ...w, status: { notIn: ["CANCELLED"] } } })),
+    cnt("cpo.view", () => db.clientPo.count({ where: { ...w, status: { in: ["ACTIVE", "COMPLETED", "CLOSED"] } } })),
     cnt("so.view", () => db.salesOrder.count({ where: { ...w, status: { notIn: ["CANCELLED"] } } })),
     cnt("so.view", () => db.salesOrder.count({ where: { ...w, status: { in: ["APPROVED", "PARTIALLY_FULFILLED", "FULFILLED", "CLOSED"] } } })),
     cnt("so.view", () => db.salesOrder.count({ where: { ...w, status: { in: ["DRAFT", "PENDING_APPROVAL", "REJECTED"] } } })),
     cnt("mrp.view", () => db.materialRequirement.count({ where: { ...w, status: "OPEN" } })),
     can(actor, "mrp.view") ? shortageCount(actor.organizationId, projectId) : Promise.resolve(0),
-    cnt("pr.view", () => db.purchaseRequisition.count({ where: { ...w, status: { notIn: ["CANCELLED"] } } })),
-    cnt("pr.view", () => db.purchaseRequisition.count({ where: { ...w, status: { in: ["DRAFT", "SUBMITTED"] } } })),
     cnt("rfq.view", () => db.rfq.count({ where: { ...w, status: { notIn: ["CANCELLED"] } } })),
     cnt("po.view", () => db.purchaseOrder.count({ where: { ...w, status: { notIn: ["CANCELLED", "REJECTED"] } } })),
     cnt("po.view", () => db.purchaseOrder.count({ where: { ...w, status: { in: [...OPEN_PO] as never } } })),
-    cnt("grn.view", () => db.grn.count({ where: { ...w, status: "POSTED" } })),
+    cnt("grn.view", () => db.grn.count({ where: { ...w, status: "POSTED", poId: { not: null } } })),
     cnt("grn.view", () => db.grn.count({ where: { ...w, status: { in: ["DRAFT", "SUBMITTED"] } } })),
-    cnt("grn.view", () => db.challan.count({ where: { ...w, type: "CLIENT_DELIVERY", status: { notIn: ["CANCELLED"] } } })),
-    cnt("invoice.view", () => db.clientInvoice.count({ where: { ...w, status: { notIn: ["CANCELLED"] } } })),
+    cnt("grn.view", () => db.challan.count({ where: { ...w, type: { in: INTERNAL_OUT }, status: { notIn: ["CANCELLED", "DRAFT"] } } })),
+    cnt("grn.view", () => db.challan.count({ where: { ...w, type: { in: INTERNAL_OUT }, status: { in: ["DISPATCHED", "PARTIALLY_RECEIVED"] } } })),
+    cnt("grn.view", () => db.grn.count({ where: { ...w, status: "POSTED", challanId: { not: null } } })),
+    cnt("grn.view", () => db.challan.count({ where: { ...w, type: "CLIENT_DELIVERY", status: { notIn: ["CANCELLED", "DRAFT"] } } })),
+    cnt("rabill.view", () => db.raBill.count({ where: { ...w, status: { notIn: ["CANCELLED"] } } })),
+    cnt("rabill.view", () => db.raBill.count({ where: { ...w, status: { in: ["DRAFT", "INTERNAL_REVIEW", "SUBMITTED", "DISPUTED", "CLIENT_CERTIFIED"] } } })),
+    cnt("invoice.view", () => db.clientInvoice.count({ where: { ...w, kind: "TAX_INVOICE", status: { notIn: ["CANCELLED"] } } })),
     cnt("invoice.view", () => db.clientInvoice.count({ where: { ...w, status: { in: ["ISSUED", "PARTIALLY_PAID"] } } })),
-    cnt("payments.view", () => db.payment.count({ where: { ...w, direction: "IN", status: "POSTED" } })),
+    cnt("payments.view", () => db.payment.count({ where: { ...w, direction: "IN", status: "POSTED", refundOfId: null } })),
+    can(actor, "so.view") ? db.salesOrder.findFirst({ where: { ...w, status: { in: ["APPROVED", "PARTIALLY_FULFILLED", "FULFILLED", "CLOSED"] } }, orderBy: { orderDate: "asc" }, select: { id: true, partyId: true, clientPoId: true } }) : Promise.resolve(null),
   ]);
   const q = `projectId=${projectId}`;
+  const tab = (t: string, extra = "") => `/projects/${projectId}?tab=${t}${extra}`;
   const act = (perm: PermissionKey, label: string, href: string) => (can(actor, perm) ? { label, href } : null);
-  const plural = (n: number, s: string) => `${n} ${s}${n === 1 ? "" : "s"}`;
+  const plural = (n: number, s: string, many = `${s}s`) => `${n} ${n === 1 ? s : many}`;
   const state = (done: boolean, started: boolean): FlowStep["state"] => (done ? "done" : started ? "active" : "todo");
+  const received = supplierGrns + siteGrns;
+  const billable = !!firstSo;
 
   return [
-    { n: 1, key: "so", title: "Sales order", tab: "sales-orders", state: state(soApproved > 0, soAll > 0), summary: soAll ? `${plural(soApproved, "approved order")}${soPending ? ` · ${soPending} awaiting approval` : ""}` : "Start here: record what the client has ordered.", action: soAll ? act("so.view", "View sales orders", `/projects/${projectId}?tab=sales-orders`) : act("so.manage", "Create sales order", `/sales-orders/new?${q}`) },
-    { n: 2, key: "planning", title: "Material planning", tab: "planning", state: state(reqOpen > 0 && shortages === 0, reqOpen > 0), summary: reqOpen ? `${plural(reqOpen, "material line")}${shortages ? ` · ${shortages} still to order` : " · all covered"}` : "Material needs appear here once the sales order is approved.", action: act("mrp.view", shortages ? "Order shortages" : "Open planning", `/projects/${projectId}?tab=planning${shortages ? "&status=SHORTAGE" : ""}`) },
-    { n: 3, key: "pr", title: "Requisitions", tab: "requisitions", state: state(prAll > 0 && prPending === 0, prAll > 0), summary: prAll ? `${plural(prAll, "requisition")}${prPending ? ` · ${prPending} not yet approved` : ""}` : "Request the material to be bought.", action: act("pr.create", "New requisition", `/purchase-requisitions/new?${q}`) },
-    { n: 4, key: "po", title: "Rates & purchase orders", tab: "purchase-orders", state: state(poAll > 0 && poOpen === 0, poAll + rfqAll > 0), summary: poAll || rfqAll ? `${plural(rfqAll, "enquiry")} · ${plural(poAll, "PO")}${poOpen ? ` · ${poOpen} awaiting delivery` : ""}` : "Compare supplier rates and place orders.", action: act("po.create", "New purchase order", `/purchase-orders/new?${q}`) ?? act("rfq.manage", "New rate enquiry", `/rate-enquiries/new?${q}`) },
-    { n: 5, key: "grn", title: "Site receipts", tab: "site-receipts", state: state(grnPosted > 0 && poOpen === 0 && grnToPost === 0, grnPosted + grnToPost > 0), summary: grnPosted || grnToPost ? `${plural(grnPosted, "receipt")} posted${grnToPost ? ` · ${grnToPost} to verify` : ""}` : "Record material as it arrives at site.", action: act("grn.create", "Receive material", `/site-receipts?${q}`) },
-    { n: 6, key: "delivery", title: "Client delivery", tab: "challans", state: state(false, delivAll > 0), summary: delivAll ? plural(delivAll, "delivery challan") : "Deliver material to the client against the sales order.", action: act("stock.transfer", "New delivery challan", `/challans/new?type=CLIENT_DELIVERY&${q}`) },
-    { n: 7, key: "billing", title: "Invoices & receipts", tab: "invoices", state: state(invAll > 0 && invOpen === 0 && rcpAll > 0, invAll > 0), summary: invAll ? `${plural(invAll, "invoice")}${invOpen ? ` · ${invOpen} unpaid` : ""} · ${plural(rcpAll, "receipt")}` : "Invoice the client and record payments received.", action: act("invoice.manage", "New invoice", `/client-invoices/new?${q}`) },
+    {
+      n: 1, key: "contract", title: "Client quotation / PO", tab: "client-pos", optional: true,
+      state: state(cpoActive > 0, quoteAll + cpoAll > 0),
+      summary: quoteAll || cpoAll ? `${plural(quoteAll, "quotation")} · ${plural(cpoAll, "client PO")}${cpoAll && !cpoActive ? " · not finalized" : ""}` : "Optional — record the client's quotation or PO, or start directly with the sales order.",
+      action: cpoAll ? act("cpo.view", "View client POs", tab("client-pos")) : act("cpo.manage", "Add client PO", `/client-pos/new?${q}`) ?? act("so.manage", "New quotation", `/quotations/new?${q}`),
+    },
+    { n: 2, key: "so", title: "Sales order", tab: "sales-orders", state: state(soApproved > 0, soAll > 0), summary: soAll ? `${plural(soApproved, "confirmed order")}${soPending ? ` · ${soPending} to confirm` : ""}` : "Start here: record what the client has ordered.", action: soAll ? act("so.view", soPending ? "Confirm sales order" : "View sales orders", tab("sales-orders")) : act("so.manage", "Create sales order", `/sales-orders/new?${q}`) },
+    { n: 3, key: "planning", title: "Material planning", tab: "planning", state: state(reqOpen > 0 && shortages === 0, reqOpen > 0), summary: reqOpen ? `${plural(reqOpen, "material line")}${shortages ? ` · ${shortages} still to order` : " · all covered"}` : "Material needs appear here once the sales order is confirmed.", action: act("mrp.view", shortages ? "Order shortages" : "Open planning", tab("planning", shortages ? "&status=TO_ORDER" : "")) },
+    { n: 4, key: "po", title: "Rates & purchase orders", tab: "purchase-orders", state: state(poAll > 0 && reqOpen > 0 && shortages === 0, poAll + rfqAll > 0), summary: poAll || rfqAll ? `${plural(rfqAll, "rate enquiry", "rate enquiries")} · ${plural(poAll, "PO")}${poOpen ? ` · ${poOpen} awaiting delivery` : ""}` : "Ask suppliers for rates (optional) or order directly from planning. Stock already in the warehouse can be issued without buying.", action: shortages ? act("po.create", "Order from planning", tab("planning", "&status=TO_ORDER")) : act("po.view", "View purchase orders", tab("purchase-orders")) },
+    { n: 5, key: "grn", title: "Receive material", tab: "site-receipts", state: state(supplierGrns > 0 && poOpen === 0 && grnToConfirm === 0, supplierGrns + grnToConfirm > 0), summary: supplierGrns || grnToConfirm || poOpen ? `${plural(supplierGrns, "receipt")} confirmed${poOpen ? ` · ${poOpen} PO${poOpen === 1 ? "" : "s"} awaiting delivery` : ""}${grnToConfirm ? ` · ${grnToConfirm} to finish (add proof)` : ""}` : "Receive supplier deliveries against the PO, with photos and the supplier challan.", action: act("grn.create", grnToConfirm ? "Finish receipts" : "Receive material", grnToConfirm ? `/site-receipts?${q}&status=DRAFT` : `/site-receipts?${q}`) },
+    { n: 6, key: "issue", title: "Issue to site", tab: "challans", state: state(issueAll > 0 && inTransit === 0 && shortages === 0, issueAll + delivAll > 0), summary: issueAll || delivAll ? `${plural(issueAll, "site challan")}${inTransit ? ` · ${inTransit} in transit` : ""} · ${plural(siteGrns, "site receipt")} confirmed${delivAll ? ` · ${plural(delivAll, "client delivery", "client deliveries")}` : ""}` : "Issue material from stock to the site with a challan; the site confirms receipt with proof.", action: inTransit ? act("grn.create", "Confirm site receipt", tab("site-receipts")) : act("stock.transfer", "Issue material to site", `/projects/${projectId}/issue`) },
+    { n: 7, key: "billing", title: "Running bills & invoices", tab: "running-bills", state: state(raAll + invAll > 0 && raOpen === 0, raAll + invAll > 0), summary: raAll || invAll ? `${plural(raAll, "running bill")}${raOpen ? ` · ${raOpen} in progress` : ""} · ${plural(invAll, "invoice")}` : received ? "Bill the delivered material at sales-order rates." : "Running bills are generated from delivered material.", action: billable ? act("rabill.manage", "Generate running bill", `/running-bills/new?soId=${firstSo!.id}`) : act("rabill.view", "View running bills", tab("running-bills")) },
+    { n: 8, key: "payments", title: "Client payments", tab: "accounts", state: state(invAll > 0 && invOpen === 0 && rcpAll > 0, rcpAll > 0), summary: rcpAll || invOpen ? `${plural(rcpAll, "payment")} received${invOpen ? ` · ${plural(invOpen, "invoice")} unpaid` : ""}` : "Record advances and payments against invoices.", action: firstSo ? act("payments.manage", "Record client payment", `/payments/new?direction=IN&${q}&partyId=${firstSo.partyId}`) : act("accounts.view", "Project accounts", tab("accounts")) },
   ];
 }

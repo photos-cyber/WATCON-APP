@@ -1,4 +1,5 @@
 import "server-only";
+import { clientAccount } from "@/modules/sales/client-account";
 import type { PdfDoc } from "@/components/documents/pdf/types";
 import { formatDate } from "@/lib/format";
 import { addMoney, amountInWords } from "@/lib/money";
@@ -79,10 +80,13 @@ export async function paymentPdf(actor: Actor, id: string): Promise<PdfDoc> {
   const { payment: p, unallocated } = await getPayment(actor, id);
   const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, p.partyId)]);
   const out = p.direction === "OUT";
+  const refund = !!p.refundOf;
   const active = p.allocations.filter((a) => !a.reversedAt);
+  // Client receipts carry the client's account position for the project (after this receipt).
+  const acct = !out && p.status === "POSTED" && p.projectId ? await clientAccount(actor, { projectId: p.projectId }).catch(() => null) : null;
   return {
-    docType: out ? "PV" : "RV",
-    title: out ? "Payment Voucher" : "Receipt Voucher",
+    docType: refund ? "RFND" : out ? "PV" : "RCPT",
+    title: refund ? "Refund Voucher" : out ? "Payment Voucher" : "Payment Receipt",
     number: p.number,
     date: formatDate(p.paymentDate),
     dateLabel: out ? "Paid on" : "Received on",
@@ -98,11 +102,22 @@ export async function paymentPdf(actor: Actor, id: string): Promise<PdfDoc> {
           { label: "Reference", value: p.reference },
           { label: "Bank account", value: p.bankAccount },
           { label: "Project", value: projectLabel(p.project) },
+          ...(refund ? [{ label: "Refund of receipt", value: p.refundOf!.number }] : []),
         ],
       },
     ],
+    facts: acct
+      ? [
+          { label: "Contract value", value: rs(acct.contractValue) },
+          { label: "Total invoiced", value: rs(acct.invoiced) },
+          { label: "Received to date", value: rs(acct.paymentReceived) },
+          { label: "Outstanding billed", value: rs(acct.outstandingBilled), strong: true },
+          { label: "Client advances", value: rs(acct.clientAdvances) },
+          { label: "Remaining contract payment", value: rs(acct.remainingContract) },
+        ]
+      : undefined,
     tableTitle: out ? "Allocated against supplier bills" : "Allocated against invoices",
-    emptyText: "Not yet allocated — held as an advance.",
+    emptyText: refund ? "Refund of an unallocated client advance." : "Not yet allocated — held as an advance.",
     columns: [
       { key: "n", label: "S.No", width: 6, align: "center" },
       { key: "doc", label: out ? "Bill" : "Invoice", width: 64 },
@@ -116,7 +131,11 @@ export async function paymentPdf(actor: Actor, id: string): Promise<PdfDoc> {
       ...(isZero(unallocated) ? [] : [{ label: "Unallocated (advance)", value: rs(unallocated), kind: "info" as const }]),
     ],
     amountInWords: amountInWords(p.amount),
-    sections: p.remarks ? [{ title: "Remarks", body: p.remarks }] : [],
+    sections: [
+      ...(p.remarks ? [{ title: refund ? "Reason" : "Remarks", body: p.remarks }] : []),
+      ...(p.refunds.length ? [{ title: "Refunds from this receipt", items: p.refunds.map((r) => `${r.number}: ${rs(r.amount)}${r.status === "CANCELLED" ? " (cancelled)" : ""}`) }] : []),
+      ...(!out && !isZero(unallocated) ? [{ title: "Advance", body: `${rs(unallocated)} of this receipt is held as an advance and will be set against future invoices or running bills.` }] : []),
+    ],
     signatures: out
       ? [
           { label: "Prepared by", name: p.createdBy.fullName, date: signDate(p.createdAt) },

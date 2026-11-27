@@ -17,14 +17,13 @@ import { certifyRaBillAction, createRaBillAction, updateRaBillAction } from "@/m
 
 /** Workflow stepper for running bills: where the bill is and what comes next. */
 const STEPS = [
-  { key: "DRAFT", label: "Prepare claim" },
-  { key: "INTERNAL_REVIEW", label: "Internal review" },
+  { key: "DRAFT", label: "Prepare bill" },
   { key: "SUBMITTED", label: "With client" },
   { key: "CLIENT_CERTIFIED", label: "Certified" },
   { key: "INVOICED", label: "Invoiced" },
   { key: "PAID", label: "Paid" },
 ];
-const ORDER: Record<string, number> = { DRAFT: 0, INTERNAL_REVIEW: 1, SUBMITTED: 2, DISPUTED: 2, CLIENT_CERTIFIED: 3, INVOICED: 4, PARTIALLY_PAID: 4, PAID: 5 };
+const ORDER: Record<string, number> = { DRAFT: 0, INTERNAL_REVIEW: 0, SUBMITTED: 1, DISPUTED: 1, CLIENT_CERTIFIED: 2, INVOICED: 3, PARTIALLY_PAID: 3, PAID: 4 };
 
 export function RaStepper({ status }: { status: string }) {
   if (status === "CANCELLED") return <p className="mb-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm">This running bill is cancelled; its quantities are free to bill again.</p>;

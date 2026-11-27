@@ -47,72 +47,72 @@ type Group = { label: string | null; items: Item[] };
 export function navGroups(user: NavUser): Group[] {
   const has = (...keys: string[]) => keys.some((k) => user.perms.includes(k));
   const item = (show: boolean, i: Item) => (show ? [i] : []);
+  // Workflow v2 · Phase 9: nine plain sections — Dashboard, Projects, Tasks, Sales, Purchases,
+  // Inventory, Accounts, Reports, Settings. Every module is still reachable; only grouping changed.
   const groups: Group[] = [
     {
-      label: "Projects",
+      label: null,
       items: [
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        ...item(has("approvals.view"), { href: "/approvals", label: "Inbox", icon: Inbox }),
         { href: "/projects", label: "Projects", icon: FolderKanban },
         { href: "/tasks", label: "Tasks", icon: ListChecks },
       ],
     },
-    { label: null, items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }, ...item(has("approvals.view"), { href: "/approvals", label: "Approvals", icon: Inbox })] },
     {
-      label: "Sales & Billing",
+      label: "Sales",
       items: [
-        ...item(has("so.view"), { href: "/quotations", label: "Quotations", icon: FileText }),
+        // Daily flow first (order → bill → invoice); optional starting points after.
         ...item(has("so.view"), { href: "/sales-orders", label: "Sales Orders", icon: FileText }),
-        ...item(has("cpo.view"), { href: "/client-pos", label: "Client POs", icon: FileSignature }),
         ...item(has("rabill.view"), { href: "/running-bills", label: "Running Bills", icon: FileSpreadsheet }),
         ...item(has("invoice.view"), { href: "/client-invoices", label: "Client Invoices", icon: Receipt }),
+        ...item(has("so.view"), { href: "/quotations", label: "Quotations", icon: FileText }),
+        ...item(has("cpo.view"), { href: "/client-pos", label: "Client POs", icon: FileSignature }),
+        ...item(has("parties.view"), { href: "/parties?type=client", label: "Clients", icon: Building2, match: "/parties?type=client", exact: true }),
       ],
     },
     {
-      label: "Procurement",
+      label: "Purchases",
       items: [
         ...item(has("mrp.view"), { href: "/material-planning", label: "Material Planning", icon: PackageSearch }),
-        ...item(has("pr.view"), { href: "/purchase-requisitions", label: "Requisitions", icon: ClipboardList }),
-        ...item(has("rfq.view"), { href: "/rate-enquiries", label: "Rate Enquiries", icon: MessageSquareQuote }),
         ...item(has("po.view"), { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart }),
-      ],
-    },
-    {
-      label: "Stores & Site",
-      items: [
-        ...item(has("grn.view"), { href: "/site-receipts", label: "Site Receipts", icon: PackageCheck }),
-        ...item(has("grn.view"), { href: "/challans", label: "Challans", icon: ScrollText }),
-        ...item(has("items.view"), { href: "/stock", label: "Inventory", icon: Warehouse }),
-      ],
-    },
-    {
-      label: "Accounts",
-      items: [
+        ...item(has("rfq.view"), { href: "/rate-enquiries", label: "Rate Enquiries", icon: MessageSquareQuote }),
         ...item(has("bills.view"), { href: "/supplier-bills", label: "Supplier Bills", icon: FileCheck2 }),
-        ...item(has("payments.view"), { href: "/payments", label: "Payments & Receipts", icon: HandCoins }),
-        ...item(has("bills.view"), { href: "/notes", label: "Credit / Debit Notes", icon: StickyNote }),
-        ...item(has("accounts.view"), { href: "/accounts", label: "Project Accounts", icon: Wallet }),
+        ...item(has("parties.view"), { href: "/parties?type=supplier", label: "Suppliers", icon: Truck, match: "/parties?type=supplier", exact: true }),
+        // Optional — planning orders directly; kept for teams that still use them.
+        ...item(has("pr.view"), { href: "/purchase-requisitions", label: "Requisitions (optional)", icon: ClipboardList }),
       ],
     },
     {
-      label: "Insights",
-      items: [...item(has("reports.commercial"), { href: "/reports", label: "Reports", icon: BarChart3 }), { href: "/documents", label: "Documents", icon: FolderOpen }],
-    },
-    {
-      label: "Masters",
+      label: "Inventory",
       items: [
-        ...item(has("parties.view"), { href: "/parties?type=client", label: "Clients", icon: Building2, match: "/parties?type=client", exact: true }),
-        ...item(has("parties.view"), { href: "/parties?type=supplier", label: "Suppliers", icon: Truck, match: "/parties?type=supplier", exact: true }),
+        ...item(has("items.view"), { href: "/stock", label: "Stock", icon: Warehouse }),
+        ...item(has("grn.view"), { href: "/site-receipts", label: "Material Receipts", icon: PackageCheck }),
+        ...item(has("grn.view"), { href: "/challans", label: "Site Challans", icon: ScrollText }),
         ...item(has("items.view"), { href: "/items", label: "Items", icon: Boxes }),
         ...item(has("items.view"), { href: "/brands", label: "Brands", icon: Tags }),
       ],
     },
     {
-      label: "Organization",
+      label: "Accounts",
+      items: [
+        ...item(has("accounts.view"), { href: "/accounts", label: "Project Accounts", icon: Wallet }),
+        ...item(has("payments.view"), { href: "/payments", label: "Payments & Receipts", icon: HandCoins }),
+        ...item(has("bills.view"), { href: "/notes", label: "Credit / Debit Notes", icon: StickyNote }),
+      ],
+    },
+    {
+      label: "Reports",
+      items: [...item(has("reports.commercial"), { href: "/reports", label: "Reports", icon: BarChart3 }), { href: "/documents", label: "Documents", icon: FolderOpen }],
+    },
+    {
+      label: "Settings",
       items: [
         { href: "/departments", label: "Departments", icon: ClipboardCheck },
         user.canViewMembers ? { href: "/team-members", label: "Team Members", icon: Users } : { href: `/team-members/${user.id}`, label: "My Profile", icon: UserRound, match: "/team-members" },
+        { href: "/settings", label: "Administration", icon: Settings },
       ],
     },
-    { label: "Administration", items: [{ href: "/settings", label: "Administration", icon: Settings }] },
   ];
   return groups.filter((g) => g.items.length > 0);
 }

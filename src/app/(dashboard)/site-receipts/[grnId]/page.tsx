@@ -9,6 +9,7 @@ import { DocShare } from "@/components/documents/doc-share";
 import { NextStep, ProjectTrace } from "@/components/procurement/next-step";
 import { traceSalesOrdersForPoLines } from "@/modules/procurement/trace";
 import { GrnActions } from "@/components/stores/actions";
+import { ReceiptProof } from "@/components/stores/receipt-proof";
 import { docCrumbs } from "@/components/procurement/crumbs";
 import { PageHeader } from "@/components/shared/page-header";
 import { requirePagePermission } from "@/lib/auth/session";
@@ -23,7 +24,7 @@ export const metadata: Metadata = { title: "Site receipt" };
 export default async function GrnPage({ params }: PageProps<"/site-receipts/[grnId]">) {
   const user = await requirePagePermission("grn.view");
   const { grnId } = await params;
-  const { grn, can } = await orNotFound(getGrn(user, grnId));
+  const { grn, can, proof } = await orNotFound(getGrn(user, grnId));
   const [files, activity, salesOrders] = await Promise.all([
     listAttachments(user, "grn", grn.id),
     entityActivity(user, "grn", grn.id),
@@ -36,13 +37,11 @@ export default async function GrnPage({ params }: PageProps<"/site-receipts/[grn
   const step = (() => {
     switch (grn.status) {
       case "DRAFT":
-        return <NextStep title="Draft — not yet submitted">Check the quantities, add photos of the material and the signed supplier challan, then submit it for verification.</NextStep>;
+        return proof.complete ? <NextStep title="Ready — confirm the receipt">All mandatory proof is uploaded. Check the quantities and press “Confirm receipt” — stock is updated at once.</NextStep> : <NextStep title="Next: add the mandatory proof">Upload {proof.missing.join(", ").toLowerCase()} below. “Confirm receipt” unlocks once every proof box has a file.</NextStep>;
       case "SUBMITTED":
-        return can.post ? (
-          <NextStep title="Waiting for your verification">Compare the quantities with the photos and the challan. “Verify & add to stock” updates site stock and the purchase order.</NextStep>
-        ) : (
-          <NextStep tone="info" title="Submitted — waiting for verification">
-            {can.postBlockedReason ?? "A storekeeper or project manager will verify it and add the accepted quantity to site stock."}
+        return (
+          <NextStep title="Confirm the receipt">
+            {can.post ? "Check the quantities against the photos and challan, then press “Confirm receipt” to update stock." : "A store user will confirm it and add the accepted quantity to stock."}
           </NextStep>
         );
       case "REJECTED":
@@ -53,7 +52,7 @@ export default async function GrnPage({ params }: PageProps<"/site-receipts/[grn
         );
       case "POSTED":
         return (
-          <NextStep tone="done" title="Posted — accepted material is in site stock" links={[{ href: `/stock?tab=locations-stock&locationId=${grn.location.id}${grn.project ? `&projectId=${grn.project.id}` : ""}`, label: "View stock" }]}>
+          <NextStep tone="done" title="Confirmed — accepted material is in stock" links={[{ href: `/stock?tab=locations-stock&locationId=${grn.location.id}${grn.project ? `&projectId=${grn.project.id}` : ""}`, label: "View stock" }]}>
             {grn.po ? "The purchase order's received quantities are updated. Accounts can now match the supplier bill to this receipt." : "The transfer's in-transit quantity is updated."}
           </NextStep>
         );
@@ -81,12 +80,15 @@ export default async function GrnPage({ params }: PageProps<"/site-receipts/[grn
         }
         actions={
           <>
-            <GrnActions id={grn.id} version={grn.version} can={can} />
+            <GrnActions id={grn.id} version={grn.version} can={can} proofMissing={proof.missing} />
             <DocShare type="grn" id={grn.id} summary={summary} subject={`Site receipt ${grn.number}`} />
           </>
         }
       />
       {step}
+      <div className="mb-4">
+        <ReceiptProof grnId={grn.id} proof={proof} editable={can.edit} maxUploadMb={files.maxUploadMb} />
+      </div>
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="min-w-0 space-y-4 xl:col-span-2">
           <Section title="Receipt">
@@ -100,7 +102,7 @@ export default async function GrnPage({ params }: PageProps<"/site-receipts/[grn
                 { label: "Vehicle", value: grn.vehicleNo },
                 { label: "Received by", value: grn.receivedByName },
                 { label: "Recorded", value: `${grn.createdBy.fullName} · ${formatDateTime(grn.createdAt)}` },
-                { label: "Verified & posted", value: grn.postedBy ? `${grn.postedBy.fullName} · ${formatDateTime(grn.postedAt)}` : "—" },
+                { label: "Confirmed", value: grn.postedBy ? `${grn.postedBy.fullName} · ${formatDateTime(grn.postedAt)}` : "—" },
                 {
                   label: "Site location",
                   value: grn.latitude ? (
@@ -158,7 +160,7 @@ export default async function GrnPage({ params }: PageProps<"/site-receipts/[grn
         </div>
         <div className="space-y-4">
           <RelatedDocs docs={source ? [{ type: source.label, id: source.id, number: source.number, href: source.href }] : []} />
-          <AttachmentsPanel entityType="grn" entityId={grn.id} data={files} currentUserId={user.id} title="Photos, challan & signature" defaultCategory="MATERIAL_PHOTO" categories={["MATERIAL_PHOTO", "DAMAGE_PHOTO", "SIGNED_CHALLAN", "DELIVERY_CHALLAN", "SUPPLIER_INVOICE", "SIGNATURE", "OTHER"]} />
+          <AttachmentsPanel entityType="grn" entityId={grn.id} data={files} currentUserId={user.id} title="All receipt files" defaultCategory="MATERIAL_PHOTO" categories={["MATERIAL_PHOTO", "DAMAGE_PHOTO", "SIGNED_CHALLAN", "DELIVERY_CHALLAN", "SUPPLIER_INVOICE", "SIGNATURE", "OTHER"]} />
         </div>
       </div>
     </>

@@ -1,20 +1,23 @@
 "use client";
 
-import { Ban, CheckCircle2, FileMinus, Pencil, Send, ShieldAlert, ThumbsDown, ThumbsUp, Wallet } from "lucide-react";
+import { Ban, CheckCircle2, FileMinus, Pencil, ShieldAlert, ThumbsDown, ThumbsUp, Wallet } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { DocActions, type DocActionDef } from "@/components/commercial/doc-actions";
+import { RequestChangeButton } from "@/components/commercial/request-change";
 import { Button } from "@/components/ui/button";
 import { callAction } from "@/lib/call-action";
 import { billActionAction } from "@/modules/payables/actions";
 
-type Can = { edit: boolean; submit: boolean; approve: boolean; override: boolean; approveBlockedReason: string | null; cancel: boolean; pay: boolean; note: boolean };
+type Can = { edit: boolean; submit: boolean; approve: boolean; override: boolean; approveBlockedReason: string | null; cancel: boolean; pay: boolean; note: boolean; requestChange?: boolean };
 
 export function BillActions({ id, version, can, hasExceptions, projectId }: { id: string; version: number; can: Can; hasExceptions: boolean; projectId: string | null }) {
   const defs: DocActionDef[] = [];
-  if (can.submit) defs.push({ key: "submit", label: "Submit for approval", icon: Send, variant: "default", success: "Submitted for approval." });
-  if (can.approve && !hasExceptions) defs.push({ key: "approve", label: "Approve for payment", icon: ThumbsUp, variant: "default", confirm: { title: "Approve this bill for payment?", description: "The billed quantities are recorded against the purchase order and site receipts, and the bill can then be paid." }, success: "Bill approved." });
-  if (can.override && hasExceptions) defs.push({ key: "override", label: "Approve with override", icon: ShieldAlert, variant: "default", confirm: { title: "Approve despite the differences?", description: "The bill does not match the purchase order / receipts. Your reason is kept in the audit history.", noteLabel: "Reason for override", noteRequired: true }, success: "Bill approved with override." });
-  if (can.approve) defs.push({ key: "reject", label: "Reject", icon: ThumbsDown, confirm: { title: "Reject this bill?", description: "It goes back to accounts for correction.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Bill rejected." });
+  const pending = can.approve; // held for match differences (or left from the old approval step)
+  if (can.submit) defs.push({ key: "submit", label: "Save & finalize", icon: CheckCircle2, variant: "default", confirm: { title: "Finalize this supplier bill?", description: "If it matches the PO and receipts it is ready to pay at once. If quantities or rates differ, it is held so the difference can be checked." }, success: "Bill processed." });
+  if (pending && !hasExceptions) defs.push({ key: "approve", label: "Finalize", icon: ThumbsUp, variant: "default", confirm: { title: "Finalize this bill for payment?", description: "The billed quantities are recorded against the purchase order and receipts, and the bill can then be paid." }, success: "Bill finalized — ready to pay." });
+  if (can.override && hasExceptions) defs.push({ key: "override", label: "Accept despite differences", icon: ShieldAlert, variant: "default", confirm: { title: "Accept the bill despite the differences?", description: "The bill does not match the purchase order / receipts. Your reason is kept in the audit history.", noteLabel: "Reason", noteRequired: true }, success: "Bill accepted with override." });
+  if (pending) defs.push({ key: "reject", label: "Return for correction", icon: ThumbsDown, confirm: { title: "Return this bill for correction?", description: "It goes back to draft so quantities or rates can be fixed.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Bill returned for correction." });
   if (can.cancel) defs.push({ key: "cancel", label: "Cancel bill", icon: Ban, variant: "ghost", confirm: { title: "Cancel this bill?", description: "Use this for a wrong or duplicate entry. Billed quantities are released back to the PO / receipts.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Bill cancelled." });
   return (
     <>
@@ -39,14 +42,16 @@ export function BillActions({ id, version, can, hasExceptions, projectId }: { id
           </Link>
         </Button>
       )}
-      <DocActions actions={defs} run={(key, note) => callAction(billActionAction, id, (key === "override" ? "approve" : key) as never, { version, note, override: key === "override" })} />
-      {can.approveBlockedReason && (
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-          <CheckCircle2 className="size-3" />
-          {can.approveBlockedReason}
-        </span>
-      )}
-      {can.approve && hasExceptions && !can.override && <span className="text-xs text-amber-700">This bill has differences. Only a user allowed to override match exceptions can approve it; otherwise reject it.</span>}
+      <DocActions
+        actions={defs}
+        run={(key, note) => callAction(billActionAction, id, (key === "override" ? (can.approve ? "approve" : "submit") : key) as never, { version, note, override: key === "override" })}
+        onDone={(key, res) => {
+          const d = (res as { data?: { approved?: boolean; exceptions?: string[] } }).data;
+          if (key === "submit" && d && d.approved === false) toast.warning(`Held for checking: ${(d.exceptions ?? []).join(" ")}`);
+        }}
+      />
+      {can.requestChange && <RequestChangeButton kind="supplier_bill" id={id} />}
+      {pending && hasExceptions && !can.override && <span className="text-xs text-amber-700">This bill differs from the PO / receipts. Correct it, or ask a user allowed to accept differences.</span>}
     </>
   );
 }

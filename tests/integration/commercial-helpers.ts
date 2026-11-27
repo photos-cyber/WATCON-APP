@@ -80,3 +80,27 @@ export async function commercialFixture() {
 export const key = () => randomUUID();
 export type CFx = Awaited<ReturnType<typeof commercialFixture>>;
 export type A = Actor;
+
+// ─────────────── Receiving proof (workflow v2 · Phase 4) ───────────────
+
+export const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 73, 72, 68, 82]);
+export const PDF = new TextEncoder().encode("%PDF-1.4\n delivery challan fixture");
+
+/** Uploads the mandatory receipt proof: material photo + (signed / supplier) challan (+ damage photo). */
+export async function addReceiptProof(actor: Actor, grnId: string, opts: { damage?: boolean; photo?: boolean; challan?: boolean } = {}) {
+  const { uploadAttachment } = await import("@/modules/documents/attachments");
+  if (opts.photo !== false) await uploadAttachment(actor, { entityType: "grn", entityId: grnId, category: "MATERIAL_PHOTO", fileName: "material.png", bytes: PNG });
+  if (opts.challan !== false) await uploadAttachment(actor, { entityType: "grn", entityId: grnId, category: "DELIVERY_CHALLAN", fileName: "challan.pdf", bytes: PDF });
+  if (opts.damage) await uploadAttachment(actor, { entityType: "grn", entityId: grnId, category: "DAMAGE_PHOTO", fileName: "damage.png", bytes: PNG });
+}
+
+/** Records a receipt (supplier PO or site challan) the v2 way: draft → proof → submit. Returns { id, number }. */
+export async function receiveWithProof(actor: Actor, input: { clientKey: string; poId?: string; challanId?: string; receiptDate: string; lines: { poLineId?: string; challanLineId?: string; receivedQty: string; damagedQty?: string; rejectedQty?: string }[]; [k: string]: unknown }) {
+  const { createGrn, grnAction } = await import("@/modules/stores/grn");
+  const g = await createGrn(actor, { ...input, submit: false });
+  const damage = input.lines.some((l) => Number(l.damagedQty ?? 0) > 0 || Number(l.rejectedQty ?? 0) > 0);
+  await addReceiptProof(actor, g.id, { damage });
+  const { version } = await db.grn.findUniqueOrThrow({ where: { id: g.id }, select: { version: true } });
+  await grnAction(actor, g.id, "submit", { version });
+  return g;
+}

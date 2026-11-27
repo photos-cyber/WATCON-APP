@@ -51,7 +51,7 @@ export function PendingDeliveries({ items, canReceive }: { items: PendingDeliver
             {d.pendingLines} item{d.pendingLines === 1 ? "" : "s"} · {formatQty(d.pendingQty)} units pending · to {d.location}
             {d.expectedDate && <> · due {formatDate(d.expectedDate)}</>}
           </p>
-          {d.inProgress > 0 && <p className="text-xs text-amber-700 dark:text-amber-400">{d.inProgress} receipt(s) already recorded and awaiting verification.</p>}
+          {d.inProgress > 0 && <p className="text-xs text-amber-700 dark:text-amber-400">{d.inProgress} receipt(s) already started — finish them (add proof and confirm).</p>}
           {canReceive && (
             <Button asChild className="mt-auto h-11">
               <Link href={`/site-receipts/new?${d.kind === "po" ? "poId" : "challanId"}=${d.id}`}>

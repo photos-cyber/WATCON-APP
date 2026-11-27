@@ -40,7 +40,6 @@ const quoteInput = (milestones: Record<string, unknown>[] = DEFAULT) => ({
 async function approvedQuote() {
   const q = await createQuotation(fx.roles.pm.actor, quoteInput());
   await quotationAction(fx.roles.pm.actor, q.id, "submit", { version: await ver("clientQuotation", q.id) });
-  await quotationAction(fx.actors.admin, q.id, "approve", { version: await ver("clientQuotation", q.id) });
   await quotationAction(fx.roles.pm.actor, q.id, "mark_sent", { version: await ver("clientQuotation", q.id), via: "email" });
   return db.clientQuotation.findUniqueOrThrow({ where: { id: q.id }, include: { milestones: { orderBy: { sortOrder: "asc" } } } });
 }
@@ -98,7 +97,6 @@ describe("quotation → sales order → milestone billing", () => {
     expect((await getQuotation(fx.actors.admin, q.id)).q.status).toBe("CONVERTED");
 
     await salesOrderAction(fx.roles.pm.actor, so.id, "submit", { version: await ver("salesOrder", so.id) });
-    await salesOrderAction(fx.actors.admin, so.id, "approve", { version: await ver("salesOrder", so.id) });
 
     // Delivery-quantity invoicing is closed for a milestone-billed order.
     const cementLine = so.lines.find((l) => l.itemBrandId)!;
@@ -177,7 +175,6 @@ describe("quotation & proforma PDFs", () => {
     await recordAcceptance(fx.actors.admin, q.id, await ver("clientQuotation", q.id), { acceptedByName: "R. Client", note: "Signed copy received" });
     const { soId } = await convertToSalesOrder(fx.roles.pm.actor, q.id);
     await salesOrderAction(fx.roles.pm.actor, soId, "submit", { version: await ver("salesOrder", soId) });
-    await salesOrderAction(fx.actors.admin, soId, "approve", { version: await ver("salesOrder", soId) });
     const m = await db.paymentMilestone.findFirstOrThrow({ where: { soId }, orderBy: { sortOrder: "asc" } });
     const pi = await createMilestoneInvoice(fx.roles.ac.actor, { milestoneId: m.id, amount: "17420.00", invoiceDate: day() });
     await clientInvoiceAction(fx.actors.admin, pi.id, "issue", { version: await ver("clientInvoice", pi.id) });

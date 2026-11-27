@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RecordClientPaymentButton } from "@/components/payables/client-account";
 import Link from "next/link";
 import { RelatedDocs } from "@/components/commercial/related-docs";
 import { DetailGrid, DocStatusBadge, Money, Section, ToneBadge } from "@/components/commercial/ui";
@@ -43,12 +44,13 @@ export default async function ClientInvoicePage({ params }: PageProps<"/client-i
         }
         actions={
           <>
-            <InvoiceActions id={inv.id} version={inv.version} partyId={inv.partyId} can={can} />
+            <InvoiceActions id={inv.id} version={inv.version} partyId={inv.partyId} projectId={inv.projectId} can={can} />
+            {can.receive && <RecordClientPaymentButton projectId={inv.projectId} partyId={inv.partyId} invoiceId={inv.id} />}
             <DocShare type="client_invoice" id={inv.id} summary={share} phone={inv.party.whatsappNumber ?? inv.party.phone} email={inv.party.email} subject={`Invoice ${inv.number}`} />
           </>
         }
       />
-      {inv.status === "DRAFT" && <NextStep title="Draft — issue the invoice">{can.issue ? "Issuing allocates the GST invoice number and locks the invoice." : (can.issueBlocked ?? "Another approver issues the invoice.")}</NextStep>}
+      {inv.status === "DRAFT" && <NextStep title="Draft — issue the invoice">{can.issue ? "Issuing allocates the GST invoice number and locks the invoice." : (can.issueBlocked ?? "An accounts user issues the invoice.")}</NextStep>}
       {["ISSUED", "PARTIALLY_PAID"].includes(inv.status) && <NextStep tone={inv.overdue ? "warn" : "info"} title={`${formatINR(inv.outstanding)} outstanding`} links={can.receive ? [{ href: `/payments/new?direction=IN&partyId=${inv.partyId}&invoiceId=${inv.id}`, label: "Record receipt" }] : []}>{inv.dueDate ? `Due ${formatDate(inv.dueDate)}.` : "No due date set."}</NextStep>}
       {inv.statusNote && <p className="mb-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm">{inv.statusNote}</p>}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">

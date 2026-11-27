@@ -31,11 +31,11 @@ export default async function QuotationPage({ params }: PageProps<"/quotations/[
   const step = (() => {
     switch (displayStatus) {
       case "DRAFT":
-        return <NextStep tone={q.statusNote ? "warn" : "action"} title={q.statusNote ? "Returned for correction" : "Draft — submit for approval"}>{q.statusNote ?? "Check items, rates and the payment schedule, then submit. The client should only see it after approval."}</NextStep>;
+        return <NextStep tone={q.statusNote ? "warn" : "action"} title={q.statusNote ? "Returned for correction" : "Draft — check and finalize"}>{q.statusNote ?? "Check items, rates and the payment schedule, then press Finalize to share it with the client."}</NextStep>;
       case "PENDING_APPROVAL":
-        return can.approve ? <NextStep title="Waiting for your approval">Approve to allow sharing with the client, or return it with a note.</NextStep> : <NextStep tone="info" title="Waiting for approval">{can.approveBlockedReason ?? "An approver will review it."}</NextStep>;
+        return <NextStep title="Finalize this quotation">{can.approve ? "It was waiting under the old approval step — finalize it to share with the client." : "A sales user can finalize it."}</NextStep>;
       case "APPROVED":
-        return <NextStep title="Approved — share it with the client">Copy the client link, use WhatsApp or email. The client can view, download and accept with a code sent to their email.</NextStep>;
+        return <NextStep title="Final — share it with the client">Copy the client link, use WhatsApp or email. The client can view, download and accept with a code sent to their email.</NextStep>;
       case "SENT":
         return <NextStep tone="info" title="Sent — waiting for the client">The client has not opened the link yet. If they accept another way, use “Record acceptance”.</NextStep>;
       case "VIEWED":

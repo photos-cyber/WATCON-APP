@@ -11,7 +11,7 @@ import { can } from "@/lib/permissions/definitions";
 import { listApprovals, listSoAmendmentRequests, type ApprovalItem } from "@/modules/insights/approvals";
 import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Approvals" };
+export const metadata: Metadata = { title: "Inbox" };
 
 const KIND_OPTIONS = [
   ["so", "Sales orders"],
@@ -50,7 +50,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps<"/approv
 
   return (
     <>
-      <PageHeader title="Approvals" description="Everything waiting for a decision, oldest first. Open an item to review and approve or reject it." breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Approvals" }]} />
+      <PageHeader title="Inbox" description="Daily documents are finalized by the person who prepares them. Listed here: sales-order amendments for the Super Admin, supplier bills held for differences, and anything left waiting from the old approval step." breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Inbox" }]} />
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Waiting for you" value={mine.length + amendMine.length} tone={mine.length + amendMine.length ? "warn" : undefined} />
         <Stat label="Waiting for others" value={others.length + amendWaiting.length} />
@@ -89,7 +89,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps<"/approv
         amendMine.length > 0 ? (
           <EmptyState icon={CheckCircle2} title="No other documents waiting" description="Only the sales order amendment requests above need your decision." />
         ) : (
-          <EmptyState icon={CheckCircle2} title="You're all caught up" description="Nothing is waiting for your approval right now." />
+          <EmptyState icon={CheckCircle2} title="You're all caught up" description="Nothing is waiting for you right now." />
         )
       ) : (
         <div className="space-y-4">

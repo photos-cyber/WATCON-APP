@@ -14,15 +14,17 @@ import { toLedgerRow, todayString } from "@/modules/inventory/serialize";
 import { getLedger, getStockSummary, inventoryCapabilities, listBrandOptions, listItemCategories, listStockPositionOptions } from "@/modules/inventory/service";
 import { listLocationBalances, listLocationOptions, listLocations, listReservations, locationCapabilities } from "@/modules/inventory/locations";
 import { listProjectOptions } from "@/modules/projects/service";
+import { stockOverview } from "@/modules/inventory/overview";
+import { formatQty } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Inventory" };
 
-const TABS = ["summary", "locations-stock", "ledger", "reservations", "locations"] as const;
+const TABS = ["overview", "summary", "locations-stock", "ledger", "reservations", "locations"] as const;
 
 export default async function StockPage({ searchParams }: PageProps<"/stock">) {
   const user = await requirePagePermission("items.view");
   const sp = await searchParams;
-  const tab = (TABS as readonly string[]).includes(String(sp.tab)) ? (String(sp.tab) as (typeof TABS)[number]) : "summary";
+  const tab = (TABS as readonly string[]).includes(String(sp.tab)) ? (String(sp.tab) as (typeof TABS)[number]) : "overview";
   const caps = { ...inventoryCapabilities(user), ...locationCapabilities(user) };
   const [brands, categories, positions, locations, projects] = await Promise.all([listBrandOptions(user), listItemCategories(user), listStockPositionOptions(user), listLocationOptions(user), listProjectOptions(user, { forTaskCreation: true })]);
   const locked = lockedProject(projects, sp);
@@ -45,13 +47,15 @@ export default async function StockPage({ searchParams }: PageProps<"/stock">) {
       <UrlTabs
         current={tab}
         tabs={[
-          { key: "summary", label: "Company stock" },
+          { key: "overview", label: "Stock overview" },
+          { key: "summary", label: "Movements by period" },
           { key: "locations-stock", label: "By location" },
           { key: "ledger", label: "Stock ledger" },
           { key: "reservations", label: "Reservations" },
           { key: "locations", label: "Locations" },
         ]}
       />
+      {tab === "overview" && <Overview sp={sp} user={user} />}
       {tab === "summary" && (
         <Summary sp={sp} brandFilter={brandFilter} categories={categories} user={user} />
       )}
@@ -64,6 +68,60 @@ export default async function StockPage({ searchParams }: PageProps<"/stock">) {
 }
 
 type Sp = Awaited<PageProps<"/stock">["searchParams"]>;
+
+/** Physical / reserved / available / incoming / in-transit / site / damaged / reorder per item–brand. */
+async function Overview({ sp, user }: { sp: Sp; user: User }) {
+  const result = await stockOverview(user, sp);
+  const n = "px-2 py-2 text-right tabular-nums whitespace-nowrap";
+  const z = (v: string) => (v === "0" ? <span className="text-muted-foreground/50">—</span> : formatQty(v));
+  return (
+    <>
+      <FilterBar params={["q", "filter"]}>
+        <SearchInput placeholder="Search item, code or brand…" />
+        <FilterSelect param="filter" label="Show" allLabel="All item–brands" options={[{ value: "in-stock", label: "Holding stock" }, { value: "reorder", label: `Needs reorder (${result.reorderCount})` }]} />
+      </FilterBar>
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full min-w-[980px] text-sm">
+          <thead className="bg-muted/40 text-xs text-muted-foreground">
+            <tr>
+              <th className="px-2 py-2 text-left font-medium">Item – brand</th>
+              <th className={n} title="Warehouse + site stores">Physical</th>
+              <th className={n} title="Open reservations for projects">Reserved</th>
+              <th className={n} title="Warehouse stock not reserved for any project">Available</th>
+              <th className={n} title="Approved purchase orders not yet received">Incoming</th>
+              <th className={n} title="Dispatched on challans, not yet received">In transit</th>
+              <th className={n} title="At project site stores">Site</th>
+              <th className={n} title="In quarantine (damaged / held)">Damaged</th>
+              <th className={n} title="Ordering back up to the target when available + incoming is at or below the minimum">Reorder qty</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {result.rows.map((r) => (
+              <tr key={r.itemBrandId}>
+                <td className="px-2 py-2">
+                  <a href={`/items/${r.item.id}`} className="font-medium hover:text-primary hover:underline">{r.item.name}</a>
+                  <div className="text-xs text-muted-foreground">{r.brand} · {r.item.code} · {r.item.unit}</div>
+                </td>
+                <td className={n}>{z(r.physical)}</td>
+                <td className={n}>{z(r.reserved)}</td>
+                <td className={`${n} font-medium`}>{z(r.available)}</td>
+                <td className={n}>{z(r.incoming)}</td>
+                <td className={n}>{z(r.inTransit)}</td>
+                <td className={n}>{z(r.site)}</td>
+                <td className={`${n} ${r.damaged !== "0" ? "text-rose-700" : ""}`}>{z(r.damaged)}</td>
+                <td className={`${n} ${r.reorderQty !== "0" ? "font-semibold text-amber-700" : ""}`}>
+                  {z(r.reorderQty)}
+                  {r.reorderLevel && <div className="text-[11px] font-normal text-muted-foreground">min {formatQty(r.reorderLevel)}{r.targetStock ? ` · target ${formatQty(r.targetStock)}` : ""}</div>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Pagination total={result.total} page={result.page} pageSize={result.pageSize} />
+    </>
+  );
+}
 type User = Awaited<ReturnType<typeof requirePagePermission>>;
 
 async function Summary({ sp, brandFilter, categories, user }: { sp: Sp; brandFilter: React.ReactNode; categories: string[]; user: User }) {

@@ -57,13 +57,13 @@ export function PoForm({ initial, poId, version, amendment, lockProject = false,
   const totals = useMemo(() => safeTotals(v.lines, mode, { charges: v.charges, chargesGstRate: v.chargesGstRate, roundToRupee: v.roundToRupee }), [v.lines, mode, v.charges, v.chargesGstRate, v.roundToRupee]);
   const locs = locations.filter((l) => l.status === "ACTIVE" && (l.type === "WAREHOUSE" || (l.type === "SITE" && l.projectId === v.projectId)));
 
-  async function save() {
+  async function save(finalize = false) {
     setBusy(true);
     const payload = {
       ...v,
       lines: v.lines.map((l) => ({ id: l.id ?? null, itemBrandId: l.itemBrandId, description: l.description, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, prLineId: l.links?.prLineId ?? null, quotationLineId: l.links?.quotationLineId ?? null })),
     };
-    const res = poId ? await callAction(updatePoAction, poId, version!, payload) : await callAction(createPoAction, payload);
+    const res = poId ? await callAction(updatePoAction, poId, version!, payload, { finalize }) : await callAction(createPoAction, payload, { finalize });
     setBusy(false);
     if (!res.ok) {
       setErrors(res.fieldErrors ?? {});
@@ -71,7 +71,8 @@ export function PoForm({ initial, poId, version, amendment, lockProject = false,
       return;
     }
     setDirty(false);
-    toast.success(poId ? "Purchase order saved." : "Purchase order created as draft.");
+    if (finalize && res.data.finalizeError) toast.warning(`Saved as draft, but not finalized: ${res.data.finalizeError}`);
+    else toast.success(res.data.finalized ? "Purchase order finalized — share it with the supplier." : poId ? "Purchase order saved." : "Purchase order saved as draft.");
     router.push(`/purchase-orders/${res.data.id}`);
   }
 
@@ -84,15 +85,15 @@ export function PoForm({ initial, poId, version, amendment, lockProject = false,
         save();
       }}
     >
-      {amendment ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">Amendment {amendment}: received and billed quantities are protected — a line cannot go below them. The amended order needs approval again.</p> : null}
-      <FormSection title="Project & supplier" description="Every purchase order is for one project. Delivery defaults to that project's site store.">
-        <Field id="po-project" label="Project" required error={errors.projectId}>
+      {amendment ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">Amendment {amendment}: received and billed quantities are protected — a line cannot go below them. Finalize the amended order again when done.</p> : null}
+      <FormSection title="Project & supplier" description="Delivery defaults to the project's site store. Leave the project empty for general stock or a combined order (delivered to the main warehouse).">
+        <Field id="po-project" label="Project" error={errors.projectId}>
           {(lockProject || amendment) && projects.find((p) => p.id === v.projectId) ? (
             <p className="flex h-9 items-center rounded-md border bg-muted/40 px-3 text-sm font-medium">
               {projects.find((p) => p.id === v.projectId)!.code} – {projects.find((p) => p.id === v.projectId)!.name}
             </p>
           ) : (
-            <SingleSelect id="po-project" options={projects.map((p) => ({ value: p.id, label: p.name, hint: p.code }))} value={v.projectId} onChange={(x) => set({ projectId: x, deliveryLocationId: siteOf(x) })} allowClear={false} placeholder="Select project" invalid={!!errors.projectId} />
+            <SingleSelect id="po-project" options={projects.map((p) => ({ value: p.id, label: p.name, hint: p.code }))} value={v.projectId} onChange={(x) => set({ projectId: x, deliveryLocationId: siteOf(x) })} placeholder="General stock (no project)" invalid={!!errors.projectId} />
           )}
         </Field>
         <Field id="po-party" label="Supplier" required error={errors.partyId} help={supplier ? `Tax: ${mode === "INTRA" ? "CGST + SGST (same state)" : "IGST (inter-state)"}` : undefined}>
@@ -133,6 +134,9 @@ export function PoForm({ initial, poId, version, amendment, lockProject = false,
         <Field id="po-adv" label="Advance payable (₹)" error={errors.advanceAmount}>
           <Input id="po-adv" inputMode="decimal" value={v.advanceAmount} onChange={(e) => set({ advanceAmount: e.target.value })} />
         </Field>
+        <details className="sm:col-span-2" open={!!(errors.terms || errors.internalRemarks)}>
+          <summary className="cursor-pointer text-sm text-primary">Terms & conditions, internal remarks, rounding</summary>
+          <div className="mt-3 grid gap-4">
         <Field id="po-terms" label="Terms & conditions (printed)" error={errors.terms} className="sm:col-span-2">
           <Textarea id="po-terms" rows={4} value={v.terms} onChange={(e) => set({ terms: e.target.value })} />
         </Field>
@@ -142,6 +146,8 @@ export function PoForm({ initial, poId, version, amendment, lockProject = false,
         <label className="flex items-center gap-2 text-sm">
           <Checkbox checked={v.roundToRupee} onCheckedChange={(x) => set({ roundToRupee: x === true })} /> Round total to the nearest rupee
         </label>
+          </div>
+        </details>
       </FormSection>
 
       <div className="sticky bottom-0 z-10 -mx-4 flex flex-col gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:flex-row sm:items-end sm:justify-between sm:rounded-xl sm:border">
@@ -150,9 +156,12 @@ export function PoForm({ initial, poId, version, amendment, lockProject = false,
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" variant="outline" disabled={busy}>
+            Save draft
+          </Button>
+          <Button type="button" disabled={busy} onClick={() => save(true)} title="Saves and finalizes the PO in one step — then share it with the supplier.">
             {busy && <Loader2 className="animate-spin" />}
-            {poId ? "Save draft" : "Create draft PO"}
+            Save &amp; finalize PO
           </Button>
         </div>
       </div>

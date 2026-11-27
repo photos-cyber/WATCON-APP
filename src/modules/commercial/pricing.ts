@@ -19,6 +19,16 @@ export const projectIdField = z
   .transform((v) => v ?? "")
   .pipe(z.string().min(1, "Select the project this is for.").uuid("Select the project this is for."));
 
+/**
+ * Procurement documents (requisition, rate enquiry, purchase order) may be raised for general
+ * inventory — no project, delivered to a warehouse. Empty / null → null.
+ */
+export const optionalProjectIdField = z
+  .union([z.string(), z.null()])
+  .optional()
+  .transform((v) => (v && v.trim() ? v.trim() : null))
+  .pipe(z.union([z.null(), z.string().uuid("Select the project this is for.")]));
+
 export const qtyField =decimal(/^\d{1,11}(\.\d{1,3})?$/, "Quantity: up to 3 decimals.").refine((v) => Number(v) > 0, "Must be greater than zero.");
 export const qtyOrZero = decimal(/^\d{1,11}(\.\d{1,3})?$/, "Quantity: up to 3 decimals.");
 export const rateField = decimal(/^\d{1,13}(\.\d{1,4})?$/, "Rate: up to 4 decimals.");

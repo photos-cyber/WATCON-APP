@@ -15,7 +15,7 @@ export default async function MaterialPlanningPage({ searchParams }: PageProps<"
     <>
       <PageHeader
         title="Material planning"
-        description={locked ? `Requirements for ${locked.code} – ${locked.name}, each traced to its sales order, against stock, open orders and site receipts.` : "Project requirements against brand-wise stock, reservations, open orders, requisitions and site receipts — across all your projects."}
+        description={locked ? `Requirements for ${locked.code} – ${locked.name}, each traced to its sales order, against stock, open orders and site receipts.` : "Project requirements (created automatically from approved sales orders) and general warehouse stock, against stock, reservations and open orders. Order several projects and general stock together — each line stays allocated."}
         breadcrumbs={listCrumbs(locked, "material-planning")}
       />
       <MrpSection user={user} sp={sp} projectId={locked?.id} basePath={locked ? `/material-planning?projectId=${locked.id}` : "/material-planning"} />

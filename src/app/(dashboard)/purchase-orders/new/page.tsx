@@ -34,7 +34,7 @@ export default async function NewPoPage({ searchParams }: PageProps<"/purchase-o
   }
   return (
     <>
-      <PageHeader title={`New purchase order${source}`} description="Saved as a draft. Submit it for approval before sending it to the supplier." breadcrumbs={docCrumbs(projects.find((p) => p.id === initial.projectId), "purchase-orders", { label: "New purchase order" })} />
+      <PageHeader title={`New purchase order${source}`} description="Saved as a draft. Finalize it, then share it with the supplier." breadcrumbs={docCrumbs(projects.find((p) => p.id === initial.projectId), "purchase-orders", { label: "New purchase order" })} />
       <PoForm lockProject={!!initial.projectId && projects.some((p) => p.id === initial.projectId)} initial={initial} suppliers={suppliers} projects={projects} locations={locations} options={options} companyStateCode={settings.stateCode} defaultTerms={settings.poTerms} />
     </>
   );

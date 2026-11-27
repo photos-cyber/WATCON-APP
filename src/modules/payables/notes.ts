@@ -7,7 +7,7 @@ import { NotFoundError, ValidationError } from "@/lib/errors";
 import { addMoney, cmpMoney, formatINR, pctOf } from "@/lib/money";
 import { can, type Actor, type PermissionKey } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, dec2, getCommercialSettings, parseInput, projectRequiredScoped, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { dec2, isSuperAdmin, parseInput, requireSuperAdmin, projectRequiredScoped, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
 import { gstRateField, moneyField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { applyBillSettlement, applyInvoiceSettlement, lockBill, lockInvoice, outstandingOf } from "./settlement";
@@ -92,7 +92,8 @@ export async function noteAction(actor: Actor, id: string, action: "approve" | "
   };
   const log = (tx: Tx, verb: string) => writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: `note.${action}`, entityType: "adjustment_note", entityId: id, projectId: n.projectId, summary: `${verb} note ${n.number} (${formatINR(total)})${opts.note ? ` – ${opts.note}` : ""}` }, tx);
   if (action === "approve") {
-    await assertCanApprove(actor, { permission: p.approve, docType: n.noteType === "CREDIT" ? "CN" : "DN", amount: total, createdById: n.createdById, what: "credit/debit note" });
+    // A note corrects a finalized bill / invoice — an amendment, so only the Super Admin applies it.
+    requireSuperAdmin(actor, "approve a credit / debit note");
     return db.$transaction(async (tx) => {
       if (n.supplierBillId) {
         const b = await lockBill(tx, n.supplierBillId);
@@ -110,7 +111,8 @@ export async function noteAction(actor: Actor, id: string, action: "approve" | "
     });
   }
   if (!opts.note?.trim()) throw new ValidationError("Give a reason for cancelling.", { note: "Reason required." });
-  requirePermission(actor, n.status === "APPROVED" ? p.approve : p.manage);
+  if (n.status === "APPROVED") requireSuperAdmin(actor, "cancel an applied credit / debit note");
+  else requirePermission(actor, p.manage);
   return db.$transaction(async (tx) => {
     await transition(tx.adjustmentNote, w, ["DRAFT", "APPROVED"], { status: "CANCELLED" }, "note");
     if (n.status === "APPROVED") await apply(tx, "-");
@@ -150,11 +152,13 @@ export async function getNote(actor: Actor, id: string) {
   });
   if (!n) throw new NotFoundError("Note");
   const p = perms(n.partyRole);
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, p.approve, n, settings.enforceSegregation);
   return {
     note: { ...n, taxable: dec2(n.taxable), gstRate: dec2(n.gstRate), taxAmount: dec2(n.taxAmount), total: dec2(n.total) },
-    can: { approve: n.status === "DRAFT" && hint.canApprove, approveBlockedReason: n.status === "DRAFT" ? hint.reason : null, cancel: n.status !== "CANCELLED" && can(actor, n.status === "APPROVED" ? p.approve : p.manage) },
+    can: {
+      approve: n.status === "DRAFT" && isSuperAdmin(actor),
+      approveBlockedReason: n.status === "DRAFT" && !isSuperAdmin(actor) ? "A credit / debit note changes a finalized bill or invoice, so the Super Admin applies it." : null,
+      cancel: n.status !== "CANCELLED" && (n.status === "APPROVED" ? isSuperAdmin(actor) : can(actor, p.manage)),
+    },
   };
 }
 

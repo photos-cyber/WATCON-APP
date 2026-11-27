@@ -102,14 +102,17 @@ export async function salesOrderPdf(actor: Actor, id: string): Promise<PdfDoc> {
 export async function raBillPdf(actor: Actor, id: string): Promise<PdfDoc> {
   const { bill } = await getRaBill(actor, id);
   const [org, party] = await Promise.all([loadPdfOrg(actor.organizationId), loadParty(actor.organizationId, bill.partyId)]);
+  const so = bill.basis === "SO";
+  const st = bill.statement;
   const deductions = [
     { label: `Less retention (${pct(bill.retentionPct)})`, v: bill.retentionAmount },
     { label: "Less advance recovery", v: bill.advanceRecovery },
     { label: "Less other deductions", v: bill.otherDeductions },
   ].filter((d) => !isZero(d.v));
+  const contractRef = bill.clientPo ? `Client PO ${bill.clientPo.clientPoNumber} (${bill.clientPo.number})` : bill.salesOrder ? `Sales order ${bill.salesOrder.number}` : null;
   return {
     docType: "RAB",
-    title: `Running Account Bill`,
+    title: so ? `Running Bill${bill.isFinal ? " (Final)" : ""}` : "Running Account Bill",
     number: bill.number,
     date: formatDate(bill.billDate),
     dateLabel: "Bill date",
@@ -120,33 +123,48 @@ export async function raBillPdf(actor: Actor, id: string): Promise<PdfDoc> {
       partyPanel("Client", party ?? bill.party),
       {
         title: "Contract",
-        heading: `RA bill no. ${bill.raNumber}`,
+        heading: `Running bill no. ${bill.raNumber}${bill.isFinal ? " — final bill" : ""}`,
         fields: [
           { label: "Project", value: projectLabel(bill.project), strong: true },
-          { label: "Client PO", value: `${bill.clientPo.clientPoNumber} (${bill.clientPo.number})` },
+          { label: so ? "Sales order" : "Client PO", value: contractRef },
+          // Client PO is optional on a sales-order bill: printed only as a reference when one is linked.
+          ...(so && bill.salesOrder?.clientPo ? [{ label: "Client PO (ref.)", value: `${bill.salesOrder.clientPo.clientPoNumber} (${bill.salesOrder.clientPo.number})` }] : []),
           { label: "Period", value: `${formatDate(bill.periodFrom)} – ${formatDate(bill.periodTo)}` },
           { label: "Client certificate", value: bill.clientCertRef ? `${bill.clientCertRef} · ${formatDate(bill.clientCertDate)}` : null },
         ],
       },
     ],
-    tableTitle: "Measurement & billing (quantities)",
+    // Cumulative statement (sales-order bills): previous + this bill = cumulative; what is owed in total.
+    facts: so
+      ? [
+          { label: "Previous material value", value: rs(st.previousValue) },
+          { label: "New material value", value: rs(st.currentValue) },
+          { label: "Cumulative value", value: rs(st.cumulativeValue), strong: true },
+          { label: "Previously billed", value: rs(st.previousBilled) },
+          { label: "Received to date", value: rs(st.receivedToDate) },
+          { label: "Previous outstanding", value: rs(st.previousOutstanding) },
+        ]
+      : undefined,
+    tableTitle: so ? "Material, services & installation (previous / this bill / cumulative)" : "Measurement & billing (quantities)",
     columns: [
       { key: "n", label: "S.No", width: 4, align: "center" },
-      { key: "item", label: "Contract item", width: 30 },
+      { key: "item", label: so ? "Item" : "Contract item", width: 28 },
       { key: "unit", label: "Unit", width: 5 },
-      { key: "contract", label: "Contract qty", width: 8.5, align: "right" },
-      { key: "prev", label: "Previous", width: 8, align: "right" },
-      { key: "claim", label: "This bill", width: 8, align: "right" },
-      { key: "cum", label: "Cumulative", width: 8.5, align: "right" },
-      { key: "cert", label: "Certified", width: 8, align: "right" },
-      { key: "rate", label: "Rate (₹)", width: 9, align: "right" },
-      { key: "amt", label: "Amount (₹)", width: 11, align: "right" },
+      { key: "contract", label: so ? "Order qty" : "Contract qty", width: 7.5, align: "right" },
+      ...(so ? [{ key: "deliv", label: "Delivered", width: 7.5, align: "right" as const }] : []),
+      { key: "prev", label: "Previous", width: 7.5, align: "right" },
+      { key: "claim", label: "This bill", width: 7.5, align: "right" },
+      { key: "cum", label: "Cumulative", width: 8, align: "right" },
+      { key: "cert", label: "Certified", width: 7.5, align: "right" },
+      { key: "rate", label: "Rate (₹)", width: 8.5, align: "right" },
+      { key: "amt", label: "This bill (₹)", width: 10, align: "right" },
     ],
     rows: bill.lines.map((l) => ({
-      n: String(l.clientPoLine.lineNo),
-      item: { text: l.clientPoLine.description, sub: l.measurementRef ? `MB ref: ${l.measurementRef}` : null },
-      unit: l.clientPoLine.unit,
+      n: String(l.ref.lineNo),
+      item: { text: l.ref.description, sub: [l.ref.kind === "SERVICE" ? "Service" : l.ref.kind === "INSTALLATION" ? "Installation" : null, l.measurementRef ? `MB ref: ${l.measurementRef}` : null, `GST ${pct(l.gstRate)}`].filter(Boolean).join(" · ") },
+      unit: l.ref.unit,
       contract: qty(l.contractQty),
+      deliv: l.ref.kind === "MATERIAL" ? qty(l.deliveredQty) : "—",
       prev: qty(l.prevCertifiedQty),
       claim: qty(l.claimedQty),
       cum: qty(l.cumulativeQty),
@@ -155,16 +173,29 @@ export async function raBillPdf(actor: Actor, id: string): Promise<PdfDoc> {
       amt: rate(l.certifiedAmount ?? l.claimedAmount),
     })),
     totals: [
-      { label: bill.certified ? "Certified value (this bill)" : "Claimed value (this bill)", value: rs(bill.gross) },
+      { label: bill.certified ? "Certified value (this bill)" : "Value (this bill)", value: rs(bill.gross) },
       { label: "GST", value: rs(bill.gstAmount) },
       ...deductions.map((d) => ({ label: d.label, value: `- ${rs(d.v)}`, kind: "deduction" as const })),
-      { label: "Net payable", value: rs(bill.netPayable), kind: "net" },
+      { label: so ? "Current new billing (net)" : "Net payable", value: rs(bill.netPayable), kind: "net" },
+      ...(so && !isZero(st.previousOutstanding)
+        ? [
+            { label: "Add: previous outstanding", value: rs(st.previousOutstanding), kind: "info" as const },
+            { label: "Total payable", value: rs(st.totalPayable), kind: "grand" as const },
+          ]
+        : []),
     ],
-    amountInWords: amountInWords(bill.netPayable),
-    sections: sections(bill.deductionNotes ? { title: "Deductions", body: bill.deductionNotes } : null, bill.remarks ? { title: "Remarks", body: bill.remarks } : null),
+    amountInWords: amountInWords(so ? st.totalPayable : bill.netPayable),
+    sections: sections(
+      so && bill.previousBills.length > 0
+        ? { title: "Previous running bills (status today)", items: bill.previousBills.map((p) => `RA-${p.raNumber} ${p.number} (${formatDate(p.billDate)}): billed ${rs(p.netPayable)}${p.invoice ? `, invoice ${p.invoice}` : ", not yet invoiced"}, received ${rs(p.received)}, outstanding ${rs(p.outstanding)}`) }
+        : null,
+      so ? { title: "How this bill is calculated", body: "Only material delivered to site / the client and services not billed before, at sales-order rates. Previous outstanding is shown for information only and is not billed again." } : null,
+      bill.deductionNotes ? { title: "Deductions", body: bill.deductionNotes } : null,
+      bill.remarks ? { title: "Remarks", body: bill.remarks } : null,
+    ),
     signatures: [
       { label: "Prepared by", name: bill.createdBy.fullName, date: signDate(bill.createdAt) },
-      { label: "Reviewed (site engineer)", name: bill.engineerCertifiedBy?.fullName ?? null, date: signDate(bill.engineerCertifiedAt), company: true },
+      { label: "Reviewed", name: bill.engineerCertifiedBy?.fullName ?? null, date: signDate(bill.engineerCertifiedAt), company: true },
       { label: "Client certification", name: bill.certifiedBy?.fullName ?? null, date: signDate(bill.clientCertDate), note: bill.clientCertRef ? `Certificate ${bill.clientCertRef}` : "Name, sign & stamp" },
     ],
   };

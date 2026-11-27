@@ -7,13 +7,19 @@ import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@
 import { addQty, cmpQty, maxQty, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, assertProjectUsable, assertProjectVisible, dec2, dec3, dec4, getCommercialSettings, parseInput, projectRequiredScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, assertProjectVisible, dec2, dec3, dec4, getCommercialSettings, isSuperAdmin, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
 import { gstRateField, optPct, priceDocument, projectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { refreshSoFulfilment } from "@/modules/stores/challan";
 import { soQtyByLine } from "./client-po";
 import { loadClient, lockClientPo, optDate, optId } from "./shared";
 import { advanceProjectStatus } from "@/modules/projects/lifecycle";
+import { milestonesSchema, toInput, type MilestoneInput } from "@/modules/commercial/payment-terms";
+import { allocatedByRequirement } from "@/modules/planning/allocation";
+import { writeSoMilestonesTx } from "./milestone-billing";
+import { soBillingPosition } from "./so-running-bill";
+
+export const SO_LINE_KINDS = ["MATERIAL", "SERVICE", "INSTALLATION"] as const;
 
 /**
  * Sales orders — the driver of each project.
@@ -27,6 +33,8 @@ const soLineSchema = z.object({
   id: optId,
   clientPoLineId: optId,
   itemBrandId: optId,
+  /** MATERIAL (needs an item–brand; drives planning) · SERVICE · INSTALLATION. Default: MATERIAL when an item is picked. */
+  kind: z.enum(SO_LINE_KINDS).optional(),
   description: optionalText("Description", 500),
   hsnSac: optionalText("HSN/SAC", 10),
   unit: optionalText("Unit", 20),
@@ -46,7 +54,15 @@ const headerFields = {
   lines: z.array(soLineSchema).min(1, "Add at least one line.").max(500),
 };
 
-export const soSchema = z.object({ projectId: projectIdField, partyId: uuid, clientPoId: optId, orderDate: dateString, ...headerFields });
+export const soSchema = z.object({
+  projectId: projectIdField,
+  partyId: uuid,
+  clientPoId: optId,
+  orderDate: dateString,
+  ...headerFields,
+  /** Payment schedule; omitted = unchanged (none on create). The form defaults to 50% / 40% / 10%. */
+  milestones: milestonesSchema.optional(),
+});
 export const soAmendmentSchema = z.object({ reason: text("Reason", 1000, 5), ...headerFields });
 
 type SoData = z.output<typeof soSchema>;
@@ -89,13 +105,17 @@ async function buildSo(tx: Tx, actor: Actor, data: SoData, excludeSoId?: string)
       if (ib.item.status !== "ACTIVE" || ib.brand.status !== "ACTIVE") throw new ValidationError(`${ib.item.name} (${ib.brand.name}) is inactive.`, { [f("itemBrandId")]: "Inactive." });
     }
     if (l.clientPoLineId && !cpoLines.has(l.clientPoLineId)) throw new ValidationError("A line does not belong to the selected client PO.", { [f("clientPoLineId")]: "Not on this client PO." });
+    // Physical material vs services / installation: only material lines carry an item–brand and drive planning.
+    const kind = l.kind ?? (l.itemBrandId ? "MATERIAL" : "SERVICE");
+    if (kind === "MATERIAL" && !l.itemBrandId) throw new ValidationError("Pick the item – brand for material lines (it drives material planning), or mark the line as a service / installation.", { [f("itemBrandId")]: "Pick the material." });
+    if (kind !== "MATERIAL") l = { ...l, itemBrandId: null };
     const ib = l.itemBrandId ? ibMap.get(l.itemBrandId) : undefined;
     const cl = l.clientPoLineId ? cpoLines.get(l.clientPoLineId) : undefined;
     const description = l.description ?? (ib ? `${ib.item.name} – ${ib.brand.name}` : cl?.description) ?? null;
     const unit = l.unit ?? ib?.item.unit ?? cl?.unit ?? null;
     if (!description) throw new ValidationError("Pick an item or describe the line.", { [f("description")]: "Required." });
     if (!unit) throw new ValidationError("Give the unit for this line.", { [f("unit")]: "Required." });
-    return { ...l, description, unit, hsnSac: l.hsnSac ?? ib?.item.hsnCode ?? cl?.hsnSac ?? null };
+    return { ...l, kind, description, unit, hsnSac: l.hsnSac ?? ib?.item.hsnCode ?? cl?.hsnSac ?? null };
   });
   if (cpo) {
     const others = await soQtyByLine(tx, cpo.id, excludeSoId);
@@ -127,7 +147,7 @@ async function buildSo(tx: Tx, actor: Actor, data: SoData, excludeSoId?: string)
     taxAmount: priced.totals.tax,
     total: priced.totals.total,
   };
-  const lines = priced.lines.map((l, i) => ({ id: l.id, lineNo: i + 1, clientPoLineId: l.clientPoLineId, itemBrandId: l.itemBrandId, description: l.description, hsnSac: l.hsnSac, unit: l.unit, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, taxable: l.amounts.taxable, taxAmount: l.amounts.tax, total: l.amounts.total }));
+  const lines = priced.lines.map((l, i) => ({ id: l.id, lineNo: i + 1, clientPoLineId: l.clientPoLineId, itemBrandId: l.itemBrandId, kind: l.kind, description: l.description, hsnSac: l.hsnSac, unit: l.unit, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, taxable: l.amounts.taxable, taxAmount: l.amounts.tax, total: l.amounts.total }));
   return { header, lines, party };
 }
 
@@ -179,7 +199,7 @@ async function applyLines(tx: Tx, soId: string, before: { id: string; lineNo: nu
  */
 export async function syncRequirementsFromSo(tx: Tx, organizationId: string, actorId: string, projectId: string) {
   const lines = await tx.soLine.findMany({
-    where: { itemBrandId: { not: null }, so: { projectId, organizationId, status: { in: [...DRIVING] } } },
+    where: { kind: "MATERIAL", itemBrandId: { not: null }, so: { projectId, organizationId, status: { in: [...DRIVING] } } },
     select: { id: true, itemBrandId: true, quantity: true, deliveredQty: true, returnedQty: true, so: { select: { status: true, deliveryDate: true, number: true, createdAt: true } } },
     orderBy: [{ so: { createdAt: "asc" } }, { lineNo: "asc" }],
   });
@@ -195,12 +215,12 @@ export async function syncRequirementsFromSo(tx: Tx, organizationId: string, act
   const soSourced = await tx.materialRequirement.findMany({ where: { projectId, OR: [{ salesOrderLineId: { not: null } }, { itemBrandId: { in: [...agg.keys()] } }] } });
   const existing = new Map(soSourced.map((r) => [r.itemBrandId, r]));
   const keys = new Set([...agg.keys(), ...soSourced.filter((r) => r.salesOrderLineId).map((r) => r.itemBrandId)]);
+  // Never reduce a requirement below what is already on requisitions, enquiries or orders for it.
+  const allocated = await allocatedByRequirement(tx, soSourced.map((r) => r.id));
   for (const ibId of keys) {
     const a = agg.get(ibId);
     const req = existing.get(ibId);
-    const requisitioned = req
-      ? (await tx.prLine.findMany({ where: { requirementId: req.id, pr: { status: { notIn: ["CANCELLED", "REJECTED"] } } }, select: { quantity: true } })).reduce((s, p) => addQty(s, dec3(p.quantity)), "0")
-      : "0";
+    const requisitioned = req ? (allocated.get(req.id) ?? "0") : "0";
     const target = maxQty(a?.qty ?? "0", requisitioned);
     const note = a ? `From sales orders: ${[...a.numbers].join(", ")}` : "No active sales order lines";
     if (req) {
@@ -238,6 +258,7 @@ export async function createSalesOrderTx(tx: Tx, actor: Actor, input: unknown, p
   const { header, lines, party } = await buildSo(tx, actor, data);
   const number = await nextDocNumber(tx, actor.organizationId, "SO", header.orderDate);
   const so = await tx.salesOrder.create({ data: { organizationId: actor.organizationId, number, ...header, createdById: actor.id, lines: { create: lines.map(({ id: _id, ...l }) => l) } } });
+  if (data.milestones?.length) await writeSoMilestonesTx(tx, actor.organizationId, so.id, header.total, data.milestones as MilestoneInput[]);
   await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "so.created", entityType: "sales_order", entityId: so.id, projectId: so.projectId, summary: `Created sales order ${number} for ${party.name} (${projectCode}) – ₹${header.total}${auditSuffix}` }, tx);
   return so;
 }
@@ -255,6 +276,12 @@ export async function updateSalesOrder(actor: Actor, id: string, version: number
     const { header, lines } = await buildSo(tx, actor, data, id);
     await applyLines(tx, id, before.lines, lines);
     await transition(tx.salesOrder, { id, organizationId: actor.organizationId, version }, EDITABLE, { ...header, status: "DRAFT", statusNote: null }, "sales order");
+    // Keep the payment schedule in step with the (possibly changed) total of the draft.
+    if (data.milestones !== undefined) await writeSoMilestonesTx(tx, actor.organizationId, id, header.total, data.milestones as MilestoneInput[]);
+    else {
+      const ms = await tx.paymentMilestone.findMany({ where: { soId: id }, orderBy: { sortOrder: "asc" } });
+      if (ms.length && ms.every((m) => m.basis === "PERCENT")) await writeSoMilestonesTx(tx, actor.organizationId, id, header.total, ms.map((m) => toInput({ ...m, percent: m.percent ? m.percent.toString() : null, amount: m.amount.toString(), dueDate: m.dueDate?.toISOString().slice(0, 10) ?? null })));
+    }
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "so.updated", entityType: "sales_order", entityId: id, projectId: before.projectId, summary: `Edited sales order ${before.number} – ₹${header.total}` }, tx);
   });
 }
@@ -269,18 +296,18 @@ export async function salesOrderAction(actor: Actor, id: string, action: SoActio
     if (!cond) throw new ValidationError(msg, { note: msg });
   };
   switch (action) {
+    // Simplified workflow: "Finalize" (submit) confirms the order in one step — no second approver.
+    // Legacy PENDING_APPROVAL orders are confirmed with "approve" by any so.manage / so.approve user.
     case "submit":
-      requirePermission(actor, "so.manage");
-      return db.$transaction(async (tx) => {
-        await transition(tx.salesOrder, w, EDITABLE, { status: "PENDING_APPROVAL", submittedById: actor.id, submittedAt: new Date(), statusNote: null }, "sales order");
-        await log(tx, "Submitted", ` for approval (₹${dec2(so.total)})`);
-      });
     case "approve":
     case "reject":
-      await assertCanApprove(actor, { permission: "so.approve", docType: "SO", amount: dec2(so.total), createdById: so.createdById, submittedById: so.submittedById, what: "sales order" });
-      if (action === "reject") need(opts.note, "Give a reason for rejecting.");
+      requireAnyPermission(actor, ["so.manage", "so.approve"], "You do not have permission to confirm sales orders.");
+      if (action === "reject") need(opts.note, "Give a reason for returning the order.");
       return db.$transaction(async (tx) => {
-        if (action === "approve") {
+        if (action !== "reject") {
+          const now = new Date();
+          if (action === "submit") await transition(tx.salesOrder, w, EDITABLE, { status: "PENDING_APPROVAL", submittedById: actor.id, submittedAt: now, statusNote: null }, "sales order");
+          const w2 = action === "submit" ? { ...w, version: w.version + 1 } : w;
           // Re-check the contract ceiling at approval time (other orders may have been approved meanwhile).
           if (so.clientPoId) {
             await lockClientPo(tx, so.clientPoId);
@@ -292,8 +319,8 @@ export async function salesOrderAction(actor: Actor, id: string, action: SoActio
               if (cmpQty(addQty(others.get(c.id) ?? "0", dec3(l.quantity)), dec3(c.quantity)) > 0) throw new ValidationError(`Line ${l.lineNo} now exceeds what is left on client PO line ${c.lineNo}. Reject it so the quantity can be corrected.`);
             }
           }
-          await transition(tx.salesOrder, w, ["PENDING_APPROVAL"], { status: "APPROVED", approvedById: actor.id, approvedAt: new Date(), statusNote: null }, "sales order");
-          await log(tx, "Approved", ` (₹${dec2(so.total)}) — now locked; changes need an amendment request`);
+          await transition(tx.salesOrder, w2, ["PENDING_APPROVAL"], { status: "APPROVED", approvedById: actor.id, approvedAt: now, statusNote: null }, "sales order");
+          await log(tx, "Confirmed", ` (₹${dec2(so.total)}) — now locked; changes need a Super Admin-approved amendment`);
           await syncRequirementsFromSo(tx, actor.organizationId, actor.id, so.projectId);
           await advanceProjectStatus(tx, so.projectId, actor.id);
         } else {
@@ -302,7 +329,7 @@ export async function salesOrderAction(actor: Actor, id: string, action: SoActio
         }
       });
     case "close":
-      requirePermission(actor, "so.approve");
+      requireSuperAdmin(actor, "close a confirmed sales order");
       need(opts.note, "Give a reason for closing.");
       return db.$transaction(async (tx) => {
         await transition(tx.salesOrder, w, LOCKED, { status: "CLOSED", statusNote: opts.note }, "sales order");
@@ -312,7 +339,9 @@ export async function salesOrderAction(actor: Actor, id: string, action: SoActio
         await advanceProjectStatus(tx, so.projectId, actor.id);
       });
     case "cancel": {
-      requirePermission(actor, "so.approve");
+      // A draft can be cancelled by its users; a confirmed order only by the Super Admin.
+      if ((LOCKED as readonly string[]).includes(so.status)) requireSuperAdmin(actor, "cancel a confirmed sales order");
+      else requireAnyPermission(actor, ["so.manage", "so.approve"]);
       need(opts.note, "Give a reason for cancelling.");
       return db.$transaction(async (tx) => {
         const lines = await tx.$queryRaw<{ delivered_qty: string; invoiced_qty: string }[]>`SELECT delivered_qty::text, invoiced_qty::text FROM so_lines WHERE so_id = ${id}::uuid FOR UPDATE`;
@@ -336,7 +365,7 @@ type Snapshot = { header: Record<string, unknown>; lines: Record<string, unknown
 function snapshotOf(so: Prisma.SalesOrderGetPayload<{ include: { lines: true } }>): Snapshot {
   return {
     header: { revision: so.revision, deliveryDate: so.deliveryDate?.toISOString().slice(0, 10) ?? null, deliveryAddress: so.deliveryAddress, deliverySchedule: so.deliverySchedule, billingSchedule: so.billingSchedule, paymentTerms: so.paymentTerms, notes: so.notes, total: dec2(so.total) },
-    lines: [...so.lines].sort((a, b) => a.lineNo - b.lineNo).map((l) => ({ id: l.id, lineNo: l.lineNo, clientPoLineId: l.clientPoLineId, itemBrandId: l.itemBrandId, description: l.description, hsnSac: l.hsnSac, unit: l.unit, quantity: dec3(l.quantity), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: dec2(l.gstRate), total: dec2(l.total), deliveredQty: dec3(l.deliveredQty), invoicedQty: dec3(l.invoicedQty) })),
+    lines: [...so.lines].sort((a, b) => a.lineNo - b.lineNo).map((l) => ({ id: l.id, lineNo: l.lineNo, clientPoLineId: l.clientPoLineId, itemBrandId: l.itemBrandId, kind: l.kind, description: l.description, hsnSac: l.hsnSac, unit: l.unit, quantity: dec3(l.quantity), rate: dec4(l.rate), discountPct: dec2(l.discountPct), gstRate: dec2(l.gstRate), total: dec2(l.total), deliveredQty: dec3(l.deliveredQty), invoicedQty: dec3(l.invoicedQty) })),
   };
 }
 
@@ -474,8 +503,6 @@ export async function getSalesOrder(actor: Actor, id: string) {
   requirePermission(actor, "so.view");
   const so = await db.salesOrder.findFirst({ where: { AND: [{ id }, scoped(actor)] }, include: soInclude });
   if (!so) throw new NotFoundError("Sales order");
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "so.approve", so, settings.enforceSegregation);
   const ibIds = [...new Set(so.lines.map((l) => l.itemBrandId).filter(Boolean) as string[])];
   // Project-wide procurement for the order's item–brands (requirements → PRs → POs → receipts).
   const [prLines, poLines] = ibIds.length
@@ -487,6 +514,11 @@ export async function getSalesOrder(actor: Actor, id: string) {
   const challanLines = await db.challanLine.findMany({ where: { soLineId: { in: so.lines.map((l) => l.id) }, challan: { status: { not: "CANCELLED" } } }, select: { soLineId: true, quantity: true, challan: { select: { id: true, number: true, status: true } } } });
   const invLines = await db.invoiceLine.findMany({ where: { soLineId: { in: so.lines.map((l) => l.id) }, invoice: { status: { not: "CANCELLED" } } }, select: { soLineId: true, quantity: true, invoice: { select: { id: true, number: true, status: true } } } });
   const uniq = <T extends { id: string }>(xs: T[]) => [...new Map(xs.map((x) => [x.id, x])).values()];
+  // Material delivered = what reached the project site (site receipts, net of returns) + client deliveries —
+  // the same figure running bills and the order summary use. Services / installation count as done once billed.
+  // Drafts have no position yet.
+  const position = (LOCKED as readonly string[]).includes(so.status) || so.status === "CLOSED" ? await soBillingPosition(db, so.id).catch(() => null) : null;
+  const deliveredOf = new Map((position?.lines ?? []).map((p) => [p.soLineId, p.kind === "MATERIAL" ? p.delivered : p.billed]));
   const fulfilment = so.lines.map((l) => {
     const prs = prLines.filter((p) => p.itemBrandId === l.itemBrandId);
     const pos = poLines.filter((p) => p.itemBrandId === l.itemBrandId);
@@ -495,7 +527,7 @@ export async function getSalesOrder(actor: Actor, id: string) {
       requisitioned: prs.reduce((a, p) => addQty(a, dec3(p.quantity)), "0"),
       ordered: pos.reduce((a, p) => addQty(a, dec3(p.quantity)), "0"),
       received: pos.reduce((a, p) => addQty(a, dec3(p.acceptedQty)), "0"),
-      delivered: subQty(dec3(l.deliveredQty), dec3(l.returnedQty)),
+      delivered: deliveredOf.get(l.id) ?? subQty(dec3(l.deliveredQty), dec3(l.returnedQty)),
       invoiced: dec3(l.invoicedQty),
       prs: uniq(prs.map((p) => p.pr)),
       pos: uniq(pos.map((p) => p.po)),
@@ -521,13 +553,13 @@ export async function getSalesOrder(actor: Actor, id: string) {
     can: {
       edit: can(actor, "so.manage") && (EDITABLE as readonly string[]).includes(so.status),
       submit: can(actor, "so.manage") && (EDITABLE as readonly string[]).includes(so.status),
-      approve: so.status === "PENDING_APPROVAL" && hint.canApprove,
-      approveBlockedReason: so.status === "PENDING_APPROVAL" ? hint.reason : null,
+      approve: so.status === "PENDING_APPROVAL" && (can(actor, "so.manage") || can(actor, "so.approve")),
+      approveBlockedReason: null as string | null,
       requestAmendment: can(actor, "so.manage") && locked && !pending,
-      decideAmendment: actor.role === "SUPER_ADMIN" && !!pending,
-      withdrawAmendment: !!pending && (pending.requestedById === actor.id || actor.role === "SUPER_ADMIN"),
-      close: can(actor, "so.approve") && locked,
-      cancel: can(actor, "so.approve") && !anyDelivered && ["DRAFT", "PENDING_APPROVAL", "REJECTED", "APPROVED"].includes(so.status),
+      decideAmendment: isSuperAdmin(actor) && !!pending,
+      withdrawAmendment: !!pending && (pending.requestedById === actor.id || isSuperAdmin(actor)),
+      close: isSuperAdmin(actor) && locked,
+      cancel: !anyDelivered && (locked ? isSuperAdmin(actor) && so.status === "APPROVED" : (can(actor, "so.manage") || can(actor, "so.approve")) && ["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(so.status)),
       deliver: can(actor, "grn.create") && ["APPROVED", "PARTIALLY_FULFILLED"].includes(so.status) && so.lines.some((l) => l.itemBrandId),
       invoice: can(actor, "invoice.manage") && (locked || so.status === "CLOSED") && so.lines.some((l) => cmpQty(subQty(subQty(dec3(l.deliveredQty), dec3(l.returnedQty)), dec3(l.invoicedQty)), "0") > 0),
       planning: can(actor, "mrp.view"),

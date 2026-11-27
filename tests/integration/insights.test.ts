@@ -8,8 +8,7 @@ import { listProjectDocs, projectCommandCenter, projectDocCounts, projectOrderFl
 import { recordConsumption, reverseStockEntry } from "@/modules/inventory/locations";
 import { createPo, poAction } from "@/modules/procurement/po";
 import { createPr, prAction } from "@/modules/procurement/pr";
-import { createGrn, postGrn } from "@/modules/stores/grn";
-import { commercialFixture, day, errorOf, key, makeProject, type CFx } from "./commercial-helpers";
+import { commercialFixture, day, errorOf, key, makeProject, type CFx, receiveWithProof } from "./commercial-helpers";
 
 let fx: CFx;
 beforeEach(async () => {
@@ -21,7 +20,6 @@ const ver = async (model: "purchaseOrder" | "purchaseRequisition" | "grn", id: s
 async function approvedPo(projectId: string, qty = "50") {
   const po = await createPo(fx.roles.pu.actor, { projectId, partyId: fx.supplier.id, orderDate: day(), expectedDate: day(5), lines: [{ itemBrandId: fx.ibUltra.id, quantity: qty, rate: "380", gstRate: "28" }] });
   await poAction(fx.roles.pu.actor, po.id, "submit", { version: await ver("purchaseOrder", po.id) });
-  await poAction(fx.actors.admin, po.id, "approve", { version: await ver("purchaseOrder", po.id) });
   return db.purchaseOrder.findUniqueOrThrow({ where: { id: po.id }, include: { lines: true } });
 }
 
@@ -38,8 +36,7 @@ async function seedMoney(projectId: string) {
 describe("project workspace & insights", () => {
   it("computes project financial KPIs from approved documents", async () => {
     const po = await approvedPo(fx.p1.id);
-    const g = await createGrn(fx.roles.se.actor, { clientKey: key(), poId: po.id, receiptDate: day(), submit: true, lines: [{ poLineId: po.lines[0]!.id, receivedQty: "50" }] });
-    await postGrn(fx.roles.sk.actor, g.id, await ver("grn", g.id));
+    await receiveWithProof(fx.roles.se.actor, { clientKey: key(), poId: po.id, receiptDate: day(), lines: [{ poLineId: po.lines[0]!.id, receivedQty: "50" }] });
     await seedMoney(fx.p1.id);
     // Draft PO must not count as committed.
     await createPo(fx.roles.pu.actor, { projectId: fx.p1.id, partyId: fx.supplier.id, orderDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: "5", rate: "100", gstRate: "28" }] });
@@ -99,21 +96,21 @@ describe("project workspace & insights", () => {
     expect((await errorOf(runReport(fx.roles.se.actor, "po-register", {}))).code).toBe("FORBIDDEN");
   });
 
-  it("approvals inbox separates own documents from actionable ones", async () => {
-    const own = await createPr(fx.roles.pm.actor, { projectId: fx.p1.id, lines: [{ itemBrandId: fx.ibUltra.id, quantity: "3" }] });
-    await prAction(fx.roles.pm.actor, own.id, "submit", { version: await ver("purchaseRequisition", own.id) });
-    const theirs = await createPr(fx.roles.se.actor, { projectId: fx.p1.id, lines: [{ itemBrandId: fx.ibUltra.id, quantity: "4" }] });
-    await prAction(fx.roles.se.actor, theirs.id, "submit", { version: await ver("purchaseRequisition", theirs.id) });
+  it("inbox: finalizing needs no second person; items left waiting by the old flow are actionable by the document's users", async () => {
+    const pr = await createPr(fx.roles.pm.actor, { projectId: fx.p1.id, lines: [{ itemBrandId: fx.ibUltra.id, quantity: "3" }] });
+    await prAction(fx.roles.pm.actor, pr.id, "submit", { version: await ver("purchaseRequisition", pr.id) });
+    expect((await db.purchaseRequisition.findUniqueOrThrow({ where: { id: pr.id } })).status).toBe("APPROVED");
+    expect((await listApprovals(fx.roles.pm.actor)).find((i) => i.id === pr.id)).toBeUndefined();
 
-    const items = await listApprovals(fx.roles.pm.actor);
-    const mine = items.find((i) => i.id === own.id)!;
-    const other = items.find((i) => i.id === theirs.id)!;
-    expect(mine.mine).toBe(false);
-    expect(mine.blockedReason).toMatch(/another approver/);
-    expect(other.mine).toBe(true);
-    expect(other.href).toBe(`/purchase-requisitions/${theirs.id}`);
-    // Users without an approving permission see nothing.
-    expect(await listApprovals(fx.roles.se.actor)).toEqual([]);
+    // A requisition left SUBMITTED under the old two-step approval: its creator's peers can finalize it.
+    const legacy = await createPr(fx.roles.se.actor, { projectId: fx.p1.id, lines: [{ itemBrandId: fx.ibUltra.id, quantity: "4" }] });
+    await db.purchaseRequisition.update({ where: { id: legacy.id }, data: { status: "SUBMITTED", submittedById: fx.roles.se.user.id, submittedAt: new Date() } });
+    const item = (await listApprovals(fx.roles.se.actor)).find((i) => i.id === legacy.id)!;
+    expect([item.mine, item.blockedReason, item.href]).toEqual([true, null, `/purchase-requisitions/${legacy.id}`]);
+    await prAction(fx.roles.se.actor, legacy.id, "approve", { version: await ver("purchaseRequisition", legacy.id) });
+    expect((await db.purchaseRequisition.findUniqueOrThrow({ where: { id: legacy.id } })).status).toBe("APPROVED");
+    // Users with no rights on any document type see nothing.
+    expect(await listApprovals(fx.roles.vw.actor)).toEqual([]);
     // Amendment requests degrade gracefully whether or not the table exists yet.
     expect(Array.isArray(await listSoAmendmentRequests(fx.actors.superAdmin))).toBe(true);
   });
@@ -130,11 +127,12 @@ describe("project workspace & insights", () => {
     expect((await listProjectDocs(fx.roles.pm.actor, fx.p2.id, "po")).total).toBe(0);
 
     const counts = await projectDocCounts(fx.roles.pm.actor, fx.p1.id);
-    expect(counts.po).toEqual({ total: 2, pending: 0, pendingLabel: "awaiting approval" });
+    expect(counts.po).toEqual({ total: 2, pending: 1, pendingLabel: "to finalize" }); // the draft PO
 
     const flow = await projectOrderFlow(fx.roles.pm.actor, fx.p1.id);
-    expect(flow.map((s) => s.key)).toEqual(["so", "planning", "pr", "po", "grn", "delivery", "billing"]);
-    expect(flow[0]!.action).toEqual({ label: "Create sales order", href: `/sales-orders/new?projectId=${fx.p1.id}` });
+    expect(flow.map((s) => s.key)).toEqual(["contract", "so", "planning", "po", "grn", "issue", "billing", "payments"]);
+    expect(flow[0]!.optional).toBe(true);
+    expect(flow[1]!.action).toEqual({ label: "Create sales order", href: `/sales-orders/new?projectId=${fx.p1.id}` });
     expect(flow[3]!.state).toBe("active");
   });
 

@@ -1,4 +1,6 @@
 import { BookOpen } from "lucide-react";
+import { RecordClientPaymentButton } from "@/components/payables/client-account";
+import { can } from "@/lib/permissions/definitions";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Money, Section } from "@/components/commercial/ui";
@@ -34,6 +36,7 @@ export default async function AccountsPage({ searchParams }: PageProps<"/account
         title="Accounts"
         description="Operational project accounts and party ledgers, built from approved bills, invoices, payments and notes. This is a sub-ledger for tracking, not a general ledger."
         breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Accounts" }]}
+        actions={can(user, "payments.manage") ? <RecordClientPaymentButton /> : undefined}
       />
       <UrlTabs current={tab} tabs={[{ key: "projects", label: "Project accounts" }, { key: "ledger", label: "Party ledger" }]} />
       {tab === "projects" ? <ProjectsTable user={user} /> : <Ledger user={user} partyId={partyId} projectId={typeof sp.projectId === "string" ? sp.projectId : undefined} />}

@@ -47,13 +47,13 @@ export default async function RfqPage({ params }: PageProps<"/rate-enquiries/[rf
       case "DRAFT":
         return <NextStep title="Next: share the enquiry with the suppliers">Use PDF / WhatsApp / email (top right) to send it, then press “Mark as shared with suppliers”.</NextStep>;
       case "SENT":
-        return <NextStep tone="info" title={`Waiting for quotations (${quoted} of ${rfq.suppliers.length} received)`}>{rfq.responseDue ? `Quotes are due by ${formatDate(rfq.responseDue)}. ` : ""}Enter each supplier’s quotation below as it arrives and attach their quotation file.</NextStep>;
+        return <NextStep tone="info" title={`Waiting for quotations (${quoted} of ${rfq.suppliers.length} received)`}>{rfq.responseDue ? `Quotes are due by ${formatDate(rfq.responseDue)}. ` : ""}Enter each supplier’s quotation below as it arrives (rates, GST, freight, delivery, payment terms) and attach their quotation file. You can create the PO from any quotation straight away.</NextStep>;
       case "RESPONSES_IN":
-        return <NextStep title="Quotations are in — compare and award">Check the comparison, use “Award to recommended” or split quantities between suppliers, then send the award for approval.</NextStep>;
+        return <NextStep title="Quotations are in — order from the best one">Press “Create PO” next to a supplier’s quotation to order directly. Comparing and splitting the award between suppliers below is optional.</NextStep>;
       case "AWARD_PENDING":
-        return can.approveAward ? <NextStep title="Waiting for your approval of the award">Review the awarded quantities in the comparison and approve or reject.</NextStep> : <NextStep tone="info" title="Award sent for approval">{can.approveBlockedReason ?? "An approver will review the proposed award."}</NextStep>;
+        return <NextStep title="Confirm the award">{can.approveAward ? "It was waiting under the old approval step — confirm it below, then create the purchase orders." : "A purchase user can confirm it."}</NextStep>;
       case "AWARDED":
-        return can.createPos ? <NextStep title="Award approved — next: create the purchase orders">One draft purchase order is created per awarded supplier, with the agreed rates.</NextStep> : <NextStep tone="done" title="Awarded">Purchase orders have been created from this enquiry.</NextStep>;
+        return can.createPos ? <NextStep title="Awarded — next: create the purchase orders">One finalized purchase order is created per awarded supplier, with the agreed rates.</NextStep> : <NextStep tone="done" title="Awarded">Purchase orders have been created from this enquiry.</NextStep>;
       default:
         return null;
     }
@@ -130,7 +130,7 @@ export default async function RfqPage({ params }: PageProps<"/rate-enquiries/[rf
             enquiry={{ number: rfq.number, title: rfq.title, responseDue: rfq.responseDue ? formatDate(rfq.responseDue) : null }}
             supplierOptions={supplierOptions.filter((s) => s.status === "ACTIVE" && !rfq.suppliers.some((x) => x.partyId === s.id)).map((s) => ({ value: s.id, label: s.name, hint: s.gstin ?? "Unregistered" }))}
             lines={rfq.lines.map((l) => ({ id: l.id, itemId: l.itemId, name: l.item.name, itemBrandId: l.itemBrandId, quantity: l.quantity, unit: l.unit, acceptableBrands: l.acceptableBrands }))}
-            quotations={rfq.quotations.map((q) => ({ id: q.id, partyId: q.partyId, partyName: q.party.name, number: q.number, revision: q.revision, status: q.status, quoteDate: q.quoteDate.toISOString() }))}
+            quotations={rfq.quotations.map((q) => ({ id: q.id, partyId: q.partyId, partyName: q.party.name, number: q.number, revision: q.revision, status: q.status, quoteDate: q.quoteDate.toISOString(), convertible: q.convertible }))}
             comparison={comparison.map((c) => ({ lineId: c.line.id, name: c.line.item.name, quantity: c.line.quantity, unit: c.line.unit, quotes: c.quotes }))}
             options={options}
           />

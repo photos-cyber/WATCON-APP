@@ -9,7 +9,7 @@ import { postStockMovement } from "@/modules/inventory/service";
 import { createParty, updateParty } from "@/modules/parties/service";
 import { startOfToday } from "@/modules/tasks/rules";
 import { nextDocNumber } from "@/lib/doc-numbering";
-import { commercialFixture, day, errorOf, key, type CFx } from "./commercial-helpers";
+import { commercialFixture, day, errorOf, key, type CFx, PDF } from "./commercial-helpers";
 
 let fx: CFx;
 beforeEach(async () => {
@@ -44,7 +44,7 @@ describe("location-aware stock engine", () => {
   });
 
   it("manual Phase 2 movements still default to the Central Warehouse", async () => {
-    const { txn } = await postStockMovement(fx.actors.admin, { itemBrandId: fx.ibAcc.id, type: "OUTWARD", quantity: "5", txnDate: day(), idempotencyKey: key() });
+    const { txn } = await postStockMovement(fx.actors.superAdmin, { itemBrandId: fx.ibAcc.id, type: "OUTWARD", quantity: "5", txnDate: day(), reason: "Count correction", idempotencyKey: key() }, { fileName: "sheet.pdf", bytes: PDF });
     expect(txn.locationId).toBe(fx.warehouse.id);
     expect(txn.balanceAfter).toBe("35");
   });
@@ -66,7 +66,7 @@ describe("location-aware stock engine", () => {
   });
 
   it("reversals post an opposite entry once and never edit history", async () => {
-    const { txn } = await postStockMovement(fx.actors.admin, { itemBrandId: fx.ibAcc.id, type: "INWARD", quantity: "10", txnDate: day(), idempotencyKey: key() });
+    const { txn } = await postStockMovement(fx.actors.superAdmin, { itemBrandId: fx.ibAcc.id, type: "INWARD", quantity: "10", txnDate: day(), reason: "Count correction", idempotencyKey: key() }, { fileName: "sheet.pdf", bytes: PDF });
     const rev = await reverseStockEntry(fx.actors.superAdmin, txn.id, { reason: "Entered twice by mistake" });
     expect([rev.type, rev.direction, rev.balanceAfter]).toEqual(["REVERSAL", "OUT", "40"]);
     expect((await errorOf(reverseStockEntry(fx.actors.superAdmin, txn.id, { reason: "Again please" }))).message).toMatch(/already reversed/);

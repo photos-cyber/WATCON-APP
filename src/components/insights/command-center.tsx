@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { formatINR, formatINRCompact } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
-export type FlowStepView = { n: number; key: string; title: string; summary: string; state: "done" | "active" | "todo"; tab: string; action: { label: string; href: string } | null };
+export type FlowStepView = { n: number; key: string; title: string; summary: string; state: "done" | "active" | "todo"; tab: string; action: { label: string; href: string } | null; optional?: boolean };
 
 /** The sales-order-driven order flow: numbered steps with live status and the next action. */
 export function OrderFlow({ steps, projectId }: { steps: FlowStepView[]; projectId: string }) {
-  const next = steps.find((s) => s.state !== "done");
+  // Optional steps (client quotation / PO) are shown but never picked as "Next".
+  const next = steps.find((s) => s.state !== "done" && !s.optional);
   return (
     <section aria-labelledby="order-flow" className="rounded-xl border bg-card">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
@@ -18,7 +19,7 @@ export function OrderFlow({ steps, projectId }: { steps: FlowStepView[]; project
           <h2 id="order-flow" className="text-sm font-semibold">
             Order flow
           </h2>
-          <p className="text-xs text-muted-foreground">Everything in this project follows its sales order. Work through the steps in order.</p>
+          <p className="text-xs text-muted-foreground">Everything in this project follows its sales order. Steps marked optional can be skipped.</p>
         </div>
         {next?.action && (
           <Button asChild size="sm">
@@ -39,6 +40,7 @@ export function OrderFlow({ steps, projectId }: { steps: FlowStepView[]; project
                   <Link href={`/projects/${projectId}?tab=${s.tab}`} className="text-sm font-medium hover:text-primary hover:underline">
                     {s.n}. {s.title}
                   </Link>
+                  {s.optional && <span className="ml-1.5 rounded border px-1 py-px align-middle text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Optional</span>}
                   <p className="text-xs text-muted-foreground">{s.summary}</p>
                   <span className="sr-only">{s.state === "done" ? "Done" : s.state === "active" ? "In progress" : "Not started"}</span>
                 </div>
@@ -151,5 +153,26 @@ export function MiniStat({ label, value, tone, href }: { label: string; value: R
     </Link>
   ) : (
     <div className="rounded-lg bg-muted/50 px-3 py-2">{body}</div>
+  );
+}
+
+/** Project "Action required": one card per next job; every card opens the filtered records it counts. */
+export function ActionRequired({ cards }: { cards: { key: string; label: string; count: number; amount?: string | null; detail: string; href: string; tone: "action" | "warn" | "bad" | "done" }[] }) {
+  if (!cards.length) return null;
+  const tone = { action: "border-primary/40 bg-primary/[0.04]", warn: "border-amber-300 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-950/20", bad: "border-rose-300 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/20", done: "bg-card" } as const;
+  return (
+    <section aria-labelledby="action-required" className="space-y-2">
+      <h2 id="action-required" className="text-sm font-semibold">Action required</h2>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+        {cards.map((c) => (
+          <Link key={c.key} href={c.href} className={cn("flex flex-col rounded-xl border p-3 transition-colors hover:border-primary", tone[c.tone])}>
+            <span className="text-xs text-muted-foreground">{c.label}</span>
+            <span className={cn("text-2xl font-semibold tabular-nums", c.tone === "done" && "text-muted-foreground")}>{c.key === "client" ? formatINR(c.amount ?? "0") : c.count}</span>
+            {c.amount && c.key !== "client" && <span className="text-xs tabular-nums text-muted-foreground">{formatINR(c.amount)}</span>}
+            <span className="mt-1 text-[11px] leading-snug text-muted-foreground">{c.detail}</span>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

@@ -73,7 +73,7 @@ export function QuotationForm({ initial, quotationId, version, projects, clients
       return;
     }
     setDirty(false);
-    toast.success(quotationId ? "Quotation saved." : "Quotation created as draft — submit it for approval when ready.");
+    toast.success(quotationId ? "Quotation saved." : "Quotation saved as draft — finalize it when ready to share.");
     router.push(`/quotations/${res.data!.id}`);
   }
 

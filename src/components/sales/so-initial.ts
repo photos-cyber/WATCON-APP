@@ -11,7 +11,7 @@ type SoLike = {
   billingSchedule: string | null;
   paymentTerms: string | null;
   notes: string | null;
-  lines: { id: string; clientPoLineId: string | null; itemBrandId: string | null; description: string | null; hsnSac: string | null; unit: string | null; quantity: string; rate: string; discountPct: string; gstRate: string; deliveredQty: string; invoicedQty: string }[];
+  lines: { id: string; clientPoLineId: string | null; itemBrandId: string | null; kind?: "MATERIAL" | "SERVICE" | "INSTALLATION"; description: string | null; hsnSac: string | null; unit: string | null; quantity: string; rate: string; discountPct: string; gstRate: string; deliveredQty: string; invoicedQty: string }[];
 };
 
 /** Form values for editing a draft order, or proposing an amendment to an approved one. */
@@ -39,6 +39,7 @@ export function soLines(lines: SoLike["lines"]): SoLine[] {
       id: l.id,
       clientPoLineId: l.clientPoLineId,
       itemBrandId: l.itemBrandId,
+      kind: l.kind ?? null,
       description: l.description ?? "",
       hsnSac: l.hsnSac ?? "",
       unit: l.unit ?? "",

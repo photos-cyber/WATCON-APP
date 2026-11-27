@@ -11,7 +11,7 @@ import { sendMailReported } from "@/lib/mail";
 import { formatINR, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectRequiredScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { computeMilestones, milestonesSchema, validateSchedule, type MilestoneInput } from "@/modules/commercial/payment-terms";
 import { gstRateField, optPct, projectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
 import { priceDocument } from "@/modules/commercial/pricing";
@@ -208,14 +208,17 @@ export async function quotationAction(actor: Actor, id: string, action: Quotatio
   };
   switch (action) {
     case "submit":
-      requirePermission(actor, "so.manage");
+      // Simplified workflow: finalizing a quotation makes it ready to send — no second approver.
+      requireAnyPermission(actor, ["so.manage", "so.approve"]);
       return db.$transaction(async (tx) => {
-        await transition(tx.clientQuotation, w, EDITABLE, { status: "PENDING_APPROVAL", submittedById: actor.id, submittedAt: new Date(), statusNote: null }, "quotation");
-        await log(tx, "Submitted for approval", ` (${formatINR(dec2(q.total))})`);
+        const now = new Date();
+        await transition(tx.clientQuotation, w, EDITABLE, { status: "APPROVED", submittedById: actor.id, submittedAt: now, approvedById: actor.id, approvedAt: now, statusNote: null }, "quotation");
+        await log(tx, "Finalized", ` (${formatINR(dec2(q.total))})`);
       });
     case "approve":
     case "reject_approval":
-      await assertCanApprove(actor, { permission: "so.approve", docType: "SO", amount: dec2(q.total), createdById: q.createdById, submittedById: q.submittedById, what: "quotation" });
+      // Only for quotations left waiting under the old two-step approval.
+      requireAnyPermission(actor, ["so.manage", "so.approve"]);
       if (action === "reject_approval") need(opts.note, "Give a reason so the quotation can be corrected.");
       return db.$transaction(async (tx) => {
         if (action === "approve") await transition(tx.clientQuotation, w, ["PENDING_APPROVAL"], { status: "APPROVED", approvedById: actor.id, approvedAt: new Date(), statusNote: null }, "quotation");
@@ -257,7 +260,7 @@ const acceptSchema = z.object({ acceptedByName: text("Accepted by", 120, 2), acc
 
 /** Staff record a client's acceptance received outside the link (signed copy, email, PO letter). */
 export async function recordAcceptance(actor: Actor, id: string, version: number, input: unknown) {
-  requirePermission(actor, "so.approve", "Recording a client acceptance needs sales-order approval rights.");
+  requireAnyPermission(actor, ["so.manage", "so.approve"], "You do not have permission to record a client acceptance.");
   const data = parseInput(acceptSchema, input);
   const q = await loadScoped(actor, id);
   return db.$transaction(async (tx) => {
@@ -429,9 +432,7 @@ export async function getQuotation(actor: Actor, id: string) {
   requirePermission(actor, "so.view");
   const q = await db.clientQuotation.findFirst({ where: { AND: [{ id }, scoped(actor)] }, include });
   if (!q) throw new NotFoundError("Quotation");
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "so.approve", q, settings.enforceSegregation);
-  const manage = can(actor, "so.manage");
+  const manage = can(actor, "so.manage") || can(actor, "so.approve");
   const expired = isExpired(q);
   return {
     q: {
@@ -449,12 +450,12 @@ export async function getQuotation(actor: Actor, id: string) {
     can: {
       edit: manage && q.status === "DRAFT",
       submit: manage && q.status === "DRAFT",
-      approve: q.status === "PENDING_APPROVAL" && hint.canApprove,
-      approveBlockedReason: q.status === "PENDING_APPROVAL" ? hint.reason : null,
+      approve: q.status === "PENDING_APPROVAL" && manage,
+      approveBlockedReason: null as string | null,
       share: manage && ["APPROVED", "SENT"].includes(q.status),
       markSent: manage && q.status === "APPROVED",
       revise: manage && ["APPROVED", "SENT", "REJECTED"].includes(q.status),
-      recordAcceptance: can(actor, "so.approve") && ["APPROVED", "SENT"].includes(q.status),
+      recordAcceptance: manage && ["APPROVED", "SENT"].includes(q.status),
       recordRejection: manage && ["APPROVED", "SENT"].includes(q.status),
       convert: manage && q.status === "ACCEPTED",
       duplicate: manage,

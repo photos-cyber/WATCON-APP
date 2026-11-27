@@ -31,6 +31,7 @@ const BUILDERS: Record<string, () => Promise<Builder>> = {
   supplier_bill: async () => (await import("@/modules/payables/pdf")).supplierBillPdf,
   payment: async () => (await import("@/modules/payables/pdf")).paymentPdf,
   adjustment_note: async () => (await import("@/modules/payables/pdf")).notePdf,
+  project_accounts: async () => (await import("@/modules/insights/accounts-pdf")).projectAccountsPdf,
 
   // ───────────── Purchase order ─────────────
   purchase_order: async () => {
@@ -65,7 +66,7 @@ const BUILDERS: Record<string, () => Promise<Builder>> = {
           partyPanel("Supplier", party ?? po.party),
           {
             title: "Project & delivery",
-            heading: projectLabel(po.project) ?? "Central store",
+            heading: projectLabel(po.project) ?? "General stock (no project)",
             fields: [
               { label: "Delivery site", value: po.deliveryLocation.name, strong: true },
               { label: "Site address", value: [po.deliveryLocation.address, po.deliveryAddress].filter(Boolean).join(", ") || null },
@@ -130,7 +131,7 @@ const BUILDERS: Record<string, () => Promise<Builder>> = {
         ...docState(pr.status, { pending: ["SUBMITTED"] }),
         org: await loadPdfOrg(actor.organizationId),
         panels: [
-          { title: "Project", heading: projectLabel(pr.project) ?? "Central store", fields: [{ label: "Deliver to", value: pr.deliveryLocation?.name }] },
+          { title: "Project", heading: projectLabel(pr.project) ?? "General stock (no project)", fields: [{ label: "Deliver to", value: pr.deliveryLocation?.name }] },
           { title: "Requested", heading: pr.createdBy.fullName, fields: [{ label: "Required by", value: formatDate(pr.requiredBy), strong: true }, { label: "Raised on", value: formatDate(pr.createdAt) }] },
         ],
         tableTitle: "Materials required",
@@ -285,6 +286,8 @@ const BUILDERS: Record<string, () => Promise<Builder>> = {
       const titles: Record<string, string> = { ISSUE_TO_SITE: "Material Issue Challan", SITE_TO_SITE: "Stock Transfer Challan", RETURN_TO_STORE: "Material Return Challan", RETURN_TO_SUPPLIER: "Return Challan", CLIENT_DELIVERY: "Delivery Challan" };
       const st = docState(c.status);
       const received = c.lines.some((l) => !isZero(l.receivedQty));
+      // Receiver of record: the challan's own entry, else the posted site receipt against it.
+      const siteGrn = received && !c.receiverName ? await db.grn.findFirst({ where: { organizationId: actor.organizationId, challanId: c.id, status: "POSTED" }, select: { receivedByName: true, receiptDate: true, createdBy: { select: { fullName: true } } }, orderBy: { receiptDate: "desc" } }) : null;
       return {
         docType: "DC",
         title: titles[c.type] ?? "Delivery Challan",
@@ -322,12 +325,13 @@ const BUILDERS: Record<string, () => Promise<Builder>> = {
         rows: c.lines.map((l) => ({ n: String(l.lineNo), code: l.itemBrand.item.code, item: { text: `${l.itemBrand.item.name} – ${l.itemBrand.brand.name}`, sub: l.remarks }, hsn: l.itemBrand.item.hsnCode ?? "", qty: qty(l.quantity), unit: l.itemBrand.item.unit, rec: qty(l.receivedQty) })),
         sections: [
           { title: "Declaration", body: c.type === "CLIENT_DELIVERY" ? "Goods delivered against the order referenced above." : "Material moved for the purpose stated above. Not for sale unless accompanied by a tax invoice." },
+          ...(c.type === "ISSUE_TO_SITE" || c.type === "SITE_TO_SITE" ? [{ title: "On receipt at site", items: ["Count the material against this challan before signing.", "Note any shortage, damage or rejection on this copy.", "Sign and stamp this challan. A photo of the signed copy and of the material must be uploaded in the app to confirm receipt."] }] : []),
           ...(c.remarks ? [{ title: "Remarks", body: c.remarks }] : []),
         ],
         signatures: [
           { label: "Dispatched by", name: c.dispatchedBy?.fullName ?? c.senderName ?? null, date: signDate(c.dispatchedAt) },
           { label: "Driver / transporter", name: c.driverName ?? null },
-          { label: "Received by", name: c.receiverName ?? null, date: signDate(c.deliveredDate), note: "Name, sign, date & stamp" },
+          { label: "Received by", name: c.receiverName ?? siteGrn?.receivedByName ?? siteGrn?.createdBy.fullName ?? null, date: signDate(c.deliveredDate ?? siteGrn?.receiptDate), note: siteGrn ? "Confirmed in app with photo proof" : "Name, sign, date & stamp" },
         ],
       };
     };

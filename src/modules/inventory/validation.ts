@@ -77,10 +77,9 @@ export const movementSchema = z
     idempotencyKey,
   })
   .superRefine((v, ctx) => {
-    if (v.type === "ADJUSTMENT") {
-      if (!v.direction) ctx.addIssue({ code: "custom", path: ["direction"], message: "Choose whether the adjustment increases or decreases stock." });
-      if (!v.reason) ctx.addIssue({ code: "custom", path: ["reason"], message: "A reason is mandatory for stock adjustments." });
-    }
+    if (v.type === "ADJUSTMENT" && !v.direction) ctx.addIssue({ code: "custom", path: ["direction"], message: "Choose whether the adjustment increases or decreases stock." });
+    // Every manual stock change needs a reason (workflow v2: owner-only, with evidence).
+    if (!v.reason) ctx.addIssue({ code: "custom", path: ["reason"], message: "A reason is mandatory for manual stock changes." });
   });
 export type MovementInput = z.input<typeof movementSchema>;
 

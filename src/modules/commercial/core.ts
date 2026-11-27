@@ -120,6 +120,29 @@ export async function assertCanApprove(
   }
 }
 
+// ─────────────── Simplified workflow policy (2026-11-27, owner instruction) ───────────────
+//
+// Daily documents (quotation, SO, client PO, requisition, rate-enquiry award, PO, receipt,
+// supplier bill, running bill, invoice) are FINALIZED IN ONE STEP by any user who holds the
+// document's create / manage permission — no second approver, no separation of duties and no
+// amount limit. Role permissions and project scopes still apply on the server.
+//
+// Only changes to FINALIZED documents that affect stock or money (amend, cancel, reverse,
+// credit / debit notes, SO amendments) are reserved for the Super Admin. Other users raise a
+// "Request change" (notification to the Super Admins) instead.
+
+export const isSuperAdmin = (actor: Pick<Actor, "role">) => actor.role === "SUPER_ADMIN";
+
+/** Guard for amend / cancel / reverse of a finalized document. */
+export function requireSuperAdmin(actor: Pick<Actor, "role">, what: string) {
+  if (!isSuperAdmin(actor)) throw new ForbiddenError(`Only the Super Admin can ${what}. Use "Request change" to ask for it.`);
+}
+
+/** Any one of the given permissions (e.g. the old approver permission OR the document's create permission). */
+export function requireAnyPermission(actor: Actor, permissions: PermissionKey[], message?: string) {
+  if (!permissions.some((p) => can(actor, p))) throw new ForbiddenError(message);
+}
+
 /** Whether an approve button should be shown (UI hint; the server re-checks with assertCanApprove). */
 export function approvalHint(actor: Actor, permission: PermissionKey, doc: { createdById?: string | null; submittedById?: string | null }, enforceSegregation: boolean) {
   if (!can(actor, permission)) return { canApprove: false, reason: null as string | null };

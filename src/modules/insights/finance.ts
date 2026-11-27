@@ -29,14 +29,14 @@ export type ProjectFinancials = {
 
 export const KPI_HELP = {
   contractValue: "Total value (incl. GST) of active, completed or closed client purchase orders, plus approved sales orders not linked to a client PO — after revisions and amendments.",
-  billed: "Issued client tax invoices (incl. GST), excluding drafts and cancelled invoices.",
+  billed: "Issued client tax invoices (incl. GST), excluding drafts, cancelled invoices and proforma advance requests.",
   certified: "Gross value certified by the client on running bills.",
   received: "Client receipts recorded against this project (cash/bank + TDS deducted by the client).",
   receivable: "Issued invoices' net receivable (after retention, advance recovery and deductions) minus amounts received and credit notes.",
   committed: "Purchase orders approved or later (incl. GST), excluding drafts, rejected and cancelled orders.",
   receivedValue: "Material accepted at site on posted receipts, valued at the PO rate (excl. GST).",
   supplierBilled: "Approved supplier bills (incl. GST).",
-  paid: "Supplier payments recorded against this project.",
+  paid: "Supplier payments recorded against this project (refunds of client advances excluded).",
   payable: "Approved supplier bills' net payable (after TDS) minus payments and supplier notes.",
   materialCost: "Cost of material delivered to the client or used at site, valued at this project's average purchase cost (excl. GST). Stock still lying at site is not counted.",
   margin: "Billed revenue excluding GST minus the cost of material delivered or used. Labour and overheads are not included.",
@@ -61,15 +61,18 @@ export async function projectFinancials(organizationId: string, projectIds: stri
   const inProjects = { organizationId, projectId: { in: projectIds } };
 
   const [cpo, soDirect, inv, ra, payIn, po, bills, payOut, received, issuedCost] = await Promise.all([
-    db.clientPo.groupBy({ by: ["projectId"], where: { ...inProjects, status: { in: [...CONTRACT_ACTIVE] } }, _sum: { total: true } }),
-    // Sales orders under a client PO are already inside that PO's value; count only the others.
-    db.salesOrder.groupBy({ by: ["projectId"], where: { ...inProjects, clientPoId: null, status: { in: [...SO_ACTIVE] } }, _sum: { total: true } }),
-    db.clientInvoice.groupBy({ by: ["projectId"], where: { ...inProjects, status: { in: [...INVOICE_LIVE] } }, _sum: { total: true, taxable: true, netReceivable: true, receivedAmount: true, adjustedAmount: true } }),
+    // Contract = confirmed sales orders (client PO optional) + legacy client POs that have no confirmed order,
+    // so a client PO and the sales orders raised under it are never counted as two contracts.
+    db.clientPo.groupBy({ by: ["projectId"], where: { ...inProjects, status: { in: [...CONTRACT_ACTIVE] }, salesOrders: { none: { status: { in: [...SO_ACTIVE] } } } }, _sum: { total: true } }),
+    db.salesOrder.groupBy({ by: ["projectId"], where: { ...inProjects, status: { in: [...SO_ACTIVE] } }, _sum: { total: true } }),
+    // Tax invoices only: a proforma is an advance request, not billed revenue or a receivable (workflow v2 · Phase 8).
+    db.clientInvoice.groupBy({ by: ["projectId"], where: { ...inProjects, kind: "TAX_INVOICE", status: { in: [...INVOICE_LIVE] } }, _sum: { total: true, taxable: true, netReceivable: true, receivedAmount: true, adjustedAmount: true } }),
     db.raBill.groupBy({ by: ["projectId"], where: { ...inProjects, status: { in: [...RA_CERTIFIED] } }, _sum: { certifiedAmount: true } }),
     db.payment.groupBy({ by: ["projectId"], where: { ...inProjects, direction: "IN", status: "POSTED" }, _sum: { amount: true, tdsAmount: true } }),
     db.purchaseOrder.groupBy({ by: ["projectId"], where: { ...inProjects, status: { in: [...PO_COMMITTED] } }, _sum: { total: true } }),
     db.supplierBill.groupBy({ by: ["projectId"], where: { ...inProjects, status: { in: [...BILL_APPROVED] } }, _sum: { total: true, taxable: true, netPayable: true, paidAmount: true, adjustedAmount: true } }),
-    db.payment.groupBy({ by: ["projectId"], where: { ...inProjects, direction: "OUT", status: "POSTED" }, _sum: { amount: true } }),
+    // Supplier payments only — refunds of client advances are OUT rows too, but reduce money received instead.
+    db.payment.groupBy({ by: ["projectId"], where: { ...inProjects, direction: "OUT", status: "POSTED", refundOfId: null }, _sum: { amount: true } }),
     db.$queryRaw<{ project_id: string; value: string }[]>`
       SELECT g.project_id::text AS project_id,
              ROUND(SUM(gl.accepted_qty * COALESCE(gl.unit_cost, pl.rate * (1 - pl.discount_pct / 100), 0)), 2)::text AS value
@@ -125,6 +128,8 @@ export async function projectFinancials(organizationId: string, projectIds: stri
   }
   for (const r of ra) { const f = get(r.projectId); if (f) f.certified = dec2(r._sum.certifiedAmount); }
   for (const r of payIn) { const f = get(r.projectId); if (f) f.received = addMoney(dec2(r._sum.amount), dec2(r._sum.tdsAmount)); }
+  const refunds = await db.payment.groupBy({ by: ["projectId"], where: { ...inProjects, direction: "OUT", status: "POSTED", refundOfId: { not: null } }, _sum: { amount: true } });
+  for (const r of refunds) { const f = get(r.projectId); if (f) f.received = subMoney(f.received, dec2(r._sum.amount)); }
   for (const r of po) { const f = get(r.projectId); if (f) f.committed = dec2(r._sum.total); }
   for (const r of bills) {
     const f = get(r.projectId);

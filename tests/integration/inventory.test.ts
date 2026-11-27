@@ -60,9 +60,14 @@ const move = (itemBrandId: string, type: "INWARD" | "OUTWARD" | "ADJUSTMENT", qu
   quantity,
   txnDate: day(),
   reference: "REF-1",
+  reason: "Stock correction",
   idempotencyKey: randomUUID(),
   ...extra,
 });
+
+/** Manual stock changes are owner (Super Admin) only and need evidence (workflow v2 · Phase 5). */
+const EVIDENCE = { fileName: "count-sheet.pdf", bytes: new TextEncoder().encode("%PDF-1.4 count sheet") };
+const manual = (input: ReturnType<typeof move>, actor: Parameters<typeof postStockMovement>[0] = fx.actors.superAdmin) => postStockMovement(actor, input, EVIDENCE);
 
 describe("items master", () => {
   it("creates items with generated or manual codes and rejects duplicate codes", async () => {
@@ -116,7 +121,7 @@ describe("brands master", () => {
 describe("brand-wise stock", () => {
   it("keeps each item–brand balance independent", async () => {
     const { item, linkA, linkB } = await cementWithTwoBrands("100", "40");
-    await postStockMovement(fx.actors.admin, move(linkA.id, "INWARD", "25.5"));
+    await manual(move(linkA.id, "INWARD", "25.5"));
     const detail = await getItem(fx.actors.admin, item.id);
     const byBrand = Object.fromEntries(detail.positions.map((p) => [p.brand.name, p.currentQty]));
     expect(byBrand).toEqual({ UltraTech: "125.5", ACC: "40" });
@@ -125,9 +130,9 @@ describe("brand-wise stock", () => {
 
   it("calculates opening, inward, outward and closing (all-time and by period)", async () => {
     const { linkA } = await cementWithTwoBrands("100", "0");
-    await postStockMovement(fx.actors.admin, move(linkA.id, "INWARD", "50", { txnDate: day(-3) }));
-    await postStockMovement(fx.actors.admin, move(linkA.id, "OUTWARD", "30", { txnDate: day(-1) }));
-    await postStockMovement(fx.actors.admin, move(linkA.id, "OUTWARD", "0.250", { txnDate: day() }));
+    await manual(move(linkA.id, "INWARD", "50", { txnDate: day(-3) }));
+    await manual(move(linkA.id, "OUTWARD", "30", { txnDate: day(-1) }));
+    await manual(move(linkA.id, "OUTWARD", "0.250", { txnDate: day() }));
 
     const all = (await getStockSummary(fx.actors.admin, {})).rows.find((r) => r.id === linkA.id)!;
     expect([all.opening, all.inward, all.outward, all.closing, all.currentQty]).toEqual(["100", "50", "30.25", "119.75", "119.75"]);
@@ -144,42 +149,42 @@ describe("brand-wise stock", () => {
 
   it("prevents negative stock for outward and adjustments", async () => {
     const { linkA } = await cementWithTwoBrands("10", "0");
-    const e = await errorOf(postStockMovement(fx.actors.admin, move(linkA.id, "OUTWARD", "10.001")));
+    const e = await errorOf(manual(move(linkA.id, "OUTWARD", "10.001")));
     expect(e.code).toBe("VALIDATION");
     expect(e.message).toContain("Insufficient stock");
-    const adj = await errorOf(postStockMovement(fx.actors.superAdmin, move(linkA.id, "ADJUSTMENT", "11", { direction: "OUT", reason: "Damaged" })));
+    const adj = await errorOf(manual(move(linkA.id, "ADJUSTMENT", "11", { direction: "OUT", reason: "Damaged" })));
     expect(adj.code).toBe("VALIDATION");
     expect(await ledgerBalance(linkA.id)).toEqual({ ledger: "10", current: "10" });
     expect(await db.stockTransaction.count({ where: { itemBrandId: linkA.id } })).toBe(1);
     // Exactly to zero is allowed.
-    await postStockMovement(fx.actors.admin, move(linkA.id, "OUTWARD", "10"));
+    await manual(move(linkA.id, "OUTWARD", "10"));
     expect((await ledgerBalance(linkA.id)).current).toBe("0");
   });
 
   it("requires a reason for adjustments and records them in the audit log", async () => {
     const { linkA } = await cementWithTwoBrands("10", "0");
-    const noReason = await errorOf(postStockMovement(fx.actors.superAdmin, move(linkA.id, "ADJUSTMENT", "2", { direction: "OUT" })));
+    const noReason = await errorOf(manual(move(linkA.id, "ADJUSTMENT", "2", { direction: "OUT", reason: "" })));
     expect(noReason.code).toBe("VALIDATION");
     expect(noReason.fieldErrors?.reason).toBeTruthy();
-    const { txn } = await postStockMovement(fx.actors.superAdmin, move(linkA.id, "ADJUSTMENT", "2", { direction: "OUT", reason: "Bags torn in storage" }));
+    const { txn } = await manual(move(linkA.id, "ADJUSTMENT", "2", { direction: "OUT", reason: "Bags torn in storage" }));
     expect(txn.balanceAfter).toBe("8");
     expect(await db.auditLog.count({ where: { entityId: txn.id, action: "stock.adjusted" } })).toBe(1);
   });
 
   it("rejects future dates and back-dating before the latest movement", async () => {
     const { linkA } = await cementWithTwoBrands("10", "0");
-    expect((await errorOf(postStockMovement(fx.actors.admin, move(linkA.id, "INWARD", "1", { txnDate: day(1) })))).fieldErrors?.txnDate).toBeTruthy();
-    await postStockMovement(fx.actors.admin, move(linkA.id, "INWARD", "1", { txnDate: day(-1) }));
-    expect((await errorOf(postStockMovement(fx.actors.admin, move(linkA.id, "INWARD", "1", { txnDate: day(-2) })))).fieldErrors?.txnDate).toBeTruthy();
+    expect((await errorOf(manual(move(linkA.id, "INWARD", "1", { txnDate: day(1) })))).fieldErrors?.txnDate).toBeTruthy();
+    await manual(move(linkA.id, "INWARD", "1", { txnDate: day(-1) }));
+    expect((await errorOf(manual(move(linkA.id, "INWARD", "1", { txnDate: day(-2) })))).fieldErrors?.txnDate).toBeTruthy();
     expect((await ledgerBalance(linkA.id)).current).toBe("11");
   });
 
   it("blocks posting and linking for inactive items or brands", async () => {
     const { item, a, b, linkA, linkB } = await cementWithTwoBrands("10", "10");
     await setBrandStatus(fx.actors.admin, b.id, "INACTIVE");
-    expect((await errorOf(postStockMovement(fx.actors.admin, move(linkB.id, "INWARD", "1")))).code).toBe("VALIDATION");
+    expect((await errorOf(manual(move(linkB.id, "INWARD", "1")))).code).toBe("VALIDATION");
     await setItemStatus(fx.actors.admin, item.id, "INACTIVE");
-    expect((await errorOf(postStockMovement(fx.actors.admin, move(linkA.id, "INWARD", "1")))).code).toBe("VALIDATION");
+    expect((await errorOf(manual(move(linkA.id, "INWARD", "1")))).code).toBe("VALIDATION");
     const c = await createBrand(fx.actors.admin, { name: "Ambuja" });
     expect((await errorOf(linkBrand(fx.actors.admin, { itemId: item.id, brandId: c.id }))).code).toBe("VALIDATION");
     expect(a.id).toBeTruthy();
@@ -200,19 +205,19 @@ describe("duplicate posting & concurrency", () => {
   it("posts a retried submission only once", async () => {
     const { linkA } = await cementWithTwoBrands("10", "0");
     const input = move(linkA.id, "INWARD", "5");
-    const first = await postStockMovement(fx.actors.admin, input);
-    const again = await postStockMovement(fx.actors.admin, input);
+    const first = await manual(input);
+    const again = await manual(input);
     expect(again.duplicate).toBe(true);
     expect(again.txn.id).toBe(first.txn.id);
     expect((await ledgerBalance(linkA.id)).current).toBe("15");
     // Reusing the key for a different entry is refused.
-    expect((await errorOf(postStockMovement(fx.actors.admin, { ...input, quantity: "6" }))).code).toBe("CONFLICT");
+    expect((await errorOf(manual({ ...input, quantity: "6" }))).code).toBe("CONFLICT");
   });
 
   it("posts concurrent identical submissions only once", async () => {
     const { linkA } = await cementWithTwoBrands("10", "0");
     const input = move(linkA.id, "OUTWARD", "4");
-    const results = await Promise.allSettled(Array.from({ length: 5 }, () => postStockMovement(fx.actors.admin, input)));
+    const results = await Promise.allSettled(Array.from({ length: 5 }, () => manual(input)));
     expect(results.every((r) => r.status === "fulfilled")).toBe(true);
     expect(await db.stockTransaction.count({ where: { itemBrandId: linkA.id, type: "OUTWARD" } })).toBe(1);
     expect(await ledgerBalance(linkA.id)).toEqual({ ledger: "6", current: "6" });
@@ -220,7 +225,7 @@ describe("duplicate posting & concurrency", () => {
 
   it("never oversells under concurrent outward postings", async () => {
     const { linkA, linkB } = await cementWithTwoBrands("10", "10");
-    const results = await Promise.allSettled(Array.from({ length: 8 }, () => postStockMovement(fx.actors.admin, move(linkA.id, "OUTWARD", "3"))));
+    const results = await Promise.allSettled(Array.from({ length: 8 }, () => manual(move(linkA.id, "OUTWARD", "3"))));
     const ok = results.filter((r) => r.status === "fulfilled").length;
     expect(ok).toBe(3);
     for (const r of results) if (r.status === "rejected") expect((r.reason as AppError).code).toBe("VALIDATION");
@@ -233,8 +238,8 @@ describe("duplicate posting & concurrency", () => {
   it("serialises concurrent inward and outward on one position", async () => {
     const { linkA } = await cementWithTwoBrands("5", "0");
     await Promise.allSettled([
-      ...Array.from({ length: 5 }, () => postStockMovement(fx.actors.admin, move(linkA.id, "INWARD", "2"))),
-      ...Array.from({ length: 5 }, () => postStockMovement(fx.actors.admin, move(linkA.id, "OUTWARD", "1"))),
+      ...Array.from({ length: 5 }, () => manual(move(linkA.id, "INWARD", "2"))),
+      ...Array.from({ length: 5 }, () => manual(move(linkA.id, "OUTWARD", "1"))),
     ]);
     const { ledger, current } = await ledgerBalance(linkA.id);
     expect(ledger).toBe(current);
@@ -243,10 +248,11 @@ describe("duplicate posting & concurrency", () => {
 });
 
 describe("permissions", () => {
-  it("lets ADMIN manage and post but not adjust; USER has no inventory access", async () => {
+  it("lets ADMIN manage items but not change stock manually (owner only); USER has no inventory access", async () => {
     const { item, a } = await cementWithTwoBrands("10", "0");
     const link = (await getItem(fx.actors.admin, item.id)).positions.find((p) => p.brand.id === a.id)!;
-    expect((await errorOf(postStockMovement(fx.actors.admin, move(link.id, "ADJUSTMENT", "1", { direction: "IN", reason: "Count" })))).code).toBe("FORBIDDEN");
+    expect((await errorOf(manual(move(link.id, "ADJUSTMENT", "1", { direction: "IN", reason: "Count" }), fx.actors.admin))).code).toBe("FORBIDDEN");
+    expect((await errorOf(manual(move(link.id, "INWARD", "1"), fx.actors.admin))).code).toBe("FORBIDDEN");
     const c = await createBrand(fx.actors.admin, { name: "JK" });
     expect((await errorOf(linkBrand(fx.actors.admin, { itemId: item.id, brandId: c.id, openingQty: "5" }))).code).toBe("FORBIDDEN");
 
@@ -255,7 +261,7 @@ describe("permissions", () => {
     expect((await errorOf(getStockSummary(user, {}))).code).toBe("FORBIDDEN");
     expect((await errorOf(createItem(user, { name: "Hack", unit: "Nos" }))).code).toBe("FORBIDDEN");
     expect((await errorOf(createBrand(user, { name: "Hack" }))).code).toBe("FORBIDDEN");
-    expect((await errorOf(postStockMovement(user, move(link.id, "INWARD", "1")))).code).toBe("FORBIDDEN");
+    expect((await errorOf(manual(move(link.id, "INWARD", "1"), user))).code).toBe("FORBIDDEN");
     expect((await ledgerBalance(link.id)).current).toBe("10");
   });
 
@@ -264,7 +270,7 @@ describe("permissions", () => {
     const other = await createOrg("Other Co");
     const outsider = await actorFor((await createUser(other.id, "SUPER_ADMIN")).id);
     expect((await errorOf(getItem(outsider, item.id))).code).toBe("NOT_FOUND");
-    expect((await errorOf(postStockMovement(outsider, move(linkA.id, "INWARD", "1")))).code).toBe("NOT_FOUND");
+    expect((await errorOf(manual(move(linkA.id, "INWARD", "1"), outsider))).code).toBe("NOT_FOUND");
     expect((await getStockSummary(outsider, {})).total).toBe(0);
   });
 

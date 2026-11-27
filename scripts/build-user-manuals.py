@@ -21,7 +21,7 @@ OUT=ROOT/'docs/user-guide'; OUT.mkdir(parents=True,exist_ok=True)
 articles=json.loads((ROOT/'src/modules/help/content.json').read_text(encoding='utf-8'))
 logo=ROOT/'public/logo1.png'
 title='WATCON Enterprise — Complete User Guide'
-note='Edition 24 November 2026. Read this guide with your supervisor during training. Menu visibility depends on your permissions. Screenshots marked local contain fictional training data. The audit reports identify tested and untested operations. This guide does not certify production balances.'
+note='Edition 27 November 2026. Read this guide with your supervisor during training. Menu visibility depends on your permissions. Screenshots marked local contain fictional training data. The audit reports identify tested and untested operations. This guide does not certify production balances.'
 shots={'projects':'local-projects','stock':'local-stock','purchase-orders':'local-purchase-orders','site-receipts':'local-site-receipts','challans':'local-challans','supplier-bills':'local-supplier-bills','running-bills':'local-running-bills','accounts':'local-accounts','payments':'local-payments','tasks':'local-tasks'}
 def markdown(items,heading=1):
     lines=[]

@@ -4,8 +4,7 @@ import { billAction, billPrefillFromPo, createBill, getBill, listBills } from "@
 import { createNote, noteAction } from "@/modules/payables/notes";
 import { allocatePayment, cancelPayment, createPayment, getPayment, reverseAllocation } from "@/modules/payables/payments";
 import { createPo, poAction } from "@/modules/procurement/po";
-import { createGrn, postGrn } from "@/modules/stores/grn";
-import { commercialFixture, day, errorOf, key, type CFx } from "./commercial-helpers";
+import { commercialFixture, day, errorOf, key, type CFx, receiveWithProof } from "./commercial-helpers";
 
 let fx: CFx;
 beforeEach(async () => {
@@ -18,13 +17,11 @@ const v = async (model: Versioned, id: string) => (await (db[model] as unknown a
 async function approvedPo(qty = "50", rate = "100") {
   const po = await createPo(fx.roles.pu.actor, { projectId: fx.p1.id, partyId: fx.supplier.id, orderDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: qty, rate, gstRate: "18" }] });
   await poAction(fx.roles.pu.actor, po.id, "submit", { version: await v("purchaseOrder", po.id) });
-  await poAction(fx.actors.admin, po.id, "approve", { version: await v("purchaseOrder", po.id) });
   return db.purchaseOrder.findUniqueOrThrow({ where: { id: po.id }, include: { lines: true } });
 }
 
 async function receive(poId: string, poLineId: string, qty: string) {
-  const g = await createGrn(fx.roles.se.actor, { clientKey: key(), poId, receiptDate: day(), submit: true, lines: [{ poLineId, receivedQty: qty }] });
-  await postGrn(fx.roles.sk.actor, g.id, await v("grn", g.id));
+  const g = await receiveWithProof(fx.roles.se.actor, { clientKey: key(), poId, receiptDate: day(), lines: [{ poLineId, receivedQty: qty }] });
   return db.grnLine.findFirstOrThrow({ where: { grnId: g.id } });
 }
 
@@ -46,8 +43,7 @@ async function approvedBill(qty = "10", invoiceNo = `INV-${Math.random().toStrin
   const po = await approvedPo("50");
   await receive(po.id, po.lines[0]!.id, "50");
   const bill = await billFor(po.id, invoiceNo, qty);
-  await submit(bill.id);
-  await approve(bill.id);
+  await submit(bill.id); // a matching bill is finalized in one step
   return db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } });
 }
 
@@ -86,6 +82,8 @@ describe("supplier bills", () => {
     const bill = await billFor(po.id, "OVER-1", "25");
     expect(bill.matchStatus).toBe("EXCEPTION");
     await submit(bill.id);
+    // A mismatching bill is not finalized by "submit": it is held for an override.
+    expect((await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } })).status).toBe("PENDING_APPROVAL");
     expect((await errorOf(approve(bill.id))).message).toMatch(/does not match/);
     expect((await errorOf(approve(bill.id, fx.actors.admin, { override: true, note: "ok" }))).message).toMatch(/permission/);
     expect((await errorOf(approve(bill.id, fx.actors.superAdmin, { override: true }))).message).toMatch(/reason/);
@@ -95,8 +93,9 @@ describe("supplier bills", () => {
     // The GRN line records only what was actually accepted; the PO line records the full billed quantity.
     expect((await db.grnLine.findUniqueOrThrow({ where: { id: gl.id } })).billedQty.toFixed(0)).toBe("20");
     expect((await db.poLine.findUniqueOrThrow({ where: { id: po.lines[0]!.id } })).billedQty.toFixed(0)).toBe("25");
-    // Cancelling restores both counters exactly.
-    await billAction(fx.actors.admin, bill.id, "cancel", { version: await v("supplierBill", bill.id), note: "Re-enter after GRN" });
+    // Cancelling a final bill is an amendment: Super Admin only. It restores both counters exactly.
+    expect((await errorOf(billAction(fx.actors.admin, bill.id, "cancel", { version: await v("supplierBill", bill.id), note: "Re-enter after GRN" }))).message).toMatch(/Only the Super Admin/);
+    await billAction(fx.actors.superAdmin, bill.id, "cancel", { version: await v("supplierBill", bill.id), note: "Re-enter after GRN" });
     expect((await db.grnLine.findUniqueOrThrow({ where: { id: gl.id } })).billedQty.toFixed(0)).toBe("0");
     expect((await db.poLine.findUniqueOrThrow({ where: { id: po.lines[0]!.id } })).billedQty.toFixed(0)).toBe("0");
   });
@@ -111,26 +110,26 @@ describe("supplier bills", () => {
     expect(view.exceptionList.find((e) => e.code === "RATE_VARIANCE")!.message).toMatch(/10\.00% above the PO rate/);
   });
 
-  it("enforces separation of duties and approval permission", async () => {
+  it("accounts finalizes its own matching bill in one step; users without bill rights cannot", async () => {
     const po = await approvedPo("50");
     await receive(po.id, po.lines[0]!.id, "50");
-    const bill = await billFor(po.id, "SOD-1", "5");
-    await submit(bill.id);
-    expect((await errorOf(approve(bill.id, fx.roles.ac.actor))).message).toMatch(/permission/);
-    const own = await billFor(po.id, "SOD-2", "5", {}, fx.actors.admin);
-    await submit(own.id, fx.actors.admin);
-    expect((await errorOf(approve(own.id, fx.actors.admin))).message).toMatch(/Separation of duties/);
+    const bill = await billFor(po.id, "ONE-1", "5");
+    expect((await errorOf(submit(bill.id, fx.roles.se.actor))).message).toMatch(/permission/);
+    await submit(bill.id, fx.roles.ac.actor);
+    const b = await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } });
+    expect([b.status, b.approvedById, b.submittedById]).toEqual(["APPROVED", fx.roles.ac.actor.id, fx.roles.ac.actor.id]);
+    expect((await db.poLine.findUniqueOrThrow({ where: { id: po.lines[0]!.id } })).billedQty.toFixed(0)).toBe("5");
   });
 
-  it("two bills approved at the same time can never bill more than was received", async () => {
+  it("two bills finalized at the same time can never bill more than was received", async () => {
     const po = await approvedPo("50");
     const gl = await receive(po.id, po.lines[0]!.id, "50");
     const a = await billFor(po.id, "CONC-A", "30");
     const b = await billFor(po.id, "CONC-B", "30");
-    await submit(a.id);
-    await submit(b.id);
-    const results = await Promise.allSettled([approve(a.id), approve(b.id)]);
-    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    await Promise.allSettled([submit(a.id), submit(b.id)]);
+    const statuses = (await db.supplierBill.findMany({ where: { id: { in: [a.id, b.id] } } })).map((x) => x.status).sort();
+    // One is final; the other is refused or held for checking — never both final.
+    expect(statuses.filter((s) => s === "APPROVED")).toHaveLength(1);
     expect((await db.grnLine.findUniqueOrThrow({ where: { id: gl.id } })).billedQty.toFixed(0)).toBe("30");
     expect((await db.poLine.findUniqueOrThrow({ where: { id: po.lines[0]!.id } })).billedQty.toFixed(0)).toBe("30");
     // The remaining 20 can still be billed.
@@ -197,8 +196,10 @@ describe("payments, advances and notes", () => {
     expect(a.id).toBe(b.id);
     expect(await db.payment.count({ where: { organizationId: fx.org.id } })).toBe(1);
     expect((await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } })).status).toBe("PAID");
-    expect((await errorOf(cancelPayment(fx.roles.ac.actor, a.id, await v("payment", a.id), ""))).message).toMatch(/reason/);
-    await cancelPayment(fx.roles.ac.actor, a.id, await v("payment", a.id), "Bounced cheque");
+    // Cancelling a recorded payment is an amendment: Super Admin only, with a reason.
+    expect((await errorOf(cancelPayment(fx.roles.ac.actor, a.id, await v("payment", a.id), "Bounced cheque"))).message).toMatch(/Only the Super Admin/);
+    expect((await errorOf(cancelPayment(fx.actors.superAdmin, a.id, await v("payment", a.id), ""))).message).toMatch(/reason/);
+    await cancelPayment(fx.actors.superAdmin, a.id, await v("payment", a.id), "Bounced cheque");
     const after = await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } });
     expect([after.status, after.paidAmount.toFixed(2)]).toEqual(["APPROVED", "0.00"]);
     const alloc = await db.paymentAllocation.findFirstOrThrow({ where: { paymentId: a.id } });
@@ -209,8 +210,9 @@ describe("payments, advances and notes", () => {
     const bill = await approvedBill("10");
     const p = await pay("1180", [{ documentId: bill.id, amount: "1180" }]);
     const alloc = await db.paymentAllocation.findFirstOrThrow({ where: { paymentId: p.id } });
-    await reverseAllocation(fx.roles.ac.actor, alloc.id, "Allocated to the wrong bill");
-    expect((await errorOf(reverseAllocation(fx.roles.ac.actor, alloc.id, "again"))).message).toMatch(/already reversed/);
+    expect((await errorOf(reverseAllocation(fx.roles.ac.actor, alloc.id, "Allocated to the wrong bill"))).message).toMatch(/Only the Super Admin/);
+    await reverseAllocation(fx.actors.superAdmin, alloc.id, "Allocated to the wrong bill");
+    expect((await errorOf(reverseAllocation(fx.actors.superAdmin, alloc.id, "again"))).message).toMatch(/already reversed/);
     expect((await getPayment(fx.roles.ac.actor, p.id)).unallocated).toBe("1180.00");
   });
 
@@ -219,14 +221,15 @@ describe("payments, advances and notes", () => {
     expect((await errorOf(createNote(fx.roles.ac.actor, { noteType: "CREDIT", partyRole: "SUPPLIER", supplierBillId: bill.id, noteDate: day(), reason: "Too much", taxable: "1100", gstRate: "18" }))).message).toMatch(/more than the/);
     const note = await createNote(fx.roles.ac.actor, { noteType: "CREDIT", partyRole: "SUPPLIER", supplierBillId: bill.id, noteDate: day(), reason: "Rate difference", taxable: "100", gstRate: "18" });
     expect(note.total.toFixed(2)).toBe("118.00");
-    expect((await errorOf(noteAction(fx.roles.ac.actor, note.id, "approve", { version: 1 }))).message).toMatch(/permission/);
-    await noteAction(fx.actors.admin, note.id, "approve", { version: 1 });
+    // A credit note amends a final bill: only the Super Admin applies it.
+    expect((await errorOf(noteAction(fx.actors.admin, note.id, "approve", { version: 1 }))).message).toMatch(/Only the Super Admin/);
+    await noteAction(fx.actors.superAdmin, note.id, "approve", { version: 1 });
     const { outstanding } = await getBill(fx.roles.ac.actor, bill.id);
     expect(outstanding).toBe("1062.00");
     await pay("1062", [{ documentId: bill.id, amount: "1062" }]);
     expect((await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } })).status).toBe("PAID");
     // Cancelling the note after payment re-opens the difference on the bill.
-    await noteAction(fx.actors.admin, note.id, "cancel", { version: 2, note: "Supplier withdrew the credit note" });
+    await noteAction(fx.actors.superAdmin, note.id, "cancel", { version: 2, note: "Supplier withdrew the credit note" });
     const after = await getBill(fx.roles.ac.actor, bill.id);
     expect([after.bill.status, after.outstanding]).toEqual(["PARTIALLY_PAID", "118.00"]);
   });

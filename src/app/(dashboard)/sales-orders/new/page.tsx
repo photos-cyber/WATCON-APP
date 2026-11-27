@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { requirePagePermission } from "@/lib/auth/session";
 import { newId } from "@/lib/utils";
 import { getCommercialSettings } from "@/modules/commercial/core";
+import { DEFAULT_CLIENT_MILESTONES } from "@/modules/commercial/payment-terms";
 import { itemBrandOptions } from "@/modules/inventory/locations";
 import { todayString } from "@/modules/inventory/serialize";
 import { partyOptions } from "@/modules/parties/service";
@@ -33,6 +34,7 @@ export default async function NewSalesOrderPage({ searchParams }: PageProps<"/sa
     billingSchedule: "",
     paymentTerms: "",
     notes: "",
+    milestones: DEFAULT_CLIENT_MILESTONES.map((m) => ({ ...m })),
     lines: pre.lines.map((l) => ({ key: newId(), clientPoLineId: l.clientPoLineId, description: l.description, hsnSac: l.hsnSac ?? "", unit: l.unit, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, note: l.note })),
   };
   const project = projects.find((p) => p.id === initial.projectId);

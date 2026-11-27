@@ -3,7 +3,6 @@ import { expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { createItem, createBrand, linkBrand } from "@/modules/inventory/service";
 import { createPo, poAction } from "@/modules/procurement/po";
-import { createGrn, postGrn } from "@/modules/stores/grn";
 import { billAction, billPrefillFromPo, createBill } from "@/modules/payables/bills";
 import { createPayment } from "@/modules/payables/payments";
 import { createClientPo, clientPoAction } from "@/modules/sales/client-po";
@@ -16,7 +15,7 @@ import { buildPdfModel } from "@/modules/documents/pdf-models";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { CommercialPdf } from "@/components/documents/commercial-pdf";
-import { commercialFixture, day, key } from "./commercial-helpers";
+import { commercialFixture, day, key, receiveWithProof } from "./commercial-helpers";
 
 it("ABC Hotel: partial supplier receipts, bill, deliveries, certified RA, invoice and two-sided settlement reconcile", async () => {
   const fx = await commercialFixture();
@@ -31,27 +30,22 @@ it("ABC Hotel: partial supplier receipts, bill, deliveries, certified RA, invoic
   const stock = async () => (await db.itemBrand.findUniqueOrThrow({ where: { id: ib.id } })).currentQty.toFixed(3);
   const po = await createPo(fx.roles.pu.actor, { projectId: fx.p1.id, partyId: fx.supplier.id, deliveryLocationId: fx.warehouse.id, orderDate: day(), lines: [{ itemBrandId: ib.id, quantity: "10", rate: "1000", gstRate: "18" }] });
   await poAction(fx.roles.pu.actor, po.id, "submit", { version: await version("purchaseOrder", po.id) });
-  await poAction(fx.actors.admin, po.id, "approve", { version: await version("purchaseOrder", po.id) });
   expect(await stock()).toBe("0.000");
   const pl = await db.poLine.findFirstOrThrow({ where: { poId: po.id } });
   for (const qty of ["6", "4"]) {
-    const g = await createGrn(fx.roles.se.actor, { clientKey: key(), poId: po.id, receiptDate: day(), submit: true, lines: [{ poLineId: pl.id, receivedQty: qty }] });
-    await postGrn(fx.roles.sk.actor, g.id, await version("grn", g.id));
+    await receiveWithProof(fx.roles.se.actor, { clientKey: key(), poId: po.id, receiptDate: day(), lines: [{ poLineId: pl.id, receivedQty: qty }] });
   }
   expect(await stock()).toBe("10.000");
   const pref = await billPrefillFromPo(fx.roles.ac.actor, po.id);
   const bill = await createBill(fx.roles.ac.actor, { poId: po.id, supplierInvoiceNo: "TRAINING-ABC-001", invoiceDate: day(), lines: pref.lines });
   await billAction(fx.roles.ac.actor, bill.id, "submit", { version: await version("supplierBill", bill.id) });
-  await billAction(fx.actors.admin, bill.id, "approve", { version: await version("supplierBill", bill.id) });
   expect(bill.total.toFixed(2)).toBe("11800.00");
   expect(await stock()).toBe("10.000"); // bills never double-post a GRN
   const cpo = await createClientPo(fx.roles.pm.actor, { projectId: fx.p1.id, partyId: fx.client.id, clientPoNumber: "ABC-TRAINING-001", poDate: day(), placeOfSupply: "27", lines: [{ itemId: item.id, description: "Pool filters", unit: "Nos", quantity: "10", rate: "1500", gstRate: "18" }] });
   await clientPoAction(fx.roles.pm.actor, cpo.id, "submit", { version: await version("clientPo", cpo.id) });
-  await clientPoAction(fx.actors.admin, cpo.id, "approve", { version: await version("clientPo", cpo.id) });
   const cl = await db.clientPoLine.findFirstOrThrow({ where: { clientPoId: cpo.id } });
   const so = await createSalesOrder(fx.roles.pm.actor, { projectId: fx.p1.id, partyId: fx.client.id, clientPoId: cpo.id, orderDate: day(), lines: [{ clientPoLineId: cl.id, itemBrandId: ib.id, quantity: "10", rate: "1500", gstRate: "18" }] });
   await salesOrderAction(fx.roles.pm.actor, so.id, "submit", { version: await version("salesOrder", so.id) });
-  await salesOrderAction(fx.actors.admin, so.id, "approve", { version: await version("salesOrder", so.id) });
   expect(await stock()).toBe("10.000");
   const sl = await db.soLine.findFirstOrThrow({ where: { soId: so.id } });
   for (const qty of ["4", "6"]) {
@@ -61,7 +55,6 @@ it("ABC Hotel: partial supplier receipts, bill, deliveries, certified RA, invoic
   expect(await stock()).toBe("0.000");
   const ra = await createRaBill(fx.roles.se.actor, { clientPoId: cpo.id, billDate: day(), periodFrom: day(), periodTo: day(), lines: [{ clientPoLineId: cl.id, claimedQty: "10" }] });
   await raBillAction(fx.roles.se.actor, ra.id, "submit_review", { version: await version("raBill", ra.id) });
-  await raBillAction(fx.roles.pm.actor, ra.id, "approve", { version: await version("raBill", ra.id) });
   const rl = await db.raBillLine.findFirstOrThrow({ where: { raBillId: ra.id } });
   await certifyRaBill(fx.roles.ac.actor, ra.id, await version("raBill", ra.id), { clientCertRef: "ABC-CERT-001", clientCertDate: day(), lines: [{ lineId: rl.id, certifiedQty: "10" }] });
   const inv = await createClientInvoice(fx.roles.ac.actor, { source: "RA", raBillId: ra.id, invoiceDate: day() });

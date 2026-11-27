@@ -1,6 +1,6 @@
 # WATCON Enterprise — Complete User Guide
 
-Edition 24 November 2026. Read this guide with your supervisor during training. Menu visibility depends on your permissions. Screenshots marked local contain fictional training data. The audit reports identify tested and untested operations. This guide does not certify production balances.
+Edition 27 November 2026. Read this guide with your supervisor during training. Menu visibility depends on your permissions. Screenshots marked local contain fictional training data. The audit reports identify tested and untested operations. This guide does not certify production balances.
 
 ## Contents
 
@@ -32,7 +32,7 @@ Edition 24 November 2026. Read this guide with your supervisor during training. 
 26. Project Accounts
 27. Reports
 28. Documents
-29. Approvals
+29. Inbox
 30. Administration
 31. Complete Business Workflow
 32. Super Admin
@@ -72,7 +72,7 @@ Use the left menu on a desktop. On a phone, use the navigation button at the top
 
 ### Save safely
 
-Check the project, party, item, brand, quantity and date before saving. A draft often needs submission, approval, posting or issuing before it changes totals. Wait for confirmation before trying again.
+Check the project, party, item, brand, quantity and date before saving. A draft changes totals only once it is finalized, confirmed or issued. Wait for confirmation before trying again.
 
 ### Sign out
 
@@ -128,7 +128,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -136,7 +136,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -216,7 +216,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -224,7 +224,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -312,7 +312,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -320,7 +320,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -390,7 +390,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -398,7 +398,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -484,7 +484,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -492,7 +492,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -562,7 +562,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -570,7 +570,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -636,7 +636,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -644,7 +644,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -750,7 +750,7 @@ Click Create party. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -758,7 +758,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -864,7 +864,7 @@ Click Create party. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -872,7 +872,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -930,7 +930,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -938,7 +938,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -988,7 +988,7 @@ Open Requisitions from the left menu. Address: /purchase-requisitions.
 
 5. Save a draft.
 
-6. Submit for approval from the record page.
+6. Press Finalize on the record page — no separate approval is needed.
 
 ### Important fields
 
@@ -1000,7 +1000,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1008,7 +1008,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1016,7 +1016,7 @@ A requisition does not receive stock or create a supplier bill.
 
 ### What should I do next?
 
-After approval, prepare the Rate Enquiry or Purchase Order.
+Once finalized, prepare the Rate Enquiry or Purchase Order.
 
 ### Common mistakes to avoid
 
@@ -1094,7 +1094,7 @@ Click Save enquiry. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1102,7 +1102,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1130,7 +1130,7 @@ Tell a supplier which materials we want to buy.
 
 ### Who should use it?
 
-Purchase Team and authorized approver. Your granted permissions decide which actions you can use.
+Purchase Team. Your granted permissions decide which actions you can use.
 
 ### When should I use it?
 
@@ -1156,9 +1156,9 @@ Open Purchase Orders from the left menu. Address: /purchase-orders.
 
 7. Click Create draft PO.
 
-8. Review and submit the draft.
+8. Press Save & finalize PO (or Finalize PO on a saved draft) — no approval wait.
 
-9. An authorized approver reviews the order.
+9. Share the PDF with the supplier from the PO page.
 
 ### Important fields
 
@@ -1192,7 +1192,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1200,7 +1200,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1254,9 +1254,9 @@ Open Site Receipts from the left menu. Address: /site-receipts.
 
 5. Check Receipt date and Received by.
 
-6. Use Save draft to continue later, or submit for verification.
+6. Save, then add the material photos and the supplier challan on the next screen.
 
-7. An authorized stock operator posts the verified receipt.
+7. Press Confirm receipt — the accepted quantity is added to stock at once.
 
 ### Important fields
 
@@ -1284,7 +1284,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1292,7 +1292,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1372,7 +1372,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1380,7 +1380,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1434,9 +1434,9 @@ Open Supplier Bills from the left menu. Address: /supplier-bills.
 
 5. Check taxes and matching differences.
 
-6. Save a draft and submit it.
+6. Press Save & finalize.
 
-7. An authorized approver approves the matched bill.
+7. A bill that matches the PO and receipts is ready to pay at once; a bill with differences is held until it is corrected or accepted with a reason.
 
 ### Important fields
 
@@ -1470,7 +1470,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1478,11 +1478,11 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
-Approval creates the payable and updates billed quantities. This version does not receive stock from the bill. Do not add stock a second time after a GRN.
+Finalizing creates the payable and updates billed quantities. This version does not receive stock from the bill. Do not add stock a second time after a GRN.
 
 ### What should I do next?
 
@@ -1560,7 +1560,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1568,7 +1568,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1620,7 +1620,7 @@ Open Client POs from the left menu. Address: /client-pos.
 
 6. Click Save draft.
 
-7. Review and submit for approval.
+7. Review and press Finalize — the contract becomes active at once.
 
 8. Attach the original document in the record evidence panel.
 
@@ -1660,7 +1660,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1668,7 +1668,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1718,9 +1718,9 @@ Open Sales Orders from the left menu. Address: /sales-orders.
 
 5. Add materials or services and agreed prices.
 
-6. Save a draft and submit it for approval.
+6. Press Save & confirm order (or save a draft and confirm it later). Confirming locks the order and starts material planning.
 
-7. Use the amendment process for approved changes.
+7. To change a confirmed order, request an amendment — only the Super Admin approves it.
 
 ### Important fields
 
@@ -1752,7 +1752,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1760,7 +1760,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1854,7 +1854,7 @@ Click Save challan. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1862,7 +1862,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -1914,7 +1914,7 @@ Open Running Bills from the left menu. Address: /running-bills.
 
 4. Enter current measurements and review previous quantities.
 
-5. Save and submit for internal review.
+5. Save, then press Submit to client (no internal review).
 
 6. Record client certification through the authorized action.
 
@@ -1944,7 +1944,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -1952,7 +1952,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2026,7 +2026,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2034,7 +2034,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2106,7 +2106,7 @@ Click Record payment or Record receipt, according to the chosen direction. Corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2114,7 +2114,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2166,7 +2166,7 @@ Open Credit / Debit Notes from the left menu. Address: /notes.
 
 4. Enter the reference, date, reason and value.
 
-5. Save and request approval.
+5. Save. The Super Admin applies the note (it changes a final bill or invoice).
 
 ### Important fields
 
@@ -2184,7 +2184,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2192,7 +2192,7 @@ Open the saved document. Use Preview to check it, Download to save the PDF, or P
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2250,7 +2250,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2258,7 +2258,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2320,7 +2320,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2328,7 +2328,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2386,7 +2386,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2394,7 +2394,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2408,7 +2408,7 @@ Have another authorized person verify important evidence.
 
 Do not use another project, brand or party just to make a form save. Do not enter the same physical movement twice. Ask your supervisor before cancelling or reversing a posted record.
 
-## Approvals
+## Inbox
 
 See records waiting for decisions you may make.
 
@@ -2422,7 +2422,7 @@ See records waiting for decisions you may make.
 
 ### Who should use it?
 
-Authorized approvers. Your granted permissions decide which actions you can use.
+Everyone with document rights. The Inbox shows items left waiting (old approvals, held supplier bills) and, for the Super Admin, sales-order amendment requests.
 
 ### When should I use it?
 
@@ -2430,17 +2430,17 @@ Use this module when its step in the job is ready. Check the source document and
 
 ### How do I open it?
 
-Open Approvals from the left menu. Address: /approvals.
+Open Inbox from the left menu. Address: /approvals.
 
 ### How do I add or operate a record?
 
-1. Open Approvals.
+1. Open Inbox.
 
 2. Open a pending record.
 
 3. Check quantities, values and evidence.
 
-4. Use the record approval or rejection action with a clear reason.
+4. Finalize it, or return it for changes with a clear reason.
 
 ### Important fields
 
@@ -2452,7 +2452,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2460,11 +2460,11 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
-Approval has module-specific effects. You may need another approver when separation of duties is enabled.
+Daily documents are finalized in one step by the person who prepares them — nobody else has to approve them. Once final, only the Super Admin can amend, cancel or reverse a document that affects stock or money; everyone else uses Request change, which notifies the Super Admin.
 
 ### What should I do next?
 
@@ -2520,7 +2520,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Approved or posted records may require an amendment, cancellation or reversal instead of an edit.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
 
 ### How do I print or download?
 
@@ -2528,7 +2528,7 @@ Use a PDF, Print or export action only where the page displays one. Documents ha
 
 ### What happens after saving?
 
-Read the saved status. Draft records still need the next action described above. Saving is not the same as approval or posting.
+Read the saved status. Draft records still need the next action described above. A draft changes nothing until you finalize, confirm or issue it.
 
 ### Does it affect stock or accounts?
 
@@ -2582,7 +2582,7 @@ Expected material margin is ₹5,000 before labour and overheads, excluding GST.
 
 ### Practical training in 19 steps
 
-Use an isolated training application. The trainer needs the required permissions. Have another authorized employee approve records when separation of duties applies. Never share a login.
+Use an isolated training application. The trainer needs the required permissions. Records are finalized by the person who prepares them; changes to final records need the Super Admin. Never share a login.
 
 1. Open Clients. Click Add client. Create a fictional client, or select the existing Acme Developers training record. Use the agreed test state for GST.
 
@@ -2598,21 +2598,21 @@ Use an isolated training application. The trainer needs the required permissions
 
 7. Open Rate Enquiries. Click New enquiry. Ask for 10 Training pool filters. Click Save enquiry. Record the supplier offer of ₹1,000 each with 18% GST and compare the offers.
 
-8. Review the awarded Purchase Order. If the enquiry has created one, open that order instead of entering it twice. Otherwise use New purchase order. Set quantity 10, rate ₹1,000 and GST 18%. Review, submit and obtain approval. Stock is still zero.
+8. Review the awarded Purchase Order. If the enquiry has created one, open that order instead of entering it twice. Otherwise use New purchase order. Set quantity 10, rate ₹1,000 and GST 18%. Review and press Save & finalize PO. Stock is still zero.
 
-9. Open Site Receipts. Find the PO under Waiting to be received. Record 6 received with no damage or rejection. Submit receipt, then use Verify & add to stock with the authorized operator. Repeat for the remaining 4. Stock is now 10 at the PO receiving location.
+9. Open Site Receipts. Find the PO under Waiting to be received. Record 6 received with no damage or rejection. Upload the material photo and the supplier challan, then press Confirm receipt — stock is updated at once. Repeat for the remaining 4. Stock is now 10 at the PO receiving location.
 
-10. Open Supplier Bills. Click Enter supplier bill and select the PO. Copy the supplier invoice reference and date. Check 10 × ₹1,000 plus GST = ₹11,800. Save draft, submit and use Approve for payment. Stock remains 10.
+10. Open Supplier Bills. Click Enter supplier bill and select the PO. Copy the supplier invoice reference and date. Check 10 × ₹1,000 plus GST = ₹11,800. Press Save & finalize — a bill that matches the PO and receipts is ready to pay at once. Stock remains 10.
 
 11. Open Inventory. Check Company stock, By location and Stock ledger. Confirm the exact item, brand and receiving location. Do not enter another inward movement for the bill.
 
 12. Open Client POs. Click New client PO. Record the client reference and the same project. Add 10 filters at ₹1,500 and 18% GST. Use zero retention and no advance recovery for this simple exercise. Save draft and obtain approval.
 
-13. Open the Client PO and use Create sales order, or create New sales order with the contract linked. Check 10 filters at ₹1,500. Save draft, submit and obtain approval. Stock is still 10.
+13. Open the Client PO and use Create sales order, or create New sales order with the contract linked. Check 10 filters at ₹1,500. Press Save & confirm order. Stock is still 10.
 
 14. Open Challans. Use New challan and Deliver to client, with the approved Sales Order and the location that holds the filters. Save challan and Dispatch 4 filters. Repeat for the remaining 6. Keep delivery proof. Stock becomes 6, then zero.
 
-15. Open Running Bills. Use New running bill for the active Client PO. Enter the actual current measurement, review earlier quantities and Save draft. Submit for review, obtain internal approval and record client certification. Use Create invoice on the certified bill, then Create draft invoice and Issue invoice. A fully certified total of 10 gives ₹17,700 including GST.
+15. Open Running Bills. Use New running bill for the active Client PO. Enter the actual current measurement, review earlier quantities and Save draft. Press Submit to client. When the client accepts it, press Client accepted — invoice now (certifies, creates and issues the invoice in one step). A fully certified total of 10 gives ₹17,700 including GST.
 
 16. Open the client invoice and use Record receipt. Enter ₹7,080, allocate it to the invoice and save. Later record ₹10,620 against the remaining due. Client due becomes zero. An unallocated receipt is an advance and does not settle the invoice.
 
@@ -2990,9 +2990,9 @@ Check the exact item, brand and source location. Review reservations and receipt
 
 Refresh the record and review its latest version before trying again.
 
-### Approval refused
+### Action refused
 
-Read the reason. Another approver may be required or the amount may exceed your limit.
+Read the reason. Your role may not have the permission, or the document is final — ask the Super Admin with Request change.
 
 ### Upload problem
 

@@ -59,7 +59,7 @@ export default async function QuotationsPage({ searchParams }: PageProps<"/quota
       <SummaryCards
         items={[
           { label: "Drafts", value: c.DRAFT ?? 0, href: tabHref("DRAFT") },
-          { label: "Awaiting approval", value: c.PENDING_APPROVAL ?? 0, tone: c.PENDING_APPROVAL ? "warn" : "default", href: tabHref("PENDING_APPROVAL") },
+          { label: "Waiting to finalize", value: c.PENDING_APPROVAL ?? 0, tone: c.PENDING_APPROVAL ? "warn" : "default", href: tabHref("PENDING_APPROVAL") },
           { label: "With client", value: (c.APPROVED ?? 0) + (c.SENT ?? 0), href: tabHref("SENT") },
           { label: "Accepted — to convert", value: c.ACCEPTED ?? 0, tone: c.ACCEPTED ? "good" : "default", href: tabHref("ACCEPTED") },
           { label: "Converted", value: c.CONVERTED ?? 0, href: tabHref("CONVERTED") },
@@ -77,7 +77,7 @@ export default async function QuotationsPage({ searchParams }: PageProps<"/quota
         <SearchInput placeholder="Search number, subject or client…" />
       </FilterBar>
       {result.rows.length === 0 ? (
-        <EmptyState icon={FileText} title="No quotations here" description="Create a quotation for a project and client, then send it for approval." />
+        <EmptyState icon={FileText} title="No quotations here" description="Create a quotation for a project and client, finalize it and share it with the client." />
       ) : (
         <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full min-w-[760px] text-sm">

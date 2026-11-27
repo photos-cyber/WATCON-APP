@@ -26,14 +26,14 @@ export function QuotationActions({ id, version, can, link, number, clientName, c
   const [email, setEmail] = useState(false);
 
   const defs: DocActionDef[] = [];
-  if (can.submit) defs.push({ key: "submit", label: "Submit for approval", icon: Send, variant: "default", confirm: { title: "Submit this quotation for approval?", description: "An approver checks rates, totals and payment terms before it goes to the client." }, success: "Submitted for approval." });
+  if (can.submit) defs.push({ key: "submit", label: "Finalize", icon: ThumbsUp, variant: "default", confirm: { title: "Finalize this quotation?", description: "Check rates, totals and payment terms. It is then ready to share with the client." }, success: "Quotation finalized — share it with the client." });
   if (can.approve) {
-    defs.push({ key: "approve", label: "Approve", icon: ThumbsUp, variant: "default", confirm: { title: "Approve this quotation?", description: "It can then be shared with the client." }, success: "Quotation approved." });
+    defs.push({ key: "approve", label: "Finalize", icon: ThumbsUp, variant: "default", confirm: { title: "Finalize this quotation?", description: "It can then be shared with the client." }, success: "Quotation finalized." });
     defs.push({ key: "reject_approval", label: "Return for correction", icon: ThumbsDown, confirm: { title: "Return the quotation?", description: "It goes back to draft with your note.", noteLabel: "What needs correcting", noteRequired: true }, success: "Returned to draft." });
   }
   if (can.markSent) defs.push({ key: "mark_sent", label: "Mark as sent", icon: Send, confirm: { title: "Mark as sent to the client?", description: "Records that you shared it (the app does not send messages by itself).", noteLabel: "Sent via (e.g. WhatsApp)", input: true }, success: "Marked as sent." });
   if (can.recordRejection) defs.push({ key: "client_rejected", label: "Client declined", icon: XCircle, confirm: { title: "Record that the client declined?", description: "Keep the reason for follow-up. You can revise and resend later.", noteLabel: "Client's reason", noteRequired: true }, success: "Recorded." });
-  if (can.revise) defs.push({ key: "revise", label: "Revise", icon: RotateCcw, confirm: { title: "Open a new revision?", description: "The current version is kept in the version history; the quotation returns to draft and needs approval again.", noteLabel: "Reason for revision", noteRequired: true }, success: "Revision opened — edit and resubmit." });
+  if (can.revise) defs.push({ key: "revise", label: "Revise", icon: RotateCcw, confirm: { title: "Open a new revision?", description: "The current version is kept in the version history; the quotation returns to draft — edit it and finalize again.", noteLabel: "Reason for revision", noteRequired: true }, success: "Revision opened — edit and finalize." });
   if (can.cancel) defs.push({ key: "cancel", label: "Cancel", icon: Ban, variant: "ghost", confirm: { title: "Cancel this quotation?", description: "It can no longer be accepted.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Quotation cancelled." });
 
   const message = link ? `Dear ${clientName},\n\nPlease find our quotation ${number} for ${totalLabel}${validUntil ? `, valid until ${validUntil}` : ""}.\n\nView, download and accept it here:\n${link}\n\nThank you.` : "";
@@ -48,7 +48,7 @@ export function QuotationActions({ id, version, can, link, number, clientName, c
       router.push(`/quotations/${(res.data as { id: string }).id}`);
     } else {
       const d = res.data as { soId: string; created: boolean };
-      toast.success(d.created ? "Sales order created from the accepted quotation — review and submit it for approval." : "This quotation was already converted — opening its sales order.");
+      toast.success(d.created ? "Sales order created from the accepted quotation — review it and confirm the order." : "This quotation was already converted — opening its sales order.");
       router.push(`/sales-orders/${d.soId}`);
     }
   }

@@ -43,9 +43,15 @@ export async function cpoLineBilled(tx: Tx, clientPoId: string, opts: { excludeR
     where: { clientPoLine: { clientPoId }, invoice: { status: { not: "CANCELLED" }, raBillId: null, ...(opts.excludeInvoiceId ? { id: { not: opts.excludeInvoiceId } } : {}) } },
     select: { clientPoLineId: true, quantity: true },
   });
+  // Sales-order running bills of orders linked to this client PO consume the same contract quantity.
+  const soRa = await tx.raBillLine.findMany({
+    where: { soLine: { clientPoLine: { clientPoId } }, raBill: { soId: { not: null }, status: { not: "CANCELLED" }, ...(opts.excludeRaBillId ? { id: { not: opts.excludeRaBillId } } : {}) } },
+    select: { claimedQty: true, certifiedQty: true, raBill: { select: { status: true } }, soLine: { select: { clientPoLineId: true } } },
+  });
   const map = new Map<string, string>();
   const bump = (k: string, q: string) => map.set(k, addQty(map.get(k) ?? "0", q));
-  for (const l of ra) bump(l.clientPoLineId, (RA_CERTIFIED as readonly string[]).includes(l.raBill.status) ? dec3(l.certifiedQty) : dec3(l.claimedQty));
+  for (const l of ra) if (l.clientPoLineId) bump(l.clientPoLineId, (RA_CERTIFIED as readonly string[]).includes(l.raBill.status) ? dec3(l.certifiedQty) : dec3(l.claimedQty));
+  for (const l of soRa) if (l.soLine?.clientPoLineId) bump(l.soLine.clientPoLineId, (RA_CERTIFIED as readonly string[]).includes(l.raBill.status) ? dec3(l.certifiedQty) : dec3(l.claimedQty));
   for (const l of inv) if (l.clientPoLineId) bump(l.clientPoLineId, dec3(l.quantity));
   return map;
 }

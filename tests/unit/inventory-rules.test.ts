@@ -62,13 +62,16 @@ describe("inventory validation", () => {
     expect(itemInputSchema.safeParse({ name: "P", unit: "" }).success).toBe(false);
   });
 
-  it("validates movements (positive quantity, mandatory adjustment reason)", () => {
-    const base = { itemBrandId: crypto.randomUUID(), type: "INWARD", quantity: "5", txnDate: "2026-11-18", idempotencyKey: crypto.randomUUID() };
+  it("validates movements (positive quantity, mandatory reason for every manual change)", () => {
+    const base = { itemBrandId: crypto.randomUUID(), type: "INWARD", quantity: "5", txnDate: "2026-11-18", reason: "Count correction", idempotencyKey: crypto.randomUUID() };
     expect(movementSchema.safeParse(base).success).toBe(true);
+    // Workflow v2: inward / outward without a reason are refused too.
+    expect(movementSchema.safeParse({ ...base, reason: "" }).success).toBe(false);
     expect(movementSchema.safeParse({ ...base, quantity: "0" }).success).toBe(false);
     expect(movementSchema.safeParse({ ...base, quantity: "-1" }).success).toBe(false);
     expect(movementSchema.safeParse({ ...base, quantity: "1.2345" }).success).toBe(false);
-    expect(movementSchema.safeParse({ ...base, type: "ADJUSTMENT", direction: "IN" }).success).toBe(false);
+    expect(movementSchema.safeParse({ ...base, type: "ADJUSTMENT", direction: "IN", reason: "" }).success).toBe(false);
+    expect(movementSchema.safeParse({ ...base, type: "ADJUSTMENT" }).success).toBe(false);
     expect(movementSchema.safeParse({ ...base, type: "ADJUSTMENT", direction: "IN", reason: "Physical count" }).success).toBe(true);
   });
 

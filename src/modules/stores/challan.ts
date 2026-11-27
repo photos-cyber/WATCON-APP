@@ -119,6 +119,15 @@ async function validate(tx: Tx, actor: Actor, d: z.output<typeof challanSchema>)
     });
     partyId = so.partyId;
     projectId = so.projectId;
+  } else if (d.lines.some((l) => l.soLineId)) {
+    // Site issue traced to sales-order lines: each must be the same material on an order of this project.
+    const ids = d.lines.map((l) => l.soLineId).filter((x): x is string => !!x);
+    const sl = await tx.soLine.findMany({ where: { id: { in: ids }, so: { organizationId: actor.organizationId } }, select: { id: true, itemBrandId: true, so: { select: { projectId: true } } } });
+    d.lines.forEach((l, i) => {
+      if (!l.soLineId) return;
+      const x = sl.find((s) => s.id === l.soLineId);
+      if (!x || x.itemBrandId !== l.itemBrandId || !d.projectId || x.so.projectId !== d.projectId) throw new ValidationError("Line does not match a sales order of this project.", { [`lines.${i}.soLineId`]: "Mismatch." });
+    });
   }
   if (d.poId) {
     const po = await tx.purchaseOrder.findFirst({ where: { id: d.poId, organizationId: actor.organizationId }, include: { lines: true } });
@@ -135,7 +144,12 @@ export async function createChallan(actor: Actor, input: unknown) {
   requirePermission(actor, "stock.transfer");
   const d = parseInput(challanSchema, input);
   if (d.projectId) await assertProjectUsable(actor, d.projectId);
-  return db.$transaction(async (tx) => {
+  return db.$transaction((tx) => createChallanTx(tx, actor, d));
+}
+
+/** Creates a draft challan inside the caller's transaction (no stock moves until dispatch). */
+export async function createChallanTx(tx: Tx, actor: Actor, d: z.output<typeof challanSchema>, extra: { clientKey?: string | null } = {}) {
+  {
     const v = await validate(tx, actor, d);
     if (v.projectId && v.projectId !== d.projectId) await assertProjectUsable(actor, v.projectId, tx);
     const number = await nextDocNumber(tx, actor.organizationId, "DC", toDbDate(d.dispatchDate)!);
@@ -160,13 +174,14 @@ export async function createChallan(actor: Actor, input: unknown) {
         senderName: d.senderName,
         receiverName: d.receiverName,
         remarks: d.remarks,
+        clientKey: extra.clientKey ?? null,
         createdById: actor.id,
         lines: { create: d.lines.map((l, i) => ({ lineNo: i + 1, itemBrandId: l.itemBrandId, itemId: v.itemIds.get(l.itemBrandId)!, quantity: l.quantity, poLineId: l.poLineId, soLineId: l.soLineId, remarks: l.remarks })) },
       },
     });
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "challan.created", entityType: "challan", entityId: c.id, projectId: c.projectId, summary: `Created ${CHALLAN_TYPE_LABELS[d.type].toLowerCase()} challan ${number} (${d.lines.length} lines)` }, tx);
     return c;
-  });
+  }
 }
 
 async function loadChallan(actor: Actor, id: string, client: Tx | typeof db = db) {
@@ -177,8 +192,13 @@ async function loadChallan(actor: Actor, id: string, client: Tx | typeof db = db
 
 /** Dispatch: posts the outbound leg once (idempotent keys), under a guarded status change. */
 async function dispatch(actor: Actor, c: Awaited<ReturnType<typeof loadChallan>>, version: number) {
+  await db.$transaction((tx) => dispatchChallanTx(tx, actor, c, version));
+}
+
+/** Dispatch inside the caller's transaction: source stock → in transit (internal) or out (external). */
+export async function dispatchChallanTx(tx: Tx, actor: Actor, c: Prisma.ChallanGetPayload<{ include: { lines: true } }>, version: number) {
   const today = startOfToday();
-  await db.$transaction(async (tx) => {
+  {
     await transition(tx.challan, { id: c.id, organizationId: actor.organizationId, version }, ["DRAFT"], { status: "DISPATCHED", dispatchedById: actor.id, dispatchedAt: new Date(), dispatchDate: c.dispatchDate ?? today }, "challan");
     const sys = await ensureSystemLocations(tx, actor.organizationId);
     const internal = INTERNAL.includes(c.type);
@@ -204,7 +224,7 @@ async function dispatch(actor: Actor, c: Awaited<ReturnType<typeof loadChallan>>
     }
     if (c.soId) await refreshSoFulfilment(tx, c.soId);
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "challan.dispatched", entityType: "challan", entityId: c.id, projectId: c.projectId, summary: `Dispatched challan ${c.number}${internal ? " (stock now in transit)" : ""}` }, tx);
-  });
+  }
 }
 
 export async function refreshSoFulfilment(tx: Tx, soId: string) {
@@ -230,6 +250,11 @@ export async function refreshChallanStatus(tx: Tx, challanId: string) {
   if (status !== c.status) await tx.challan.update({ where: { id: challanId }, data: { status, version: { increment: 1 } } });
 }
 
+/** Signed challan / proof of delivery uploaded on the challan (any non-deleted file in those categories). */
+export async function hasDeliveryProof(client: Tx | typeof db, challanId: string) {
+  return (await client.attachment.count({ where: { entityType: "challan", entityId: challanId, deletedAt: null, category: { in: ["SIGNED_CHALLAN", "DELIVERY_CHALLAN"] } } })) > 0;
+}
+
 export async function challanAction(actor: Actor, id: string, action: "dispatch" | "deliver" | "cancel" | "close_discrepancy", opts: { version: number; note?: string | null; resolution?: "RETURN" | "WRITE_OFF"; deliveredDate?: string | null; receiverName?: string | null }) {
   requirePermission(actor, "stock.transfer");
   const c = await loadChallan(actor, id);
@@ -245,6 +270,8 @@ export async function challanAction(actor: Actor, id: string, action: "dispatch"
   }
   if (action === "deliver") {
     if (INTERNAL.includes(c.type)) throw new ValidationError("Internal transfers are received with a site receipt (GRN) at the destination.");
+    // Simplified workflow: a client delivery is confirmed only with proof (signed challan / POD).
+    if (c.type === "CLIENT_DELIVERY" && !(await hasDeliveryProof(db, id))) throw new ValidationError("Upload the signed challan or proof of delivery first, then confirm the delivery.", { proof: "Signed challan / POD required." });
     return db.$transaction(async (tx) => {
       await transition(tx.challan, w, ["DISPATCHED"], { status: "DELIVERED", deliveredDate: toDbDate(opts.deliveredDate ?? null) ?? startOfToday(), receiverName: opts.receiverName ?? c.receiverName, statusNote: opts.note ?? null }, "challan");
       await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "challan.delivered", entityType: "challan", entityId: id, projectId: c.projectId, summary: `Confirmed delivery of challan ${c.number}${opts.receiverName ? ` (received by ${opts.receiverName})` : ""}` }, tx);
@@ -296,13 +323,17 @@ export async function getChallan(actor: Actor, id: string) {
   const internal = INTERNAL.includes(c.type);
   const transit = c.lines.some((l) => cmpQty(subQty(dec3(l.quantity), addQty(dec3(l.receivedQty), dec3(l.writtenOffQty))), "0") > 0);
   const manage = can(actor, "stock.transfer");
+  const needsPod = c.type === "CLIENT_DELIVERY" && c.status === "DISPATCHED";
+  const podMissing = needsPod && !(await hasDeliveryProof(db, c.id));
   return {
     challan: { ...c, lines: c.lines.map((l) => ({ ...l, quantity: dec3(l.quantity), receivedQty: dec3(l.receivedQty), damagedQty: dec3(l.damagedQty), writtenOffQty: dec3(l.writtenOffQty), inTransit: subQty(dec3(l.quantity), addQty(dec3(l.receivedQty), dec3(l.writtenOffQty))) })) },
     internal,
+    /** Client delivery waiting for its signed challan / POD before it can be confirmed. */
+    podMissing,
     can: {
       dispatch: manage && c.status === "DRAFT",
       cancel: manage && c.status === "DRAFT",
-      deliver: manage && !internal && c.status === "DISPATCHED",
+      deliver: manage && !internal && c.status === "DISPATCHED" && !podMissing,
       receive: can(actor, "grn.create") && internal && ["DISPATCHED", "PARTIALLY_RECEIVED"].includes(c.status),
       closeDiscrepancy: manage && internal && ["DISPATCHED", "PARTIALLY_RECEIVED"].includes(c.status) && transit,
       writeOff: can(actor, "stock.adjust"),

@@ -47,9 +47,9 @@ export default async function ClientPoPage({ params }: PageProps<"/client-pos/[c
           </>
         }
       />
-      {(cpo.status === "DRAFT" || cpo.status === "REJECTED") && <NextStep tone={cpo.status === "REJECTED" ? "warn" : "action"} title={cpo.status === "REJECTED" ? "Rejected — correct and resubmit" : "Draft — submit for approval"}>{cpo.status === "REJECTED" ? (cpo.statusNote ?? "Edit the contract and submit it again.") : "Check the lines against the client's document, then submit for approval."}</NextStep>}
-      {cpo.status === "PENDING_APPROVAL" && (can.approve ? <NextStep title="Waiting for your approval">Approving makes this the active contract.</NextStep> : <NextStep tone="info" title="Waiting for approval">{can.approveBlockedReason ?? "An approver will review this contract."}</NextStep>)}
-      {cpo.status === "ACTIVE" && <NextStep tone="info" title="Active contract" links={[...(can.salesOrder ? [{ href: `/sales-orders/new?clientPoId=${cpo.id}`, label: "Create sales order" }] : []), ...(can.raBill ? [{ href: `/running-bills/new?clientPoId=${cpo.id}`, label: "New running bill" }] : [])]}>Raise sales orders for supply, or running bills for work done, within the contract quantities.</NextStep>}
+      {(cpo.status === "DRAFT" || cpo.status === "REJECTED") && <NextStep tone={cpo.status === "REJECTED" ? "warn" : "action"} title={cpo.status === "REJECTED" ? "Returned — correct and finalize" : "Draft — check and finalize"}>{cpo.status === "REJECTED" ? (cpo.statusNote ?? "Edit the contract and finalize it again.") : "Check the lines against the client's document, then press Finalize."}</NextStep>}
+      {cpo.status === "PENDING_APPROVAL" && <NextStep title="Finalize this contract">{can.approve ? "It was waiting under the old approval step — press Finalize to make it the active contract." : "A sales user can finalize it."}</NextStep>}
+      {cpo.status === "ACTIVE" && <NextStep tone="info" title="Active contract" links={[...(can.salesOrder ? [{ href: `/sales-orders/new?clientPoId=${cpo.id}`, label: "Create sales order" }] : []), ...(can.raBill ? [{ href: `/running-bills/new?projectId=${cpo.projectId}`, label: "New running bill" }] : [])]}>Optional reference. Bill through its sales orders (running bills are generated from the sales order); the client PO quantities stay as a ceiling.</NextStep>}
       {cpo.statusNote && cpo.status !== "REJECTED" && <p className="mb-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm">{cpo.statusNote}</p>}
       <SummaryCards
         items={[

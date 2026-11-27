@@ -154,6 +154,20 @@ export async function getSoBilling(actor: Actor, soId: string) {
   };
 }
 
+/**
+ * Validates a full schedule against the order total and replaces the order's milestones (caller holds
+ * the order lock and has checked nothing is billed). An empty list removes the schedule (the order is
+ * then invoiced by delivered quantity).
+ */
+export async function writeSoMilestonesTx(tx: Prisma.TransactionClient, organizationId: string, soId: string, total: string, milestones: MilestoneInput[]) {
+  const errors = milestones.length ? validateSchedule(total, milestones) : [];
+  if (errors.length) throw new ValidationError(errors[0]!, { milestones: errors.join(" ") });
+  const rows = computeMilestones(total, milestones).rows;
+  await tx.paymentMilestone.deleteMany({ where: { soId } });
+  if (rows.length) await tx.paymentMilestone.createMany({ data: rows.map((m, i) => ({ organizationId, soId, sortOrder: i, label: m.label, basis: m.basis, percent: m.percent, amount: m.amount, trigger: m.trigger, dueDate: toDbDate(m.dueDate ?? null), days: m.days ?? null, note: m.note ?? null })) });
+  return rows;
+}
+
 /** Replaces the order's payment schedule (only before anything is billed against it). */
 export async function setSoMilestones(actor: Actor, soId: string, input: unknown) {
   requirePermission(actor, "so.manage");
@@ -164,12 +178,7 @@ export async function setSoMilestones(actor: Actor, soId: string, input: unknown
     await tx.$queryRaw`SELECT id FROM sales_orders WHERE id = ${soId}::uuid FOR UPDATE`;
     if (await tx.clientInvoice.count({ where: { soId, milestoneId: { not: null }, status: { not: "CANCELLED" } } })) throw new ValidationError("Invoices are already raised against this schedule. Cancel them before changing it.");
     if (data.milestones.length && (await tx.clientInvoice.count({ where: { soId, milestoneId: null, status: { not: "CANCELLED" } } }))) throw new ValidationError("This order is already invoiced by delivered quantity, so it cannot switch to a payment schedule.");
-    const total = dec2(so.total);
-    const errors = data.milestones.length ? validateSchedule(total, data.milestones as MilestoneInput[]) : [];
-    if (errors.length) throw new ValidationError(errors[0]!, { milestones: errors.join(" ") });
-    const rows = computeMilestones(total, data.milestones as MilestoneInput[]).rows;
-    await tx.paymentMilestone.deleteMany({ where: { soId } });
-    if (rows.length) await tx.paymentMilestone.createMany({ data: rows.map((m, i) => ({ organizationId: actor.organizationId, soId, sortOrder: i, label: m.label, basis: m.basis, percent: m.percent, amount: m.amount, trigger: m.trigger, dueDate: toDbDate(m.dueDate ?? null), days: m.days ?? null, note: m.note ?? null })) });
+    const rows = await writeSoMilestonesTx(tx, actor.organizationId, soId, dec2(so.total), data.milestones as MilestoneInput[]);
     await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "so.schedule_updated", entityType: "sales_order", entityId: soId, projectId: so.projectId, summary: `Set payment schedule on ${so.number}: ${rows.map((r) => `${r.label} ${r.basis === "PERCENT" ? `${r.percent}%` : ""} ${formatINR(r.amount)}`).join("; ") || "removed"}` }, tx);
   });
 }
@@ -221,6 +230,9 @@ export async function createMilestoneInvoice(actor: Actor, input: unknown) {
     const ms = s.milestones.find((x) => x.id === data.milestoneId)!;
     if (cmpMoney(data.amount, ms.billable) > 0) throw new ValidationError(cmpMoney(ms.billable, "0") > 0 ? `Only ${formatINR(ms.billable)} of “${ms.label}” can be billed now (${ms.eligibleReason}; ${formatINR(ms.billed)} already billed).` : `Nothing on “${ms.label}” can be billed now — ${ms.eligibleReason.toLowerCase()}${cmpMoney(ms.billed, "0") > 0 ? `; ${formatINR(ms.billed)} already billed` : ""}.`, { amount: `Max ${ms.billable}` });
     const kind = ms.documentKind as "PROFORMA" | "TAX_INVOICE";
+    // One billing basis: once cumulative running bills exist, material / service value is billed there
+    // (advance proformas are still fine — running bills recover them).
+    if (kind === "TAX_INVOICE" && (await tx.raBill.count({ where: { soId: so.id, status: { not: "CANCELLED" } } }))) throw new ValidationError(`${so.number} is billed by cumulative running bills. Raise the next running bill instead of a milestone tax invoice.`);
     const adjust = kind === "PROFORMA" ? "0" : data.adjustAdvance;
     if (cmpMoney(adjust, s.advanceAvailable) > 0) throw new ValidationError(`Only ${formatINR(s.advanceAvailable)} of advance received is available to adjust.`, { adjustAdvance: `Max ${s.advanceAvailable}` });
     const gross = addMoney(data.amount, adjust);

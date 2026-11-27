@@ -14,16 +14,16 @@ export default async function EditRunningBillPage({ params }: PageProps<"/runnin
   const user = await requirePagePermission("rabill.manage");
   const { raId } = await params;
   const { bill, can } = await orNotFound(getRaBill(user, raId));
-  if (!can.edit) redirect(`/running-bills/${bill.id}`);
+  if (!can.edit || !bill.clientPoId) redirect(`/running-bills/${bill.id}`);
   const pre = await orNotFound(raPrefill(user, bill.clientPoId));
-  const own = new Map(bill.lines.map((l) => [l.clientPoLineId, l]));
+  const own = new Map(bill.lines.map((l) => [l.clientPoLineId ?? "", l]));
   // This bill's own claim is not "already billed" while editing it.
   const lines = pre.lines.map((l) => ({ ...l, leftQty: addQty(l.leftQty, own.get(l.clientPoLineId)?.claimedQty ?? "0") }));
   return (
     <>
       <PageHeader title={`Edit ${bill.number} (RA-${bill.raNumber})`} breadcrumbs={[...projectCrumbs(bill.project, "running-bills"), { label: bill.number, href: `/running-bills/${bill.id}` }, { label: "Edit" }]} />
       <RaForm
-        clientPoId={bill.clientPoId}
+        clientPoId={bill.clientPoId!}
         raId={bill.id}
         version={bill.version}
         lines={lines}

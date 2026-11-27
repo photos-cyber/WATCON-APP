@@ -44,9 +44,18 @@ export async function unlinkBrandAction(itemBrandId: string) {
   }, INVENTORY);
 }
 
-export async function postStockMovementAction(input: unknown) {
+/** Manual stock change: `input` (JSON) + mandatory `evidence` file in one FormData. */
+export async function postStockMovementAction(form: FormData) {
   return runAction(async (actor) => {
-    const { txn, duplicate } = await postStockMovement(actor, input);
+    let input: unknown = {};
+    try {
+      input = JSON.parse(String(form.get("input") ?? "{}"));
+    } catch {
+      input = {};
+    }
+    const file = form.get("evidence");
+    const evidence = file instanceof File && file.size > 0 ? { fileName: file.name, bytes: new Uint8Array(await file.arrayBuffer()) } : null;
+    const { txn, duplicate } = await postStockMovement(actor, input, evidence);
     return { id: txn.id, code: txn.code, balanceAfter: txn.balanceAfter, duplicate };
   }, INVENTORY);
 }

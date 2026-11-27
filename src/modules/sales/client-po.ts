@@ -8,7 +8,7 @@ import { GST_STATES } from "@/lib/gst";
 import { addMoney, addQty, cmpMoney, cmpQty, maxQty, pctOf, subMoney, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { approvalHint, assertCanApprove, assertProjectUsable, dec2, dec3, dec4, decOpt2, getCommercialSettings, parseInput, projectRequiredScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, dec4, decOpt2, getCommercialSettings, isSuperAdmin, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
 import { gstRateField, optMoney, optPct, priceDocument, projectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { RA_CERTIFIED, cpoLineBilled, loadClient, optDate, optId } from "./shared";
@@ -210,20 +210,17 @@ export async function clientPoAction(actor: Actor, id: string, action: CpoAction
     if (!cond) throw new ValidationError(msg, { note: msg });
   };
   switch (action) {
+    // Simplified workflow: "Finalize" (submit) activates the client PO in one step.
     case "submit":
-      requirePermission(actor, "cpo.manage");
-      return db.$transaction(async (tx) => {
-        await transition(tx.clientPo, w, EDITABLE, { status: "PENDING_APPROVAL", submittedById: actor.id, submittedAt: new Date() }, "client PO");
-        await log(tx, "Submitted", ` for approval (₹${dec2(cpo.total)})`);
-      });
     case "approve":
     case "reject":
-      await assertCanApprove(actor, { permission: "cpo.approve", docType: "CPO", amount: dec2(cpo.total), createdById: cpo.createdById, submittedById: cpo.submittedById, what: "client PO" });
-      if (action === "reject") need(opts.note, "Give a reason for rejecting.");
+      requireAnyPermission(actor, ["cpo.manage", "cpo.approve"]);
+      if (action === "reject") need(opts.note, "Give a reason for returning it.");
       return db.$transaction(async (tx) => {
-        if (action === "approve") {
-          await transition(tx.clientPo, w, ["PENDING_APPROVAL"], { status: "ACTIVE", approvedById: actor.id, approvedAt: new Date(), statusNote: null, ...(cpo.originalTotal === null ? { originalTotal: cpo.total, originalTaxable: cpo.taxable } : {}) }, "client PO");
-          await log(tx, "Approved", ` (₹${dec2(cpo.total)})`);
+        if (action !== "reject") {
+          const now = new Date();
+          await transition(tx.clientPo, w, action === "submit" ? EDITABLE : ["PENDING_APPROVAL"], { status: "ACTIVE", ...(action === "submit" ? { submittedById: actor.id, submittedAt: now } : {}), approvedById: actor.id, approvedAt: now, statusNote: null, ...(cpo.originalTotal === null ? { originalTotal: cpo.total, originalTaxable: cpo.taxable } : {}) }, "client PO");
+          await log(tx, "Finalized", ` (₹${dec2(cpo.total)})`);
         } else {
           await transition(tx.clientPo, w, ["PENDING_APPROVAL"], { status: "REJECTED", statusNote: opts.note }, "client PO");
           await log(tx, "Rejected");
@@ -231,7 +228,7 @@ export async function clientPoAction(actor: Actor, id: string, action: CpoAction
       });
     case "amend":
     case "variation":
-      requirePermission(actor, "cpo.manage");
+      requireSuperAdmin(actor, "amend an active client PO");
       need(opts.note, action === "variation" ? "Describe the variation (scope / quantity change)." : "Give the reason for the amendment.");
       return db.$transaction(async (tx) => {
         const full = await tx.clientPo.findUniqueOrThrow({ where: { id }, include: { lines: true, milestones: true } });
@@ -240,7 +237,7 @@ export async function clientPoAction(actor: Actor, id: string, action: CpoAction
         await log(tx, action === "variation" ? "Opened variation" : "Opened amendment", ` ${full.revision + 1} of`);
       });
     case "close":
-      requirePermission(actor, "cpo.approve");
+      requireSuperAdmin(actor, "close a client PO");
       need(opts.note, "Give a reason for closing.");
       return db.$transaction(async (tx) => {
         const openRa = await tx.raBill.count({ where: { clientPoId: id, status: { in: ["DRAFT", "INTERNAL_REVIEW", "SUBMITTED", "DISPUTED"] } } });
@@ -249,7 +246,8 @@ export async function clientPoAction(actor: Actor, id: string, action: CpoAction
         await log(tx, "Closed");
       });
     case "cancel": {
-      requirePermission(actor, "cpo.approve");
+      if (cpo.status === "ACTIVE") requireSuperAdmin(actor, "cancel an active client PO");
+      else requireAnyPermission(actor, ["cpo.manage", "cpo.approve"]);
       need(opts.note, "Give a reason for cancelling.");
       return db.$transaction(async (tx) => {
         const [so, ra, inv] = await Promise.all([
@@ -294,6 +292,7 @@ async function lineProgress(clientPoId: string) {
     g.delivered = addQty(g.delivered, subQty(dec3(s.deliveredQty), dec3(s.returnedQty)));
   }
   for (const r of raLines) {
+    if (!r.clientPoLineId) continue;
     const g = get(r.clientPoLineId);
     if ((RA_CERTIFIED as readonly string[]).includes(r.raBill.status)) g.certified = addQty(g.certified, dec3(r.certifiedQty));
     else g.claimed = addQty(g.claimed, dec3(r.claimedQty));
@@ -310,8 +309,7 @@ export async function getClientPo(actor: Actor, id: string) {
   requirePermission(actor, "cpo.view");
   const cpo = await db.clientPo.findFirst({ where: { AND: [{ id }, scoped(actor)] }, include: cpoInclude });
   if (!cpo) throw new NotFoundError("Client PO");
-  const settings = await getCommercialSettings(actor.organizationId);
-  const hint = approvalHint(actor, "cpo.approve", cpo, settings.enforceSegregation);
+  const manage = can(actor, "cpo.manage") || can(actor, "cpo.approve");
   const progress = await lineProgress(id);
   const billed = await cpoLineBilled(db as unknown as Tx, id);
   const activeInv = cpo.invoices.filter((i) => i.status !== "CANCELLED");
@@ -343,11 +341,12 @@ export async function getClientPo(actor: Actor, id: string) {
     can: {
       edit: can(actor, "cpo.manage") && (EDITABLE as readonly string[]).includes(cpo.status),
       submit: can(actor, "cpo.manage") && (EDITABLE as readonly string[]).includes(cpo.status),
-      approve: cpo.status === "PENDING_APPROVAL" && hint.canApprove,
-      approveBlockedReason: cpo.status === "PENDING_APPROVAL" ? hint.reason : null,
-      amend: can(actor, "cpo.manage") && cpo.status === "ACTIVE",
-      close: can(actor, "cpo.approve") && ["ACTIVE", "COMPLETED"].includes(cpo.status),
-      cancel: can(actor, "cpo.approve") && !anyBilled && ["DRAFT", "PENDING_APPROVAL", "REJECTED", "ACTIVE"].includes(cpo.status),
+      approve: cpo.status === "PENDING_APPROVAL" && manage,
+      approveBlockedReason: null as string | null,
+      amend: isSuperAdmin(actor) && cpo.status === "ACTIVE",
+      requestChange: !isSuperAdmin(actor) && manage && cpo.status === "ACTIVE",
+      close: isSuperAdmin(actor) && ["ACTIVE", "COMPLETED"].includes(cpo.status),
+      cancel: !anyBilled && (cpo.status === "ACTIVE" ? isSuperAdmin(actor) : manage && ["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(cpo.status)),
       salesOrder: can(actor, "so.manage") && cpo.status === "ACTIVE",
       raBill: can(actor, "rabill.manage") && cpo.status === "ACTIVE",
       invoice: can(actor, "invoice.manage") && cpo.status === "ACTIVE",
