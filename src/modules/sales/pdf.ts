@@ -177,7 +177,8 @@ export async function raBillPdf(actor: Actor, id: string): Promise<PdfDoc> {
       { label: "GST", value: rs(bill.gstAmount) },
       ...deductions.map((d) => ({ label: d.label, value: `- ${rs(d.v)}`, kind: "deduction" as const })),
       { label: so ? "Current new billing (net)" : "Net payable", value: rs(bill.netPayable), kind: "net" },
-      ...(so && !isZero(st.previousOutstanding)
+      ...(so && !isZero(bill.shortageCredit) ? [{ label: "Less: GST credit note, shortage / damage", value: `- ${rs(bill.shortageCredit)}`, kind: "deduction" as const }] : []),
+      ...(so && (!isZero(st.previousOutstanding) || !isZero(bill.shortageCredit))
         ? [
             { label: "Add: previous outstanding", value: rs(st.previousOutstanding), kind: "info" as const },
             { label: "Total payable", value: rs(st.totalPayable), kind: "grand" as const },
@@ -189,7 +190,7 @@ export async function raBillPdf(actor: Actor, id: string): Promise<PdfDoc> {
       so && bill.previousBills.length > 0
         ? { title: "Previous running bills (status today)", items: bill.previousBills.map((p) => `RA-${p.raNumber} ${p.number} (${formatDate(p.billDate)}): billed ${rs(p.netPayable)}${p.invoice ? `, invoice ${p.invoice}` : ", not yet invoiced"}, received ${rs(p.received)}, outstanding ${rs(p.outstanding)}`) }
         : null,
-      so ? { title: "How this bill is calculated", body: "Only material delivered to site / the client and services not billed before, at sales-order rates. Previous outstanding is shown for information only and is not billed again." } : null,
+      so ? { title: "How this bill is calculated", body: "Material dispatched to site on delivery challans (and delivered directly to site), plus services, not billed before, at sales-order rates. Shortages or damage recorded later are deducted on the next bill. Previous outstanding is shown for information only and is not billed again; payments received settle it." } : null,
       bill.deductionNotes ? { title: "Deductions", body: bill.deductionNotes } : null,
       bill.remarks ? { title: "Remarks", body: bill.remarks } : null,
     ),

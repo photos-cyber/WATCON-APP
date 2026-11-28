@@ -56,7 +56,7 @@ Refresh the record and review its latest version before trying again.
 
 ## Action refused
 
-Read the reason. Your role may not have the permission, or the document is final — ask the Super Admin with Request change.
+Read the reason. Your role may not have the permission. For a confirmed Sales Order, send an amendment request to the Super Admin.
 
 ## Upload problem
 

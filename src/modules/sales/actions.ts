@@ -6,7 +6,7 @@ import { clientPoAction, createClientPo, setMilestoneStatus, updateClientPo, typ
 import { clientInvoiceAction, createClientInvoice, updateClientInvoice, type InvoiceAction } from "./invoice";
 import { certifyRaBill, createRaBill, raBillAction, updateRaBill, type RaAction } from "./ra-bill";
 import { generateSoRunningBill } from "./so-running-bill";
-import { acceptRaBillAndInvoice } from "./quick-bill";
+import { acceptRaBillAndInvoice, prepareRaBillPayment } from "./quick-bill";
 import { createSalesOrder, decideSoAmendment, requestSoAmendment, salesOrderAction, updateSalesOrder, withdrawSoAmendment, type SoAction } from "./sales-order";
 
 const P = ["/client-pos", "/sales-orders", "/running-bills", "/client-invoices", "/projects", "/material-planning", "/approvals", "/dashboard"];
@@ -100,6 +100,10 @@ export async function certifyRaBillAction(id: string, version: number, input: un
 /** "Client accepted — invoice now": certify as claimed + create + issue the invoice. */
 export async function acceptRaBillAndInvoiceAction(id: string, input: unknown) {
   return runAction(async (a) => acceptRaBillAndInvoice(a, String(id), input), [...P, "/payments", "/accounts"]);
+}
+/** "Record client payment" on a running bill: makes sure its invoice exists and is issued, returns where to pay. */
+export async function prepareRaBillPaymentAction(id: string) {
+  return runAction(async (a) => prepareRaBillPayment(a, String(id)), [...P, "/payments", "/accounts"]);
 }
 
 // Client invoices

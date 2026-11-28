@@ -91,10 +91,9 @@ describe("client account reconciliation", () => {
     const fin = (await projectFinancials(fx.org.id, [fx.p1.id])).get(fx.p1.id)!;
     expect([fin.paid, fin.received]).toEqual(["0.00", "260000.00"]);
     // The receipt can't be cancelled while a refund stands; cancelling the refund restores the advance.
-    // (Cancelling a recorded payment is an amendment: Super Admin only.)
-    expect((await errorOf(cancelPayment(fx.roles.ac.actor, adv.id, await v("payment", adv.id), "Bounced"))).message).toMatch(/Only the Super Admin/);
-    expect((await errorOf(cancelPayment(fx.actors.superAdmin, adv.id, await v("payment", adv.id), "Bounced"))).message).toMatch(/Cancel the refund first/);
-    await cancelPayment(fx.actors.superAdmin, r1.id, await v("payment", r1.id), "Refund reversed by bank");
+    // (Accounts users cancel a recorded payment directly, with a reason — no Super Admin step.)
+    expect((await errorOf(cancelPayment(fx.roles.ac.actor, adv.id, await v("payment", adv.id), "Bounced"))).message).toMatch(/Cancel the refund first/);
+    await cancelPayment(fx.roles.ac.actor, r1.id, await v("payment", r1.id), "Refund reversed by bank");
     expect((await account()).clientAdvances).toBe("100000.00");
     // A refund row cannot be allocated to invoices.
     expect((await errorOf(allocatePayment(fx.roles.ac.actor, r1.id, { documentId: inv.id, amount: "1" }))).message).toMatch(/cancelled|refund/i);

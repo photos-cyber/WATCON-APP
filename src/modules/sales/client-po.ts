@@ -8,7 +8,7 @@ import { GST_STATES } from "@/lib/gst";
 import { addMoney, addQty, cmpMoney, cmpQty, maxQty, pctOf, subMoney, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { assertProjectUsable, dec2, dec3, dec4, decOpt2, getCommercialSettings, isSuperAdmin, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, dec4, decOpt2, getCommercialSettings, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { gstRateField, optMoney, optPct, priceDocument, projectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { RA_CERTIFIED, cpoLineBilled, loadClient, optDate, optId } from "./shared";
@@ -228,7 +228,7 @@ export async function clientPoAction(actor: Actor, id: string, action: CpoAction
       });
     case "amend":
     case "variation":
-      requireSuperAdmin(actor, "amend an active client PO");
+      requirePermission(actor, "cpo.approve", "You do not have permission to amend an active client PO.");
       need(opts.note, action === "variation" ? "Describe the variation (scope / quantity change)." : "Give the reason for the amendment.");
       return db.$transaction(async (tx) => {
         const full = await tx.clientPo.findUniqueOrThrow({ where: { id }, include: { lines: true, milestones: true } });
@@ -237,7 +237,7 @@ export async function clientPoAction(actor: Actor, id: string, action: CpoAction
         await log(tx, action === "variation" ? "Opened variation" : "Opened amendment", ` ${full.revision + 1} of`);
       });
     case "close":
-      requireSuperAdmin(actor, "close a client PO");
+      requirePermission(actor, "cpo.approve", "You do not have permission to close a client PO.");
       need(opts.note, "Give a reason for closing.");
       return db.$transaction(async (tx) => {
         const openRa = await tx.raBill.count({ where: { clientPoId: id, status: { in: ["DRAFT", "INTERNAL_REVIEW", "SUBMITTED", "DISPUTED"] } } });
@@ -246,7 +246,7 @@ export async function clientPoAction(actor: Actor, id: string, action: CpoAction
         await log(tx, "Closed");
       });
     case "cancel": {
-      if (cpo.status === "ACTIVE") requireSuperAdmin(actor, "cancel an active client PO");
+      if (cpo.status === "ACTIVE") requirePermission(actor, "cpo.approve", "You do not have permission to cancel an active client PO.");
       else requireAnyPermission(actor, ["cpo.manage", "cpo.approve"]);
       need(opts.note, "Give a reason for cancelling.");
       return db.$transaction(async (tx) => {
@@ -343,10 +343,10 @@ export async function getClientPo(actor: Actor, id: string) {
       submit: can(actor, "cpo.manage") && (EDITABLE as readonly string[]).includes(cpo.status),
       approve: cpo.status === "PENDING_APPROVAL" && manage,
       approveBlockedReason: null as string | null,
-      amend: isSuperAdmin(actor) && cpo.status === "ACTIVE",
-      requestChange: !isSuperAdmin(actor) && manage && cpo.status === "ACTIVE",
-      close: isSuperAdmin(actor) && ["ACTIVE", "COMPLETED"].includes(cpo.status),
-      cancel: !anyBilled && (cpo.status === "ACTIVE" ? isSuperAdmin(actor) : manage && ["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(cpo.status)),
+      amend: can(actor, "cpo.approve") && cpo.status === "ACTIVE",
+      requestChange: !can(actor, "cpo.approve") && manage && cpo.status === "ACTIVE",
+      close: can(actor, "cpo.approve") && ["ACTIVE", "COMPLETED"].includes(cpo.status),
+      cancel: !anyBilled && (cpo.status === "ACTIVE" ? can(actor, "cpo.approve") : manage && ["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(cpo.status)),
       salesOrder: can(actor, "so.manage") && cpo.status === "ACTIVE",
       raBill: can(actor, "rabill.manage") && cpo.status === "ACTIVE",
       invoice: can(actor, "invoice.manage") && cpo.status === "ACTIVE",

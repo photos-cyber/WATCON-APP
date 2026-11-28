@@ -8,7 +8,7 @@ import { GSTIN_RE, TDS_SECTIONS } from "@/lib/gst";
 import { addQty, cmpMoney, cmpQty, minQty, pctOf, subMoney, subQty, taxModeFor, type TaxMode } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, isSuperAdmin, parseInput, projectScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { gstRateField, optMoney, optPct, priceDocument, qtyField, rateField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { startOfToday } from "@/modules/tasks/rules";
@@ -363,7 +363,7 @@ export async function billAction(actor: Actor, id: string, action: BillAction, o
         await log(tx, opts.override && m.exceptions.length ? "Approved with override" : "Approved", ` (₹${dec2(fresh.total)})`);
       });
     case "cancel": {
-      if (bill.status === "APPROVED") requireSuperAdmin(actor, "cancel an approved supplier bill");
+      if (bill.status === "APPROVED") requirePermission(actor, "bills.approve", "You do not have permission to cancel a finalized supplier bill.");
       else requireAnyPermission(actor, ["bills.manage", "bills.approve"]);
       need(opts.note, "Give a reason for cancelling.");
       return db.$transaction(async (tx) => {
@@ -454,8 +454,8 @@ export async function getBill(actor: Actor, id: string) {
       approve: b.status === "PENDING_APPROVAL" && manager,
       override: ["PENDING_APPROVAL", "DRAFT", "REJECTED"].includes(b.status) && manager && can(actor, "bills.override_match"),
       approveBlockedReason: null as string | null,
-      cancel: (b.status === "APPROVED" ? isSuperAdmin(actor) : manager) && ["DRAFT", "PENDING_APPROVAL", "REJECTED", "APPROVED"].includes(b.status) && cmpMoney(dec2(b.paidAmount), "0") === 0 && cmpMoney(dec2(b.adjustedAmount), "0") === 0,
-      requestChange: !isSuperAdmin(actor) && manager && ["APPROVED", "PARTIALLY_PAID", "PAID"].includes(b.status),
+      cancel: (b.status === "APPROVED" ? can(actor, "bills.approve") : manager) && ["DRAFT", "PENDING_APPROVAL", "REJECTED", "APPROVED"].includes(b.status) && cmpMoney(dec2(b.paidAmount), "0") === 0 && cmpMoney(dec2(b.adjustedAmount), "0") === 0,
+      requestChange: !can(actor, "bills.approve") && manager && ["APPROVED", "PARTIALLY_PAID", "PAID"].includes(b.status),
       pay: can(actor, "payments.manage") && payable && cmpMoney(outstanding, "0") > 0,
       note: can(actor, "bills.manage") && payable && cmpMoney(outstanding, "0") > 0,
     },

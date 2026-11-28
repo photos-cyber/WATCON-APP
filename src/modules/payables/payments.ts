@@ -7,7 +7,7 @@ import { ConflictError, NotFoundError, ValidationError, isUniqueViolation } from
 import { addMoney, cmpMoney, formatINR, subMoney } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { assertCanApprove, assertProjectUsable, dec2, isSuperAdmin, parseInput, projectRequiredScoped, projectScoped, requirePermission, requireSuperAdmin } from "@/modules/commercial/core";
+import { assertCanApprove, assertProjectUsable, dec2, parseInput, projectRequiredScoped, projectScoped, requirePermission } from "@/modules/commercial/core";
 import { storeEvidenceTx } from "@/modules/documents/attachments";
 import { moneyField, optMoney, optionalProjectIdField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
@@ -183,7 +183,6 @@ async function reverseTx(tx: Tx, actor: Actor, allocationId: string, reason: str
 
 export async function reverseAllocation(actor: Actor, allocationId: string, reason: string | null | undefined) {
   requirePermission(actor, "payments.manage");
-  requireSuperAdmin(actor, "reverse a payment allocation");
   if (!reason?.trim()) throw new ValidationError("Give a reason for reversing.", { note: "Reason required." });
   const a = await db.paymentAllocation.findFirst({ where: { id: allocationId, organizationId: actor.organizationId }, include: { payment: { select: { id: true } } } });
   if (!a) throw new NotFoundError("Allocation");
@@ -196,7 +195,6 @@ export async function reverseAllocation(actor: Actor, allocationId: string, reas
 
 export async function cancelPayment(actor: Actor, id: string, version: number, reason: string | null | undefined) {
   requirePermission(actor, "payments.manage");
-  requireSuperAdmin(actor, "cancel a recorded payment");
   if (!reason?.trim()) throw new ValidationError("Give a reason for cancelling.", { note: "Reason required." });
   const p = await loadScoped(actor, id);
   return db.$transaction(async (tx) => {
@@ -320,9 +318,9 @@ export async function getPayment(actor: Actor, id: string) {
     can: {
       allocate: can(actor, "payments.manage") && p.status === "POSTED" && !p.refundOfId && cmpMoney(unallocated, "0") > 0,
       refund: can(actor, "payments.manage") && can(actor, "invoice.approve") && p.direction === "IN" && p.status === "POSTED" && cmpMoney(unallocated, "0") > 0,
-      reverse: can(actor, "payments.manage") && isSuperAdmin(actor) && p.status === "POSTED",
-      cancel: can(actor, "payments.manage") && isSuperAdmin(actor) && p.status === "POSTED",
-      requestChange: can(actor, "payments.manage") && !isSuperAdmin(actor) && p.status === "POSTED",
+      reverse: can(actor, "payments.manage") && p.status === "POSTED",
+      cancel: can(actor, "payments.manage") && p.status === "POSTED",
+      requestChange: false,
     },
   };
 }

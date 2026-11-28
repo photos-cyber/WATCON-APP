@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DocActions } from "@/components/commercial/doc-actions";
-import { RequestChangeButton } from "@/components/commercial/request-change";
+import { requestChangeDef, withRequestChange } from "@/components/commercial/request-change";
 import { Field } from "@/components/forms/field";
 import { FormDialog } from "@/components/shared/dialogs";
 import { Button } from "@/components/ui/button";
@@ -17,11 +17,14 @@ import { allocatePaymentAction, cancelPaymentAction, refundClientAdvanceAction, 
 import type { OpenDoc } from "./payment-form";
 
 export function PaymentActions({ id, version, can }: { id: string; version: number; can: { cancel: boolean; requestChange?: boolean } }) {
-  if (!can.cancel) return can.requestChange ? <RequestChangeButton kind="payment" id={id} /> : null;
+  if (!can.cancel && !can.requestChange) return null;
   return (
     <DocActions
-      actions={[{ key: "cancel", label: "Cancel payment", icon: Ban, variant: "ghost", confirm: { title: "Cancel this payment?", description: "Use this for a bounced cheque or a wrong entry. All its allocations are reversed and the bills / invoices become payable again.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Payment cancelled." }]}
-      run={(_k, note) => callAction(cancelPaymentAction, id, version, note ?? "")}
+      actions={[
+        ...(can.cancel ? [{ key: "cancel", label: "Cancel payment", icon: Ban, variant: "ghost" as const, confirm: { title: "Cancel this payment?", description: "Use this for a bounced cheque or a wrong entry. All its allocations are reversed and the bills / invoices become payable again.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Payment cancelled." }] : []),
+        ...(!can.cancel && can.requestChange ? [requestChangeDef()] : []),
+      ]}
+      run={withRequestChange("payment", id, (_k, note) => callAction(cancelPaymentAction, id, version, note ?? ""))}
     />
   );
 }

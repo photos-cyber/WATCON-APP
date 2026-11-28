@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { RecordClientPaymentButton } from "@/components/payables/client-account";
 import { can as can_ } from "@/lib/permissions/definitions";
 import Link from "next/link";
 import { RelatedDocs } from "@/components/commercial/related-docs";
@@ -9,7 +8,7 @@ import { AttachmentsPanel } from "@/components/documents/attachments-panel";
 import { DocShare } from "@/components/documents/doc-share";
 import { NextStep } from "@/components/procurement/next-step";
 import { projectCrumbs } from "@/components/projects/project-breadcrumbs";
-import { RaActions } from "@/components/sales/actions";
+import { RaActions, RaBillPayButton } from "@/components/sales/actions";
 import { CertifyForm, RaStepper } from "@/components/sales/ra-ui";
 import { PageHeader } from "@/components/shared/page-header";
 import { requirePagePermission } from "@/lib/auth/session";
@@ -50,16 +49,16 @@ export default async function RunningBillPage({ params }: PageProps<"/running-bi
         actions={
           <>
             <RaActions id={bill.id} version={bill.version} can={can} />
-            {bill.invoice && can_(user, "payments.manage") && <RecordClientPaymentButton projectId={bill.projectId} partyId={bill.partyId} invoiceId={bill.invoice.id} />}
+            {["SUBMITTED", "DISPUTED", "CLIENT_CERTIFIED", "INVOICED", "PARTIALLY_PAID"].includes(bill.status) && can_(user, "payments.manage") && <RaBillPayButton id={bill.id} />}
             {can.certify && <CertifyForm id={bill.id} version={bill.version} lines={bill.lines.map((l) => ({ id: l.id, lineNo: l.ref.lineNo, description: l.ref.description, unit: l.ref.unit, claimedQty: l.claimedQty, rate: l.rate }))} otherDeductions={bill.otherDeductions} deductionNotes={bill.deductionNotes} />}
             <DocShare type="ra_bill" id={bill.id} summary={share} phone={bill.party.whatsappNumber ?? bill.party.phone} email={bill.party.email} subject={`Running bill ${bill.number}`} />
           </>
         }
       />
       <RaStepper status={bill.status} />
-      {bill.status === "DRAFT" && <NextStep title="Draft — check and submit to the client">{so ? "Check the quantities (refresh below picks up anything delivered since), then press “Submit to client”." : "Check quantities against the measurement sheet, then press “Submit to client”."}</NextStep>}
+      {bill.status === "DRAFT" && <NextStep title="Draft — check and submit to the client">{so ? "Check the quantities, then press “Submit to client”. To bill anything dispatched since, open “Change quantities or deductions” below." : "Check quantities against the measurement sheet, then press “Submit to client”."}</NextStep>}
       {bill.status === "INTERNAL_REVIEW" && <NextStep title="Submit to the client">It was waiting under the old review step — press “Submit to client”.</NextStep>}
-      {bill.status === "SUBMITTED" && <NextStep tone="info" title="With the client">Share the PDF with the client. If they accept it as submitted, press “Client accepted — invoice now” (certifies, creates and issues the invoice in one step); otherwise record their certified quantities or a dispute.</NextStep>}
+      {bill.status === "SUBMITTED" && <NextStep tone="info" title="With the client">Share the PDF with the client. When the client pays, press “Record client payment” — the tax invoice is raised automatically and anything unpaid is carried into the next running bill. To invoice before payment use “Client accepted — invoice now”; if the client changes quantities, record their certification or a dispute.</NextStep>}
       {bill.status === "DISPUTED" && <NextStep tone="warn" title="Disputed by the client">{bill.disputeNote ?? "Resolve the objection, then resubmit or record the certification."}</NextStep>}
       {bill.status === "CLIENT_CERTIFIED" && <NextStep title="Certified — raise the invoice" links={can.invoice ? [{ href: `/client-invoices/new?raBillId=${bill.id}`, label: "Create invoice" }] : []}>The tax invoice is raised for the certified quantities.</NextStep>}
       {bill.statusNote && <p className="mb-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm">{bill.statusNote}</p>}
@@ -136,6 +135,7 @@ export default async function RunningBillPage({ params }: PageProps<"/running-bi
                 {bill.advanceRecovery !== "0.00" && <div className="flex justify-between"><dt className="text-muted-foreground">Advance recovery</dt><dd className="tabular-nums">− {formatINR(bill.advanceRecovery)}</dd></div>}
                 {bill.otherDeductions !== "0.00" && <div className="flex justify-between"><dt className="text-muted-foreground">Other deductions</dt><dd className="tabular-nums">− {formatINR(bill.otherDeductions)}</dd></div>}
                 <div className="flex justify-between border-t pt-1 text-base font-semibold"><dt>{so ? "This bill (net)" : "Net payable"}</dt><dd className="tabular-nums">{formatINR(bill.netPayable)}</dd></div>
+                {bill.shortageCredit !== "0.00" && <div className="flex justify-between text-muted-foreground"><dt title="Material billed on earlier bills that never fully reached the site (damage / shortage). A GST credit note is raised and applied automatically when this bill is invoiced.">{["DRAFT", "INTERNAL_REVIEW", "SUBMITTED", "DISPUTED", "CLIENT_CERTIFIED"].includes(bill.status) ? "Less: GST credit note on invoicing (shortage / damage)" : "Less: GST credit note raised (shortage / damage)"}</dt><dd className="tabular-nums">− {formatINR(bill.shortageCredit)}</dd></div>}
                 {so && <div className="flex justify-between text-muted-foreground"><dt>Previous outstanding</dt><dd className="tabular-nums">{formatINR(st.previousOutstanding)}</dd></div>}
                 {so && <div className="flex justify-between font-semibold"><dt>Total payable</dt><dd className="tabular-nums">{formatINR(st.totalPayable)}</dd></div>}
               </dl>
@@ -156,9 +156,15 @@ export default async function RunningBillPage({ params }: PageProps<"/running-bi
             </Section>
           )}
           {preview && bill.soId && (
-            <Section title="Refresh this draft">
+            <details className="group rounded-xl border bg-card">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold">
+                Change quantities or deductions
+                <span className="text-xs font-normal text-muted-foreground group-open:hidden">Refresh this draft — picks up anything dispatched since</span>
+              </summary>
+              <div className="border-t p-4">
               <SoRunningBillForm soId={bill.soId} lines={preview.lines} statement={preview.statement} draftNumber={bill.number} initial={{ isFinal: bill.isFinal, retentionPct: String(Number(bill.retentionPct)), advanceRecovery: bill.advanceRecovery, otherDeductions: bill.otherDeductions === "0.00" ? "" : bill.otherDeductions, deductionNotes: bill.deductionNotes ?? "", remarks: bill.remarks ?? "", claims: Object.fromEntries(bill.lines.filter((l) => l.soLineId).map((l) => [l.soLineId!, l.claimedQty])) }} />
-            </Section>
+              </div>
+            </details>
           )}
           <ActivityTimeline items={activity} />
         </div>

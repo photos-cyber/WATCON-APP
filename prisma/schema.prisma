@@ -2367,6 +2367,9 @@ model RaBill {
   retentionAmount       Decimal      @default(0) @map("retention_amount") @db.Decimal(18, 2)
   advanceRecovery       Decimal      @default(0) @map("advance_recovery") @db.Decimal(18, 2)
   otherDeductions       Decimal      @default(0) @map("other_deductions") @db.Decimal(18, 2)
+  /// Final SO bill only: credit (incl. GST) for material billed on earlier bills that never fully reached the
+  /// site (damage / shortage recorded after billing). Deducted from this bill; carried to its invoice deductions.
+  shortageCredit        Decimal      @default(0) @map("shortage_credit") @db.Decimal(18, 2)
   deductionNotes        String?      @map("deduction_notes")
   gstAmount             Decimal      @default(0) @map("gst_amount") @db.Decimal(18, 2)
   netPayable            Decimal      @default(0) @map("net_payable") @db.Decimal(18, 2)

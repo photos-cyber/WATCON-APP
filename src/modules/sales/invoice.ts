@@ -1,14 +1,16 @@
 import "server-only";
+import { raiseShortageCreditNotesTx } from "@/modules/payables/notes";
+import { shortageCredit, soBillingPosition } from "./so-running-bill";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { db, type Prisma, type Tx } from "@/lib/db";
 import { nextDocNumber } from "@/lib/doc-numbering";
 import { NotFoundError, ValidationError } from "@/lib/errors";
-import { addQty, cmpMoney, cmpQty, subMoney, subQty, taxModeFor } from "@/lib/money";
+import { addMoney, addQty, cmpMoney, cmpQty, subMoney, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { dec2, dec3, dec4, getCommercialSettings, isSuperAdmin, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
+import { dec2, dec3, dec4, getCommercialSettings, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { priceDocument, qtyOrZero } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { cpoLineBilled, lockClientPo, netRate, optDate } from "./shared";
@@ -75,6 +77,7 @@ export async function createClientInvoice(actor: Actor, input: unknown) {
       soId = ra.soId;
       raBillId = ra.id;
       placeOfSupply = ra.clientPo?.placeOfSupply ?? null;
+      // A final bill's shortage credit is NOT a deduction here: a GST credit note is raised for it when this invoice is issued.
       deductions = { retention: dec2(ra.retentionAmount), advance: dec2(ra.advanceRecovery), other: dec2(ra.otherDeductions) };
       // Only this bill's certified quantities are invoiced (cumulative / previous figures are statement only),
       // so nothing billed before is invoiced — or taxed — again.
@@ -223,11 +226,12 @@ export async function clientInvoiceAction(actor: Actor, id: string, action: Invo
       const number = await nextDocNumber(tx, actor.organizationId, proforma ? "PI" : "INV", inv.invoiceDate);
       await transition(tx.clientInvoice, w, ["DRAFT"], { status: "ISSUED", number, issuedById: actor.id, issuedAt: new Date() }, "invoice");
       await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "invoice.issued", entityType: "client_invoice", entityId: id, projectId: inv.projectId, summary: `Issued ${proforma ? "proforma / advance request" : "tax invoice"} ${number} – ₹${dec2(inv.total)} (net receivable ₹${dec2(inv.netReceivable)})` }, tx);
-      return { number };
+      const creditNotes = proforma ? null : await finalBillCreditNotesTx(tx, actor, id, inv.invoiceDate);
+      return { number, creditNotes };
     });
   }
   if (!opts.note?.trim()) throw new ValidationError("Give a reason for cancelling.", { note: "Reason required." });
-  if (inv.status !== "DRAFT") requireSuperAdmin(actor, "cancel an issued invoice");
+  if (inv.status !== "DRAFT") requirePermission(actor, "invoice.approve", "You do not have permission to cancel an issued invoice.");
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM client_invoices WHERE id = ${id}::uuid FOR UPDATE`;
     const fresh = await tx.clientInvoice.findUniqueOrThrow({ where: { id } });
@@ -294,8 +298,8 @@ export async function getClientInvoice(actor: Actor, id: string) {
       edit: can(actor, "invoice.manage") && inv.status === "DRAFT",
       issue: manager && inv.status === "DRAFT" && !!inv.placeOfSupply,
       issueBlocked,
-      cancel: (inv.status === "DRAFT" ? manager : isSuperAdmin(actor) && inv.status === "ISSUED") && cmpMoney(dec2(inv.receivedAmount), "0") === 0 && inv.allocations.length === 0,
-      requestChange: !isSuperAdmin(actor) && manager && inv.status !== "DRAFT" && inv.status !== "CANCELLED",
+      cancel: (inv.status === "DRAFT" ? manager : can(actor, "invoice.approve") && inv.status === "ISSUED") && cmpMoney(dec2(inv.receivedAmount), "0") === 0 && inv.allocations.length === 0,
+      requestChange: !can(actor, "invoice.approve") && manager && inv.status !== "DRAFT" && inv.status !== "CANCELLED",
       receive: can(actor, "payments.manage") && ["ISSUED", "PARTIALLY_PAID"].includes(inv.status) && cmpMoney(outstanding, "0") > 0,
     },
   };
@@ -388,4 +392,25 @@ export async function clientInvoiceAccess(actor: Actor, id: string): Promise<Ent
   const r = await db.clientInvoice.findFirst({ where: { AND: [{ id }, scoped(actor)] }, select: { number: true, projectId: true, status: true } });
   if (!r) return null;
   return { projectId: r.projectId, label: r.number, canView: true, canUpload: can(actor, "invoice.manage") || can(actor, "invoice.approve"), locked: r.status !== "DRAFT" };
+}
+
+/**
+ * Final running bill → GST credit note(s) for material billed earlier that never fully reached the site.
+ * Recomputed at issue time from the current positions (so damage recorded after the bill was prepared counts),
+ * raised and applied in the issuing transaction; the bill keeps the amount actually credited.
+ */
+async function finalBillCreditNotesTx(tx: Tx, actor: Actor, invoiceId: string, invoiceDate: Date) {
+  const inv = await tx.clientInvoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { raBill: { select: { id: true, number: true, raNumber: true, isFinal: true, soId: true, salesOrder: { select: { number: true } } } } } });
+  const ra = inv.raBill;
+  if (!ra?.isFinal || !ra.soId) return null;
+  const credit = shortageCredit((await soBillingPosition(tx, ra.soId)).lines);
+  if (!credit.groups.length) {
+    await tx.raBill.update({ where: { id: ra.id }, data: { shortageCredit: "0" } });
+    return null;
+  }
+  const raLabel = `RA-${ra.raNumber} ${ra.number}`;
+  const res = await raiseShortageCreditNotesTx(tx, actor, { soId: ra.soId, soNumber: ra.salesOrder?.number ?? "", finalInvoiceId: invoiceId, raLabel, groups: credit.groups, reason: `Shortage / damage on ${ra.salesOrder?.number ?? "sales order"} (final bill ${raLabel}). ${(credit.note ?? "").replace(" (GST credit note on invoicing)", "")}`.trim(), noteDate: invoiceDate });
+  const credited = res.notes.reduce((a, n) => addMoney(a, n.total), "0.00");
+  await tx.raBill.update({ where: { id: ra.id }, data: { shortageCredit: credited, ...(cmpMoney(res.unapplied, "0") > 0 ? { statusNote: `₹${res.unapplied} of the shortage / damage credit could not be set off — every invoice of the order is already settled. Refund it to the client or keep it as their credit.` } : {}) } });
+  return res;
 }

@@ -28,7 +28,7 @@ export default async function NewRunningBillPage({ searchParams }: PageProps<"/r
     const so = await orNotFound(getSalesOrder(user, soId));
     return (
       <>
-        <PageHeader title={pre.draft ? `Refresh running bill ${pre.draft.number}` : "New running bill"} description={`${so.so.number} · ${so.so.party.name} — material delivered to site / client and services, at the sales-order rates.`} breadcrumbs={[...projectCrumbs(so.so.project, "running-bills", { label: "Running bills", href: "/running-bills" }), { label: "New running bill" }]} />
+        <PageHeader title={pre.draft ? `Refresh running bill ${pre.draft.number}` : "New running bill"} description={`${so.so.number} · ${so.so.party.name} — material sent on dispatched site challans, direct deliveries to site and services, at the sales-order rates.`} breadcrumbs={[...projectCrumbs(so.so.project, "running-bills", { label: "Running bills", href: "/running-bills" }), { label: "New running bill" }]} />
         {pre.statement.hasFinal ? (
           <EmptyState title="Final bill already raised" description="The final running bill for this sales order exists. Cancel it first to bill again." />
         ) : (

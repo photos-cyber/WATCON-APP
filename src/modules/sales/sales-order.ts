@@ -514,7 +514,8 @@ export async function getSalesOrder(actor: Actor, id: string) {
   const challanLines = await db.challanLine.findMany({ where: { soLineId: { in: so.lines.map((l) => l.id) }, challan: { status: { not: "CANCELLED" } } }, select: { soLineId: true, quantity: true, challan: { select: { id: true, number: true, status: true } } } });
   const invLines = await db.invoiceLine.findMany({ where: { soLineId: { in: so.lines.map((l) => l.id) }, invoice: { status: { not: "CANCELLED" } } }, select: { soLineId: true, quantity: true, invoice: { select: { id: true, number: true, status: true } } } });
   const uniq = <T extends { id: string }>(xs: T[]) => [...new Map(xs.map((x) => [x.id, x])).values()];
-  // Material delivered = what reached the project site (site receipts, net of returns) + client deliveries —
+  // Material delivered = dispatched site challans (net of shortfall / damage) + direct site receipts + client deliveries −
+  // returns out of the site —
   // the same figure running bills and the order summary use. Services / installation count as done once billed.
   // Drafts have no position yet.
   const position = (LOCKED as readonly string[]).includes(so.status) || so.status === "CLOSED" ? await soBillingPosition(db, so.id).catch(() => null) : null;

@@ -47,3 +47,38 @@ export async function acceptRaBillAndInvoice(actor: Actor, raBillId: string, inp
     return { invoiceId: inv.id, issued: false, issueError: e instanceof Error ? e.message : "Could not issue the invoice." };
   }
 }
+
+/**
+ * "Record client payment" on a running bill (owner rule 2026-11-27: the client pays the running bill). The
+ * receivable is the bill's tax invoice, so this makes sure one exists and is issued, then returns where the
+ * payment should go:
+ *   - with the client (SUBMITTED / DISPUTED): accepted as claimed → invoice → issue (same as the quick button);
+ *   - certified, not invoiced: invoice → issue;
+ *   - invoice still a draft: issue it;
+ *   - already issued / part paid: nothing to do.
+ * The payment then settles that invoice; anything unpaid stays outstanding and is carried into the next
+ * running bill's statement ("previous outstanding").
+ */
+export async function prepareRaBillPayment(actor: Actor, raBillId: string) {
+  requireAnyPermission(actor, ["payments.manage"], "You do not have permission to record payments.");
+  const id = parseInput(uuid, raBillId);
+  const bill = await db.raBill.findFirst({ where: { id, organizationId: actor.organizationId }, select: { id: true, status: true, projectId: true, partyId: true, soId: true, invoice: { select: { id: true, status: true, version: true } } } });
+  if (!bill) throw new ValidationError("Running bill not found.");
+  if (["DRAFT", "INTERNAL_REVIEW"].includes(bill.status)) throw new ValidationError("Submit the bill to the client first.");
+  if (bill.status === "CANCELLED") throw new ValidationError("This running bill is cancelled.");
+  if (bill.status === "PAID") throw new ValidationError("This running bill is already fully paid.");
+  const today = startOfToday().toISOString().slice(0, 10);
+  let invoiceId = bill.invoice && bill.invoice.status !== "CANCELLED" ? bill.invoice.id : null;
+  if (!invoiceId) {
+    if (["SUBMITTED", "DISPUTED"].includes(bill.status)) {
+      const r = await acceptRaBillAndInvoice(actor, id, { issue: true });
+      if (!r.issued) throw new ValidationError(`The invoice ${r.invoiceId ? "was created but " : ""}could not be issued: ${r.issueError ?? "unknown reason"}. Issue it from the invoice page, then record the payment.`);
+      invoiceId = r.invoiceId;
+    } else {
+      invoiceId = (await createClientInvoice(actor, { source: "RA", raBillId: id, invoiceDate: today })).id;
+    }
+  }
+  const inv = await db.clientInvoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { status: true, version: true } });
+  if (inv.status === "DRAFT") await clientInvoiceAction(actor, invoiceId, "issue", { version: inv.version });
+  return { invoiceId, projectId: bill.projectId, partyId: bill.partyId, soId: bill.soId };
+}

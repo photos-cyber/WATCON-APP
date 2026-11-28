@@ -138,17 +138,13 @@ _Status: draft from Phase 1 audit (2026-11-26). "Current" = verified in code; "v
 ## Simplification v3 (2026-11-27) — supersedes the approval rules above
 
 - **No approvals for daily work.** Anyone holding the document's create/manage permission (and project access) finalizes it in one step. There is no second approver, no separation of duties and no approval limit for: quotation, sales order, client PO, requisition, rate-enquiry award, purchase order, material receipt (with mandatory proof), site challan, running bill (submit to client), client invoice (issue), supplier bill (when it matches), client and supplier payments.
-- **Only changes to final documents need the Super Admin:**
+- **Only the Sales Order needs the Super Admin** (updated 2026-11-28 — all users are Admins and everything hangs off the SO):
   - SO amendment (request → Super Admin decides), SO close / cancel;
-  - client PO amend / variation / close / cancel;
-  - PO amend / cancel / short-close;
-  - receipt reversal;
-  - cancel of a final supplier bill, certified running bill or issued invoice;
-  - credit / debit notes;
-  - payment cancel / allocation reversal;
-  - manual stock adjustments and write-offs.
+  - manual stock adjustments and write-offs (owner-only, unchanged).
 
-  Everyone else uses **Request change** (notifies the Super Admins; audited).
+  Everything else that is final is amended / cancelled / reversed **directly by an Admin**, with a reason, recorded in the audit log:
+  client PO amend / variation / close / cancel (`cpo.approve`); PO amend (`po.approve`), cancel / short-close (`po.cancel`); receipt reversal (`grn.reverse`); cancel a final supplier bill (`bills.approve`), certified running bill (`rabill.approve`) or issued invoice (`invoice.approve`); credit / debit notes apply / cancel (`bills.approve` / `invoice.approve`); payment cancel / allocation reversal (`payments.manage`).
+  Users without those permissions still see **Request change** (notifies the Super Admins; audited).
 - **Integrity checks are not approvals and stay:**
   - mandatory receipt proof;
   - client delivery POD before "Delivered";

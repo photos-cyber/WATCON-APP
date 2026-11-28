@@ -7,7 +7,7 @@ import { ForbiddenError, NotFoundError, ValidationError, isUniqueViolation } fro
 import { addQty, cmpQty, divRound, fmtQty, qtyUnits, subQty, toUnits, unitRate } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { assertProjectUsable, dec2, dec3, getCommercialSettings, isSuperAdmin, parseInput, projectScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, getCommercialSettings, parseInput, projectScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { qtyOrZero } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSystemLocations, postMovementTx, reverseMovementTx } from "@/modules/inventory/engine";
@@ -283,8 +283,7 @@ export async function grnAction(actor: Actor, id: string, action: "submit" | "re
     });
   }
   // Reverse a posted receipt: opposite stock entries + counters back, never edits the original postings.
-  // A correction to finalized stock — Super Admin only.
-  requireSuperAdmin(actor, "reverse a posted receipt");
+  requirePermission(actor, "grn.reverse", "You do not have permission to reverse a posted receipt.");
   if (grn.lines.some((l) => cmpQty(dec3(l.billedQty), "0") > 0)) throw new ValidationError("Supplier bills are matched to this receipt. Cancel those bills before reversing it.");
   const today = startOfToday();
   return db.$transaction(async (tx) => {
@@ -374,8 +373,8 @@ export async function getGrn(actor: Actor, id: string) {
       postBlockedReason: null as string | null,
       reject: grn.status === "SUBMITTED" && receiver,
       cancel: ["DRAFT", "SUBMITTED", "REJECTED"].includes(grn.status) && (can(actor, "grn.post") || grn.createdById === actor.id),
-      reverse: grn.status === "POSTED" && isSuperAdmin(actor),
-      requestChange: grn.status === "POSTED" && !isSuperAdmin(actor) && receiver,
+      reverse: grn.status === "POSTED" && can(actor, "grn.reverse"),
+      requestChange: grn.status === "POSTED" && !can(actor, "grn.reverse") && receiver,
     },
   };
 }

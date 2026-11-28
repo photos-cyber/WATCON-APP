@@ -1,8 +1,9 @@
 "use client";
 
-import { Ban, CheckCircle2, FilePen, HandCoins, Lock, PackageCheck, Pencil, ReceiptText, Send, ShieldCheck, ThumbsDown, ThumbsUp } from "lucide-react";import Link from "next/link";
-import { DocActions, type DocActionDef } from "@/components/commercial/doc-actions";
-import { RequestChangeButton } from "@/components/commercial/request-change";
+import { Ban, CheckCircle2, FilePen, Lock, PackageCheck, Pencil, ReceiptText, Send, ShieldCheck, ThumbsDown, ThumbsUp } from "lucide-react";
+import Link from "next/link";
+import { DocActions, type DocActionDef, type MoreLink } from "@/components/commercial/doc-actions";
+import { requestChangeDef, withRequestChange } from "@/components/commercial/request-change";
 import { Button } from "@/components/ui/button";
 import { callAction } from "@/lib/call-action";
 import { poActionAction } from "@/modules/procurement/actions";
@@ -11,13 +12,13 @@ type Can = { edit: boolean; submit: boolean; finalize?: boolean; finalizeApprove
 
 /**
  * Main PO actions: Finalize (one step — no approval wait), Receive material, Record supplier bill,
- * Record supplier payment. PDF / share sit next to these (DocShare). Changes to a finalized PO are
- * made by the Super Admin; others use "Request change".
+ * Record supplier payment. PDF / share sit next to these (DocShare). Admins (po.approve / po.cancel)
+ * amend, cancel or short-close a finalized PO directly; users without those permissions use "Request change".
  */
-export function PoActions({ id, version, can, partyId, projectId }: { id: string; version: number; can: Can; partyId: string; projectId: string | null }) {
+export function PoActions({ id, version, can, partyId, projectId, more = [] }: { id: string; version: number; can: Can; partyId: string; projectId: string | null; more?: MoreLink[] }) {
   const defs: DocActionDef[] = [];
   if (can.finalize || can.submit) {
-    defs.push({ key: "finalize", label: "Finalize PO", icon: ShieldCheck, variant: "default", confirm: { title: "Finalize this purchase order?", description: "It becomes final now. Share it with the supplier, then receive material against it. After this, only the Super Admin can amend or cancel it." }, success: "Purchase order finalized." });
+    defs.push({ key: "finalize", label: "Finalize PO", icon: ShieldCheck, variant: "default", confirm: { title: "Finalize this purchase order?", description: "It becomes final now. Share it with the supplier, then receive material against it. It can still be amended or cancelled later from this page (with a reason)." }, success: "Purchase order finalized." });
   }
   if (can.approve) {
     defs.push({ key: "approve", label: "Finalize PO", icon: ThumbsUp, variant: "default", confirm: { title: "Finalize this purchase order?", description: "It was waiting under the old approval step. Finalizing lets you share it and receive material." }, success: "Purchase order finalized." });
@@ -44,22 +45,23 @@ export function PoActions({ id, version, can, partyId, projectId }: { id: string
           </Link>
         </Button>
       )}
-      {can.bill && (
+      {/* Next step only: receive while material is pending, otherwise record the supplier's bill. */}
+      {can.bill && !can.receive && (
         <Button asChild size="sm" variant="outline">
           <Link href={`/supplier-bills/new?poId=${id}`}>
             <ReceiptText /> Record supplier bill
           </Link>
         </Button>
       )}
-      {can.pay && (
-        <Button asChild size="sm" variant="outline">
-          <Link href={`/payments/new?direction=OUT&poId=${id}&partyId=${partyId}${projectId ? `&projectId=${projectId}` : ""}`}>
-            <HandCoins /> Record supplier payment
-          </Link>
-        </Button>
-      )}
-      <DocActions actions={defs} run={(key, note) => callAction(poActionAction, id, key as never, { version, note, via: key === "send" ? note : null })} />
-      {can.requestChange && <RequestChangeButton kind="purchase_order" id={id} />}
+      <DocActions
+        actions={[...defs.map((d) => (d.variant === "default" ? d : { ...d, more: true })), ...(can.requestChange ? [requestChangeDef()] : [])]}
+        moreLinks={[
+          ...(can.bill && can.receive ? [{ label: "Record supplier bill", href: `/supplier-bills/new?poId=${id}` }] : []),
+          ...(can.pay ? [{ label: "Record supplier payment", href: `/payments/new?direction=OUT&poId=${id}&partyId=${partyId}${projectId ? `&projectId=${projectId}` : ""}` }] : []),
+          ...more,
+        ]}
+        run={withRequestChange("purchase_order", id, (key, note) => callAction(poActionAction, id, key as never, { version, note, via: key === "send" ? note : null }))}
+      />
     </>
   );
 }

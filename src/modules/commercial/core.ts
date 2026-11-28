@@ -127,9 +127,11 @@ export async function assertCanApprove(
 // document's create / manage permission — no second approver, no separation of duties and no
 // amount limit. Role permissions and project scopes still apply on the server.
 //
-// Only changes to FINALIZED documents that affect stock or money (amend, cancel, reverse,
-// credit / debit notes, SO amendments) are reserved for the Super Admin. Other users raise a
-// "Request change" (notification to the Super Admins) instead.
+// UPDATED 2026-11-28 (owner): only the SALES ORDER is reserved for the Super Admin (amendments,
+// close, cancel of a confirmed order) — everything else hangs off the SO. Amend / cancel / reverse
+// of other finalized documents (PO, client PO, receipt, supplier bill, running bill, invoice,
+// payment, credit / debit note) is done directly by users holding that document's approve /
+// cancel / reverse permission (all Admins). Users without it may raise a "Request change".
 
 export const isSuperAdmin = (actor: Pick<Actor, "role">) => actor.role === "SUPER_ADMIN";
 

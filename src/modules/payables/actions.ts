@@ -1,6 +1,7 @@
 "use server";
 
 import { runAction } from "@/lib/actions";
+import { db } from "@/lib/db";
 import { billAction, billPrefillFromPo, createBill, updateBill, type BillAction } from "./bills";
 import { createNote, noteAction } from "./notes";
 import { allocatePayment, cancelPayment, createPayment, reverseAllocation, refundClientAdvance } from "./payments";
@@ -8,13 +9,26 @@ import { allocatePayment, cancelPayment, createPayment, reverseAllocation, refun
 const P = ["/supplier-bills", "/payments", "/notes", "/purchase-orders", "/projects", "/approvals", "/dashboard", "/client-invoices", "/running-bills"];
 type Opts = { version: number; note?: string | null; override?: boolean };
 
-export async function createBillAction(input: unknown) {
-  return runAction(async (a) => ({ id: (await createBill(a, input)).id }), P);
+/** "Save & finalize": finalize right after the save; if that fails the draft stays and the reason is returned. */
+async function finalizeBillAfterSave(a: Parameters<typeof billAction>[0], id: string) {
+  const { version } = await db.supplierBill.findUniqueOrThrow({ where: { id }, select: { version: true } });
+  try {
+    const r = (await billAction(a, id, "submit", { version })) as { approved?: boolean; exceptions?: string[] } | undefined;
+    return { finalized: r?.approved !== false, held: r?.approved === false ? (r.exceptions ?? []) : null, finalizeError: null as string | null };
+  } catch (e) {
+    return { finalized: false, held: null, finalizeError: e instanceof Error ? e.message : "Could not finalize the bill." };
+  }
 }
-export async function updateBillAction(id: string, version: number, input: unknown) {
+export async function createBillAction(input: unknown, opts?: { finalize?: boolean }) {
+  return runAction(async (a) => {
+    const id = (await createBill(a, input)).id;
+    return { id, ...(opts?.finalize ? await finalizeBillAfterSave(a, id) : { finalized: false, held: null, finalizeError: null }) };
+  }, P);
+}
+export async function updateBillAction(id: string, version: number, input: unknown, opts?: { finalize?: boolean }) {
   return runAction(async (a) => {
     await updateBill(a, String(id), Number(version), input);
-    return { id };
+    return { id, ...(opts?.finalize ? await finalizeBillAfterSave(a, String(id)) : { finalized: false, held: null, finalizeError: null }) };
   }, P);
 }
 export async function billActionAction(id: string, action: BillAction, opts: Opts) {

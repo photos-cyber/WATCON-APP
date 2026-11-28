@@ -1,10 +1,10 @@
 "use client";
 
-import { Ban, CheckCircle2, FileMinus, Pencil, ShieldAlert, ThumbsDown, ThumbsUp, Wallet } from "lucide-react";
+import { Ban, CheckCircle2, Pencil, ShieldAlert, ThumbsDown, ThumbsUp, Wallet } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { DocActions, type DocActionDef } from "@/components/commercial/doc-actions";
-import { RequestChangeButton } from "@/components/commercial/request-change";
+import { requestChangeDef, withRequestChange } from "@/components/commercial/request-change";
 import { Button } from "@/components/ui/button";
 import { callAction } from "@/lib/call-action";
 import { billActionAction } from "@/modules/payables/actions";
@@ -35,22 +35,15 @@ export function BillActions({ id, version, can, hasExceptions, projectId }: { id
           </Link>
         </Button>
       )}
-      {can.note && (
-        <Button asChild size="sm" variant="outline">
-          <Link href={`/notes/new?billId=${id}`}>
-            <FileMinus /> Credit / debit note
-          </Link>
-        </Button>
-      )}
       <DocActions
-        actions={defs}
-        run={(key, note) => callAction(billActionAction, id, (key === "override" ? (can.approve ? "approve" : "submit") : key) as never, { version, note, override: key === "override" })}
+        actions={can.requestChange ? [...defs, requestChangeDef()] : defs}
+        moreLinks={can.note ? [{ label: "Credit / debit note", href: `/notes/new?billId=${id}` }] : []}
+        run={withRequestChange("supplier_bill", id, (key, note) => callAction(billActionAction, id, (key === "override" ? (can.approve ? "approve" : "submit") : key) as never, { version, note, override: key === "override" }))}
         onDone={(key, res) => {
           const d = (res as { data?: { approved?: boolean; exceptions?: string[] } }).data;
           if (key === "submit" && d && d.approved === false) toast.warning(`Held for checking: ${(d.exceptions ?? []).join(" ")}`);
         }}
       />
-      {can.requestChange && <RequestChangeButton kind="supplier_bill" id={id} />}
       {pending && hasExceptions && !can.override && <span className="text-xs text-amber-700">This bill differs from the PO / receipts. Correct it, or ask a user allowed to accept differences.</span>}
     </>
   );

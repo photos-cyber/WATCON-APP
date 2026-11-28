@@ -47,7 +47,7 @@ async function approvedSo(lines: Record<string, unknown>[], extra: Record<string
 const cementLine = (qty = "30") => ({ itemBrandId: fx.ibUltra.id, quantity: qty, rate: "450", gstRate: "28" });
 
 describe("client POs", () => {
-  it("finalizes in one step and keeps the original value; variations (Super Admin) snapshot a revision", async () => {
+  it("finalizes in one step and keeps the original value; variations (Admin) snapshot a revision", async () => {
     const cpo = await createClientPo(fx.roles.pm.actor, { projectId: fx.p1.id, partyId: fx.client.id, clientPoNumber: "ACME-1", poDate: day(), lines: [{ description: "Work", unit: "LS", quantity: "1", rate: "100000", gstRate: "18" }] });
     expect(cpo.number).toMatch(/^CPO\//);
     await clientPoAction(fx.roles.pm.actor, cpo.id, "submit", { version: await v("clientPo", cpo.id) });
@@ -55,9 +55,9 @@ describe("client POs", () => {
     expect([row.status, row.approvedById]).toEqual(["ACTIVE", fx.roles.pm.user.id]);
     expect(row.originalTotal?.toFixed(2)).toBe("118000.00");
 
-    // Changing an active contract is an amendment: Super Admin only.
-    expect((await errorOf(clientPoAction(fx.roles.pm.actor, cpo.id, "variation", { version: row.version, note: "Extra scope" }))).message).toMatch(/Only the Super Admin/);
-    await clientPoAction(fx.actors.superAdmin, cpo.id, "variation", { version: row.version, note: "Extra scope" });
+    // Changing an active contract needs cpo.approve (Admins) — no Super Admin step.
+    expect((await errorOf(clientPoAction(fx.roles.pm.actor, cpo.id, "variation", { version: row.version, note: "Extra scope" }))).message).toMatch(/permission/);
+    await clientPoAction(fx.actors.admin, cpo.id, "variation", { version: row.version, note: "Extra scope" });
     const rev = await db.clientPoRevision.findFirstOrThrow({ where: { clientPoId: cpo.id } });
     expect(rev.revision).toBe(0);
     expect(rev.isVariation).toBe(true);
@@ -283,7 +283,7 @@ describe("sales orders drive the project", () => {
     expect(err.message).toMatch(/place of supply/);
   });
 
-  it("the person who drafted an invoice issues it (no second person); cancelling an issued one is Super Admin only", async () => {
+  it("the person who drafted an invoice issues it (no second person); an Admin may cancel an issued one", async () => {
     const so = await approvedSo([cementLine("8")]);
     const line = so.lines[0]!;
     const c = await createChallan(fx.roles.sk.actor, { type: "CLIENT_DELIVERY", soId: so.id, partyId: so.partyId, fromLocationId: fx.warehouse.id, dispatchDate: day(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: "8", soLineId: line.id }] });
@@ -293,8 +293,8 @@ describe("sales orders drive the project", () => {
     expect([view.can.issue, view.can.issueBlocked]).toEqual([true, null]);
     const res = await clientInvoiceAction(fx.actors.admin, inv.id, "issue", { version: await v("clientInvoice", inv.id) });
     expect(res?.number).toMatch(/^INV\//);
-    expect((await errorOf(clientInvoiceAction(fx.actors.admin, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong rate" }))).message).toMatch(/Only the Super Admin/);
-    await clientInvoiceAction(fx.actors.superAdmin, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong rate" });
+    expect((await errorOf(clientInvoiceAction(fx.roles.pm.actor, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong rate" }))).message).toMatch(/permission|not found/i);
+    await clientInvoiceAction(fx.actors.admin, inv.id, "cancel", { version: await v("clientInvoice", inv.id), note: "Wrong rate" });
   });
 
   it("cancelling a confirmed order (Super Admin) cancels its requirement (never deletes it)", async () => {

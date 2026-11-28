@@ -7,11 +7,8 @@ import { Button } from "@/components/ui/button";
 
 type Busy = "download" | "print" | null;
 
-/**
- * Preview / Download / Print for a server-generated PDF. All three use the same URL, so the
- * preview, the printed copy and the downloaded file are always the same, current document.
- */
-export function PdfButtons({ href, size = "sm", compact = false, print = true }: { href: string; size?: "sm" | "default"; compact?: boolean; print?: boolean }) {
+/** Download / print logic shared by the PDF buttons and the "PDF & share" menu. */
+export function usePdfActions(href: string) {
   const [busy, setBusy] = useState<Busy>(null);
   const withParam = (p: string) => `${href}${href.includes("?") ? "&" : "?"}${p}`;
 
@@ -83,6 +80,16 @@ export function PdfButtons({ href, size = "sm", compact = false, print = true }:
     }
   }
 
+  return { busy, previewHref: withParam("inline=1"), download, printPdf };
+}
+
+/**
+ * Preview / Download / Print for a server-generated PDF. All three use the same URL, so the
+ * preview, the printed copy and the downloaded file are always the same, current document.
+ */
+export function PdfButtons({ href, size = "sm", compact = false, print = true }: { href: string; size?: "sm" | "default"; compact?: boolean; print?: boolean }) {
+  const { busy, previewHref, download, printPdf } = usePdfActions(href);
+  const withParam = (p: string) => (p === "inline=1" ? previewHref : href);
   const label = (text: string) => (compact ? <span className="sr-only">{text}</span> : text);
   return (
     <>

@@ -105,9 +105,9 @@ describe("Finalize: one step, no approval wait (simplified workflow)", () => {
     expect((await getPo(fx.roles.pu.actor, a.id)).can).toMatchObject({ finalize: true, finalizeApproves: true, amend: false, requestChange: false });
     expect(await poAction(fx.roles.pu.actor, a.id, "finalize", { version: await poVer(a.id) })).toEqual({ approved: true });
     expect(await db.purchaseOrder.findUniqueOrThrow({ where: { id: a.id } })).toMatchObject({ status: "APPROVED", approvedById: fx.roles.pu.user.id, submittedById: fx.roles.pu.user.id });
-    // Once final, the buyer can only ask the Super Admin for a change.
+    // Once final, a buyer without amend / cancel rights asks for a change; an Admin amends or cancels directly.
     expect((await getPo(fx.roles.pu.actor, a.id)).can).toMatchObject({ amend: false, cancel: false, requestChange: true });
-    expect((await getPo(fx.actors.superAdmin, a.id)).can).toMatchObject({ amend: true, cancel: true, requestChange: false });
+    expect((await getPo(fx.actors.admin, a.id)).can).toMatchObject({ amend: true, cancel: true, requestChange: false });
     // An approval limit configured earlier no longer blocks daily work.
     await db.approvalLimit.create({ data: { organizationId: fx.org.id, roleKey: "PURCHASE", docType: "PO", maxAmount: "100" } }).catch(() => null);
     const e = await draft();

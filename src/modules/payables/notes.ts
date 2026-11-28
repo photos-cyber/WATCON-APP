@@ -4,10 +4,10 @@ import { writeAudit } from "@/lib/audit";
 import { db, type Prisma, type Tx } from "@/lib/db";
 import { nextDocNumber } from "@/lib/doc-numbering";
 import { NotFoundError, ValidationError } from "@/lib/errors";
-import { addMoney, cmpMoney, formatINR, pctOf } from "@/lib/money";
+import { addMoney, cmpMoney, formatINR, pctOf, subMoney } from "@/lib/money";
 import { can, type Actor, type PermissionKey } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { dec2, isSuperAdmin, parseInput, requireSuperAdmin, projectRequiredScoped, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
+import { dec2, parseInput, projectRequiredScoped, projectScoped, requirePermission, transition } from "@/modules/commercial/core";
 import { gstRateField, moneyField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { applyBillSettlement, applyInvoiceSettlement, lockBill, lockInvoice, outstandingOf } from "./settlement";
@@ -92,8 +92,7 @@ export async function noteAction(actor: Actor, id: string, action: "approve" | "
   };
   const log = (tx: Tx, verb: string) => writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: `note.${action}`, entityType: "adjustment_note", entityId: id, projectId: n.projectId, summary: `${verb} note ${n.number} (${formatINR(total)})${opts.note ? ` – ${opts.note}` : ""}` }, tx);
   if (action === "approve") {
-    // A note corrects a finalized bill / invoice — an amendment, so only the Super Admin applies it.
-    requireSuperAdmin(actor, "approve a credit / debit note");
+    requirePermission(actor, p.approve, "You do not have permission to apply a credit / debit note.");
     return db.$transaction(async (tx) => {
       if (n.supplierBillId) {
         const b = await lockBill(tx, n.supplierBillId);
@@ -111,8 +110,7 @@ export async function noteAction(actor: Actor, id: string, action: "approve" | "
     });
   }
   if (!opts.note?.trim()) throw new ValidationError("Give a reason for cancelling.", { note: "Reason required." });
-  if (n.status === "APPROVED") requireSuperAdmin(actor, "cancel an applied credit / debit note");
-  else requirePermission(actor, p.manage);
+  requirePermission(actor, n.status === "APPROVED" ? p.approve : p.manage);
   return db.$transaction(async (tx) => {
     await transition(tx.adjustmentNote, w, ["DRAFT", "APPROVED"], { status: "CANCELLED" }, "note");
     if (n.status === "APPROVED") await apply(tx, "-");
@@ -155,9 +153,9 @@ export async function getNote(actor: Actor, id: string) {
   return {
     note: { ...n, taxable: dec2(n.taxable), gstRate: dec2(n.gstRate), taxAmount: dec2(n.taxAmount), total: dec2(n.total) },
     can: {
-      approve: n.status === "DRAFT" && isSuperAdmin(actor),
-      approveBlockedReason: n.status === "DRAFT" && !isSuperAdmin(actor) ? "A credit / debit note changes a finalized bill or invoice, so the Super Admin applies it." : null,
-      cancel: n.status !== "CANCELLED" && (n.status === "APPROVED" ? isSuperAdmin(actor) : can(actor, p.manage)),
+      approve: n.status === "DRAFT" && can(actor, p.approve),
+      approveBlockedReason: n.status === "DRAFT" && !can(actor, p.approve) ? "You do not have permission to apply this note." : null,
+      cancel: n.status !== "CANCELLED" && can(actor, n.status === "APPROVED" ? p.approve : p.manage),
     },
   };
 }
@@ -179,4 +177,53 @@ export async function noteTargets(actor: Actor, projectId?: string | null) {
     bills: bills.map((b) => ({ id: b.id, label: `${b.number} · ${b.party.name} · inv ${b.supplierInvoiceNo}`, project: b.project?.code ?? null, outstanding: outstandingOf(dec2(b.netPayable), dec2(b.paidAmount), dec2(b.adjustedAmount)), taxMode: b.taxMode })),
     invoices: invoices.map((i) => ({ id: i.id, label: `${i.number} · ${i.party.name}`, project: i.project.code, outstanding: outstandingOf(dec2(i.netReceivable), dec2(i.receivedAmount), dec2(i.adjustedAmount)), taxMode: i.taxMode })),
   };
+}
+
+// ───────────────────── Automatic GST credit notes (final running bill) ─────────────────────
+
+/** Largest taxable value (rupees, 2 dp) whose total incl. GST fits into `room`. */
+function taxableFitting(room: string, gstRate: string, want: string) {
+  const total = (t: string) => addMoney(t, pctOf(t, gstRate));
+  if (cmpMoney(total(want), room) <= 0) return want;
+  let paise = Math.floor((Math.round(Number(room) * 100) * 100) / (100 + Number(gstRate)));
+  while (paise > 0 && cmpMoney(total((paise / 100).toFixed(2)), room) > 0) paise -= 1;
+  return (paise / 100).toFixed(2);
+}
+
+/**
+ * Raises and applies GST credit notes for a final running bill's shortage / damage credit (owner rule
+ * 2026-11-27: raised automatically). Runs inside the transaction that issues the final bill's invoice.
+ * One note per GST rate (and per invoice it is set against): the final invoice first, then the order's other
+ * open invoices, oldest first. The figures come from confirmed site receipts with photo proof, so the notes are
+ * applied at once by the person issuing the invoice (no Super Admin step). Anything that cannot be set off —
+ * every invoice already settled — is returned as `unapplied`.
+ */
+export async function raiseShortageCreditNotesTx(tx: Tx, actor: Actor, o: { soId: string; soNumber: string; finalInvoiceId: string; raLabel: string; groups: { gstRate: string; taxable: string }[]; reason: string; noteDate: Date }) {
+  const others = await tx.clientInvoice.findMany({ where: { soId: o.soId, kind: "TAX_INVOICE", status: { in: ["ISSUED", "PARTIALLY_PAID"] }, id: { not: o.finalInvoiceId } }, orderBy: [{ invoiceDate: "asc" }, { createdAt: "asc" }], select: { id: true } });
+  const targets = [o.finalInvoiceId, ...others.map((x) => x.id)];
+  const notes: { id: string; number: string; total: string; invoice: string }[] = [];
+  let unapplied = "0.00";
+  for (const g of o.groups) {
+    let left = g.taxable;
+    for (const invId of targets) {
+      if (cmpMoney(left, "0") <= 0) break;
+      const inv = await lockInvoice(tx, invId);
+      if (!["ISSUED", "PARTIALLY_PAID"].includes(inv.status)) continue;
+      const room = outstandingOf(dec2(inv.netReceivable), dec2(inv.receivedAmount), dec2(inv.adjustedAmount));
+      const taxable = taxableFitting(room, g.gstRate, left);
+      if (cmpMoney(taxable, "0") <= 0) continue;
+      const taxAmount = pctOf(taxable, g.gstRate);
+      const total = addMoney(taxable, taxAmount);
+      const number = await nextDocNumber(tx, actor.organizationId, "CN", o.noteDate);
+      const note = await tx.adjustmentNote.create({
+        data: { organizationId: actor.organizationId, number, noteType: "CREDIT", partyRole: "CLIENT", partyId: inv.partyId, projectId: inv.projectId, clientInvoiceId: inv.id, noteDate: o.noteDate, reason: o.reason.slice(0, 500), taxMode: inv.taxMode, taxable, gstRate: g.gstRate, taxAmount, total, status: "APPROVED", createdById: actor.id, approvedById: actor.id, approvedAt: new Date() },
+      });
+      await applyInvoiceSettlement(tx, inv.id, { adjusted: total });
+      await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "note.auto_raised", entityType: "adjustment_note", entityId: note.id, projectId: inv.projectId, summary: `Raised and applied GST credit note ${number} for ${formatINR(total)} (GST ${g.gstRate}%) against ${inv.number} – shortage / damage on ${o.soNumber}, final bill ${o.raLabel}` }, tx);
+      notes.push({ id: note.id, number, total, invoice: inv.number ?? "" });
+      left = subMoney(left, taxable);
+    }
+    if (cmpMoney(left, "0") > 0) unapplied = addMoney(unapplied, addMoney(left, pctOf(left, g.gstRate)));
+  }
+  return { notes, unapplied };
 }

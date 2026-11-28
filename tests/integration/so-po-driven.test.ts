@@ -10,6 +10,8 @@ import { clientPoAction, createClientPo } from "@/modules/sales/client-po";
 import { clientInvoiceAction, createClientInvoice } from "@/modules/sales/invoice";
 import { certifyRaBill, createRaBill, getRaBill, raBillAction } from "@/modules/sales/ra-bill";
 import { createSalesOrder, salesOrderAction } from "@/modules/sales/sales-order";
+import { prepareRaBillPayment } from "@/modules/sales/quick-bill";
+import { addMoney as addMoneyStr } from "@/lib/money";
 import { generateSoRunningBill, soBillingPosition } from "@/modules/sales/so-running-bill";
 import { issueMaterialToSite } from "@/modules/stores/site-issue";
 import { PDF, commercialFixture, day, errorOf, key, receiveWithProof, type CFx } from "./commercial-helpers";
@@ -212,5 +214,130 @@ describe("supplier side runs on the purchase order", () => {
     expect((await db.purchaseOrder.findUniqueOrThrow({ where: { id: po.id } })).projectId).toBeNull();
     expect((await getPo(fx.roles.pu.actor, po.id)).financial!.poValue).toBe("1000.00");
     expect((await projectAccountsDashboard(fx.roles.ac.actor, fx.p1.id)).supplier.poValue).toBe("0.00");
+  });
+});
+
+describe("running bills follow dispatched challans and are settled by client payments (owner rule 2026-11-27)", () => {
+  /** Site challan from the warehouse, dispatched only (not yet received at site). */
+  async function dispatchOnly(qty: string) {
+    const c = await issueMaterialToSite(fx.roles.sk.actor, { projectId: fx.p1.id, fromLocationId: fx.warehouse.id, clientKey: key(), lines: [{ itemBrandId: fx.ibUltra.id, quantity: qty }] });
+    return { challanId: c.id, line: await db.challanLine.findFirstOrThrow({ where: { challanId: c.id } }) };
+  }
+  const billable = async (soId: string) => (await soBillingPosition(db, soId)).lines[0]!.billable;
+
+  it("dispatch makes material billable; site receipt adds nothing; damage recorded later comes off the next bill", async () => {
+    const so = await confirmedSo("100");
+    const { challanId, line } = await dispatchOnly("50");
+    expect(await billable(so.id)).toBe("50");
+    const b1 = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id });
+    expect((await getRaBill(fx.roles.pm.actor, b1.id)).bill.lines.map((l) => l.claimedQty)).toEqual(["50"]);
+    // The site confirms 50 received, 5 of them damaged: the receipt itself never adds billable quantity.
+    await receiveWithProof(fx.roles.se.actor, { clientKey: key(), challanId, receiptDate: day(), lines: [{ challanLineId: line.id, receivedQty: "50", damagedQty: "5" }] });
+    await raBillAction(fx.roles.pm.actor, b1.id, "submit_review", { version: await v("raBill", b1.id) });
+    expect(await billable(so.id)).toBe("0");
+    // Next dispatch of 20: only 15 is billable (the 5 damaged already billed are deducted).
+    await dispatchOnly("20");
+    expect(await billable(so.id)).toBe("15");
+    // Supplier delivery straight to site still counts once its receipt is confirmed.
+    await deliverDirect("10");
+    expect(await billable(so.id)).toBe("25");
+  });
+
+  it("a shortfall returned to the warehouse comes off; cancelled / draft challans never count", async () => {
+    const so = await confirmedSo("100");
+    const { challanId } = await dispatchOnly("30");
+    const c = await db.challan.findUniqueOrThrow({ where: { id: challanId } });
+    const { challanAction } = await import("@/modules/stores/challan");
+    await challanAction(fx.roles.sk.actor, challanId, "close_discrepancy", { version: c.version, note: "Lorry turned back", resolution: "RETURN" });
+    expect(await billable(so.id)).toBe("0");
+  });
+
+  it("final bill raises a GST credit note for material billed earlier that never fully reached the site", async () => {
+    const so = await confirmedSo("100", "1000", { lines: [
+      { kind: "MATERIAL", itemBrandId: fx.ibUltra.id, quantity: "100", rate: "1000", gstRate: "18" },
+      { kind: "INSTALLATION", description: "Installation", unit: "LS", quantity: "1", rate: "20000", gstRate: "18" },
+    ] });
+    const { challanId, line } = await dispatchOnly("50");
+    const b1 = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id });
+    await raBillAction(fx.roles.pm.actor, b1.id, "submit_review", { version: await v("raBill", b1.id) });
+    // After billing, the site records 5 damaged.
+    await receiveWithProof(fx.roles.se.actor, { clientKey: key(), challanId, receiptDate: day(), lines: [{ challanLineId: line.id, receivedQty: "50", damagedQty: "5" }] });
+    // A normal bill carries no credit; the final bill credits 5 × ₹1,000 + 18% GST = ₹5,900.
+    const fin = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id, isFinal: true });
+    let r = await db.raBill.findUniqueOrThrow({ where: { id: fin.id } });
+    // The bill keeps its full value; the credit is shown and taken off the total payable, raised as a credit note on invoicing.
+    expect([r.shortageCredit.toFixed(2), r.gstAmount.toFixed(2), r.netPayable.toFixed(2)]).toEqual(["5900.00", "3600.00", "23600.00"]);
+    expect((await getRaBill(fx.roles.pm.actor, fin.id)).bill.statement!.totalPayable).toBe(addMoneyStr(r.previousOutstanding.toFixed(2), "17700.00"));
+    expect(r.deductionNotes).toMatch(/Shortage \/ damage credit \(GST credit note on invoicing\): line 1 .* 5 .* billed but not delivered = ₹5900.00/);
+    // Refreshing the draft (notes sent back from the form) neither doubles the credit nor the note.
+    await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id, isFinal: true, deductionNotes: `Site measured. ${r.deductionNotes}` });
+    r = await db.raBill.findUniqueOrThrow({ where: { id: fin.id } });
+    expect(r.shortageCredit.toFixed(2)).toBe("5900.00");
+    expect(r.deductionNotes!.match(/Shortage/g)).toHaveLength(1);
+    expect(r.deductionNotes).toMatch(/^Site measured\./);
+    // The credit survives certification and reduces the invoice the client pays.
+    await raBillAction(fx.roles.pm.actor, fin.id, "submit_review", { version: await v("raBill", fin.id) });
+    const t = await prepareRaBillPayment(fx.roles.ac.actor, fin.id);
+    const inv = await db.clientInvoice.findUniqueOrThrow({ where: { id: t.invoiceId } });
+    expect([inv.total.toFixed(2), inv.netReceivable.toFixed(2), inv.adjustedAmount.toFixed(2)]).toEqual(["23600.00", "23600.00", "5900.00"]);
+    const notes = await db.adjustmentNote.findMany({ where: { clientInvoiceId: inv.id } });
+    expect(notes.map((n) => [n.noteType, n.partyRole, n.status, n.taxable.toFixed(2), n.gstRate.toFixed(2), n.taxAmount.toFixed(2), n.total.toFixed(2)])).toEqual([["CREDIT", "CLIENT", "APPROVED", "5000.00", "18.00", "900.00", "5900.00"]]);
+    expect(notes[0]!.number).toMatch(/^CN\//);
+    expect(notes[0]!.reason).toMatch(/billed but not delivered/);
+    // Client pays the rest (₹17,700) and the final bill is settled.
+    await receipt({ soId: so.id, amount: "17700", allocations: [{ documentId: inv.id, amount: "17700" }] });
+    expect((await db.clientInvoice.findUniqueOrThrow({ where: { id: inv.id } })).status).toBe("PAID");
+  });
+
+  it("a credit larger than the final invoice spills onto the order's other open invoices", async () => {
+    const so = await confirmedSo("100", "1000", { lines: [
+      { kind: "MATERIAL", itemBrandId: fx.ibUltra.id, quantity: "100", rate: "1000", gstRate: "18" },
+      { kind: "INSTALLATION", description: "Installation", unit: "LS", quantity: "1", rate: "1000", gstRate: "18" },
+    ] });
+    const { challanId, line } = await dispatchOnly("20");
+    const b1 = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id });
+    await raBillAction(fx.roles.pm.actor, b1.id, "submit_review", { version: await v("raBill", b1.id) });
+    const inv1 = await prepareRaBillPayment(fx.roles.ac.actor, b1.id); // RA-1 invoiced ₹23,600, unpaid
+    await receiveWithProof(fx.roles.se.actor, { clientKey: key(), challanId, receiptDate: day(), lines: [{ challanLineId: line.id, receivedQty: "20", damagedQty: "5" }] });
+    const fin = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id, isFinal: true });
+    await raBillAction(fx.roles.pm.actor, fin.id, "submit_review", { version: await v("raBill", fin.id) });
+    const t = await prepareRaBillPayment(fx.roles.ac.actor, fin.id); // final invoice ₹1,180; credit ₹5,900
+    const notes = await db.adjustmentNote.findMany({ where: { noteType: "CREDIT", clientInvoiceId: { in: [t.invoiceId, inv1.invoiceId] } }, orderBy: { createdAt: "asc" } });
+    expect(notes.map((n) => [n.clientInvoiceId, n.total.toFixed(2)])).toEqual([[t.invoiceId, "1180.00"], [inv1.invoiceId, "4720.00"]]);
+    expect((await db.clientInvoice.findUniqueOrThrow({ where: { id: t.invoiceId } })).status).toBe("PAID");
+    expect((await db.clientInvoice.findUniqueOrThrow({ where: { id: inv1.invoiceId } })).adjustedAmount.toFixed(2)).toBe("4720.00");
+    expect((await db.raBill.findUniqueOrThrow({ where: { id: fin.id } })).shortageCredit.toFixed(2)).toBe("5900.00");
+  });
+
+  it("a final bill with nothing left to bill cannot carry the credit (credit note instead)", async () => {
+    const so = await confirmedSo("100", "1000");
+    const { challanId, line } = await dispatchOnly("10");
+    const b1 = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id });
+    await raBillAction(fx.roles.pm.actor, b1.id, "submit_review", { version: await v("raBill", b1.id) });
+    await receiveWithProof(fx.roles.se.actor, { clientKey: key(), challanId, receiptDate: day(), lines: [{ challanLineId: line.id, receivedQty: "10", damagedQty: "2" }] });
+    expect((await errorOf(generateSoRunningBill(fx.roles.pm.actor, { soId: so.id, isFinal: true }))).message).toMatch(/shortage credit \(2000.00\).*credit note/);
+  });
+
+  it("client payment recorded on the bill raises the invoice; the unpaid part carries into the next bill", async () => {
+    const so = await confirmedSo("100");
+    await dispatchOnly("40");
+    const b1 = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id });
+    expect((await errorOf(prepareRaBillPayment(fx.roles.ac.actor, b1.id))).message).toMatch(/Submit the bill/);
+    await raBillAction(fx.roles.pm.actor, b1.id, "submit_review", { version: await v("raBill", b1.id) });
+    const t = await prepareRaBillPayment(fx.roles.ac.actor, b1.id);
+    const inv = await db.clientInvoice.findUniqueOrThrow({ where: { id: t.invoiceId } });
+    expect([inv.status, inv.raBillId, inv.netReceivable.toFixed(2), t.soId]).toEqual(["ISSUED", b1.id, "40000.00", so.id]);
+    // Calling again (e.g. a second instalment) reuses the same invoice.
+    expect((await prepareRaBillPayment(fx.roles.ac.actor, b1.id)).invoiceId).toBe(t.invoiceId);
+    await receipt({ soId: so.id, amount: "25000", allocations: [{ documentId: t.invoiceId, amount: "25000" }] });
+    expect((await db.raBill.findUniqueOrThrow({ where: { id: b1.id } })).status).toBe("PARTIALLY_PAID");
+    await dispatchOnly("10");
+    const b2 = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id });
+    const st = (await getRaBill(fx.roles.pm.actor, b2.id)).bill.statement!;
+    expect([st.previousOutstanding, st.receivedToDate, st.currentBilling, st.totalPayable]).toEqual(["15000.00", "25000.00", "10000.00", "25000.00"]);
+    // Paying the rest settles the first bill.
+    await receipt({ soId: so.id, amount: "15000", allocations: [{ documentId: t.invoiceId, amount: "15000" }] });
+    expect((await db.raBill.findUniqueOrThrow({ where: { id: b1.id } })).status).toBe("PAID");
+    expect((await errorOf(prepareRaBillPayment(fx.roles.ac.actor, b1.id))).message).toMatch(/already fully paid/);
   });
 });

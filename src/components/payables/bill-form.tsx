@@ -107,7 +107,7 @@ export function BillForm({ initial, initialRefs, billId, version, pos, suppliers
     setRefs(refsFromPrefill(p));
   }
 
-  async function save() {
+  async function save(finalize = false) {
     setBusy(true);
     const payload = {
       poId: v.kind === "PO" ? v.poId : null,
@@ -125,7 +125,7 @@ export function BillForm({ initial, initialRefs, billId, version, pos, suppliers
       remarks: v.remarks,
       lines: v.lines.map((l) => ({ description: l.description, hsnCode: l.hsnSac, unit: l.unit, quantity: l.quantity, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, poLineId: v.kind === "PO" ? (l.links?.poLineId ?? null) : null, grnLineId: v.kind === "PO" ? (l.links?.grnLineId ?? null) : null, itemBrandId: l.links?.itemBrandId ?? null })),
     };
-    const res = billId ? await callAction(updateBillAction, billId, version!, payload) : await callAction(createBillAction, payload);
+    const res = billId ? await callAction(updateBillAction, billId, version!, payload, { finalize }) : await callAction(createBillAction, payload, { finalize });
     setBusy(false);
     if (!res.ok) {
       setErrors(res.fieldErrors ?? {});
@@ -133,7 +133,11 @@ export function BillForm({ initial, initialRefs, billId, version, pos, suppliers
       return;
     }
     setDirty(false);
-    toast.success(billId ? "Bill saved." : "Bill saved as draft — attach the supplier's invoice and finalize it.");
+    const d = res.data as { finalized?: boolean; held?: string[] | null; finalizeError?: string | null };
+    if (!finalize) toast.success(billId ? "Bill saved." : "Bill saved as draft — attach the supplier's invoice and finalize it.");
+    else if (d.finalizeError) toast.warning(`Saved as draft, not finalized: ${d.finalizeError}`);
+    else if (d.held) toast.warning(`Saved and held for checking: ${d.held.join(" ")}`);
+    else toast.success("Bill finalized — ready to pay. Attach the supplier's invoice on the bill page.");
     router.push(`/supplier-bills/${res.data.id}`);
   }
 
@@ -145,7 +149,7 @@ export function BillForm({ initial, initialRefs, billId, version, pos, suppliers
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
-        void save();
+        void save(true);
       }}
     >
       <FormSection title="1. What is this bill for?" description="Bills against a purchase order are checked automatically against what was ordered and received.">
@@ -286,9 +290,12 @@ export function BillForm({ initial, initialRefs, billId, version, pos, suppliers
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
+        <Button type="button" variant="outline" disabled={busy} onClick={() => void save(false)}>
+          Save draft
+        </Button>
         <Button type="submit" disabled={busy}>
           {busy && <Loader2 className="animate-spin" />}
-          Save draft
+          Save &amp; finalize
         </Button>
       </div>
     </form>

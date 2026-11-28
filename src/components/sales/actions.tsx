@@ -1,14 +1,15 @@
 "use client";
 
-import { Ban, CheckCircle2, FilePen, FileText, Gavel, Lock, Pencil, ReceiptIndianRupee, RotateCcw, ScrollText, Send, ThumbsDown, ThumbsUp, Truck } from "lucide-react";
+import { Ban, CheckCircle2, HandCoins, FilePen, FileText, Gavel, Lock, Pencil, ReceiptIndianRupee, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import { DocActions, type DocActionDef } from "@/components/commercial/doc-actions";
-import { RequestChangeButton } from "@/components/commercial/request-change";
+import { DocActions, type DocActionDef, type MoreLink } from "@/components/commercial/doc-actions";
+import { requestChangeDef, withRequestChange } from "@/components/commercial/request-change";
 import { Button } from "@/components/ui/button";
 import { callAction } from "@/lib/call-action";
-import { acceptRaBillAndInvoiceAction, clientInvoiceActionAction, clientPoActionAction, raBillActionAction, salesOrderActionAction, setMilestoneStatusAction } from "@/modules/sales/actions";
+import { acceptRaBillAndInvoiceAction, prepareRaBillPaymentAction, clientInvoiceActionAction, clientPoActionAction, raBillActionAction, salesOrderActionAction, setMilestoneStatusAction } from "@/modules/sales/actions";
 
 const LinkButton = ({ href, icon: Icon, children }: { href: string; icon?: typeof Pencil; children: React.ReactNode }) => (
   <Button asChild size="sm" variant="outline">
@@ -22,7 +23,7 @@ type CpoCan = { edit: boolean; submit: boolean; approve: boolean; approveBlocked
 
 export function CpoActions({ id, version, can }: { id: string; version: number; can: CpoCan }) {
   const defs: DocActionDef[] = [];
-  if (can.submit) defs.push({ key: "submit", label: "Finalize", icon: CheckCircle2, variant: "default", confirm: { title: "Finalize this client PO?", description: "It becomes the active contract: sales orders, running bills and invoices can be raised against it. After this, only the Super Admin can amend it." }, success: "Client PO is now active." });
+  if (can.submit) defs.push({ key: "submit", label: "Finalize", icon: CheckCircle2, variant: "default", confirm: { title: "Finalize this client PO?", description: "It becomes the active contract: sales orders, running bills and invoices can be raised against it. It can still be amended later from this page (with a reason)." }, success: "Client PO is now active." });
   if (can.approve) {
     defs.push({ key: "approve", label: "Finalize", icon: ThumbsUp, variant: "default", confirm: { title: "Finalize this client PO?", description: "It becomes the active contract." }, success: "Client PO is now active." });
     defs.push({ key: "reject", label: "Return for changes", icon: ThumbsDown, confirm: { title: "Return this client PO for changes?", description: "It goes back for correction.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Returned for changes." });
@@ -37,17 +38,18 @@ export function CpoActions({ id, version, can }: { id: string; version: number; 
     <>
       {can.edit && <LinkButton href={`/client-pos/${id}/edit`} icon={Pencil}>Edit</LinkButton>}
       {can.salesOrder && <LinkButton href={`/sales-orders/new?clientPoId=${id}`} icon={FileText}>Sales order</LinkButton>}
-      {can.raBill && <LinkButton href={`/running-bills/new?clientPoId=${id}`} icon={ScrollText}>Running bill</LinkButton>}
-      {can.invoice && <LinkButton href={`/client-invoices/new?clientPoId=${id}`} icon={ReceiptIndianRupee}>Invoice</LinkButton>}
-      <DocActions actions={defs} run={(key, note) => callAction(clientPoActionAction, id, key as never, { version, note })} />
-      {can.requestChange && <RequestChangeButton kind="client_po" id={id} />}
+      <DocActions
+        actions={can.requestChange ? [...defs, requestChangeDef()] : defs}
+        moreLinks={[...(can.raBill ? [{ label: "Running bill (legacy client PO)", href: `/running-bills/new?clientPoId=${id}` }] : []), ...(can.invoice ? [{ label: "Invoice", href: `/client-invoices/new?clientPoId=${id}` }] : [])]}
+        run={withRequestChange("client_po", id, (key, note) => callAction(clientPoActionAction, id, key as never, { version, note }))}
+      />
     </>
   );
 }
 
 type SoCan = { edit: boolean; submit: boolean; approve: boolean; approveBlockedReason: string | null; close: boolean; cancel: boolean; deliver: boolean; invoice: boolean; planning: boolean };
 
-export function SoActions({ id, version, projectId, partyId, can }: { id: string; version: number; projectId: string; partyId: string; can: SoCan }) {
+export function SoActions({ id, version, projectId, partyId, can, more = [] }: { id: string; version: number; projectId: string; partyId: string; can: SoCan; more?: MoreLink[] }) {
   const defs: DocActionDef[] = [];
   const confirmSo = { title: "Confirm this sales order?", description: "It is locked once confirmed: material planning starts from its lines straight away. Any later change needs an amendment approved by the Super Admin." };
   if (can.submit) defs.push({ key: "submit", label: "Confirm order", icon: CheckCircle2, variant: "default", confirm: confirmSo, success: "Sales order confirmed — material planning updated." });
@@ -60,10 +62,16 @@ export function SoActions({ id, version, projectId, partyId, can }: { id: string
   return (
     <>
       {can.edit && <LinkButton href={`/sales-orders/${id}/edit`} icon={Pencil}>Edit</LinkButton>}
-      {can.planning && <LinkButton href={`/projects/${projectId}?tab=planning`}>Material planning</LinkButton>}
-      {can.deliver && <LinkButton href={`/challans/new?type=CLIENT_DELIVERY&soId=${id}&projectId=${projectId}&partyId=${partyId}`} icon={Truck}>Deliver</LinkButton>}
-      {can.invoice && <LinkButton href={`/client-invoices/new?soId=${id}`} icon={ReceiptIndianRupee}>Invoice</LinkButton>}
-      <DocActions actions={defs} run={(key, note) => callAction(salesOrderActionAction, id, key as never, { version, note })} />
+      <DocActions
+        actions={defs}
+        moreLinks={[
+          ...more,
+          ...(can.planning ? [{ label: "Material planning", href: `/projects/${projectId}?tab=planning` }] : []),
+          ...(can.deliver ? [{ label: "Deliver to client (challan)", href: `/challans/new?type=CLIENT_DELIVERY&soId=${id}&projectId=${projectId}&partyId=${partyId}` }] : []),
+          ...(can.invoice ? [{ label: "Invoice by delivery", href: `/client-invoices/new?soId=${id}` }] : []),
+        ]}
+        run={(key, note) => callAction(salesOrderActionAction, id, key as never, { version, note })}
+      />
     </>
   );
 }
@@ -87,32 +95,28 @@ export function RaActions({ id, version, can }: { id: string; version: number; c
     <>
       {can.edit && <LinkButton href={`/running-bills/${id}/edit`} icon={Pencil}>Edit</LinkButton>}
       {can.invoice && <LinkButton href={`/client-invoices/new?raBillId=${id}`} icon={ReceiptIndianRupee}>Create invoice</LinkButton>}
-      {quick.length > 0 && (
-        <DocActions
-          actions={quick}
-          run={(_k, note) => callAction(acceptRaBillAndInvoiceAction, id, { clientCertRef: note, issue: true })}
-          onDone={(_k, res) => {
-            const d = (res as { data?: { invoiceId: string; issueError: string | null } }).data;
-            if (d?.issueError) toast.warning(`Invoice created as draft, not issued: ${d.issueError}`);
-            if (d?.invoiceId) router.push(`/client-invoices/${d.invoiceId}`);
-          }}
-        />
-      )}
-      <DocActions actions={defs} run={(key, note) => callAction(raBillActionAction, id, key as never, { version, note })} />
-      {can.requestChange && <RequestChangeButton kind="ra_bill" id={id} />}
+      <DocActions
+        actions={[...quick, ...defs, ...(can.requestChange ? [requestChangeDef()] : [])]}
+        run={withRequestChange("ra_bill", id, (key, note) => (key === "accept" ? callAction(acceptRaBillAndInvoiceAction, id, { clientCertRef: note, issue: true }) : callAction(raBillActionAction, id, key as never, { version, note })))}
+        onDone={(key, res) => {
+          if (key !== "accept") return;
+          const d = (res as { data?: { invoiceId: string; issueError: string | null } }).data;
+          if (d?.issueError) toast.warning(`Invoice created as draft, not issued: ${d.issueError}`);
+          if (d?.invoiceId) router.push(`/client-invoices/${d.invoiceId}`);
+        }}
+      />
     </>
   );
 }
 
-export function InvoiceActions({ id, version, partyId, projectId, can }: { id: string; version: number; partyId: string; projectId?: string; can: { issue: boolean; cancel: boolean; receive: boolean; requestChange?: boolean } }) {
+export function InvoiceActions({ id, version, partyId, projectId, can, more = [] }: { id: string; version: number; partyId: string; projectId?: string; can: { issue: boolean; cancel: boolean; receive: boolean; requestChange?: boolean }; more?: MoreLink[] }) {
   const defs: DocActionDef[] = [];
   if (can.issue) defs.push({ key: "issue", label: "Issue invoice", icon: CheckCircle2, variant: "default", confirm: { title: "Issue this invoice?", description: "The invoice number is allocated now and the invoice can no longer be edited." }, success: "Invoice issued." });
   if (can.cancel) defs.push({ key: "cancel", label: "Cancel", icon: Ban, variant: "ghost", confirm: { title: "Cancel this invoice?", description: "Quantities return to the running bill / sales order so they can be invoiced again.", noteLabel: "Reason", noteRequired: true, destructive: true }, success: "Invoice cancelled." });
   return (
     <>
       {can.receive && <LinkButton href={`/payments/new?direction=IN&partyId=${partyId}&invoiceId=${id}${projectId ? `&projectId=${projectId}` : ""}`} icon={ReceiptIndianRupee}>Record client payment</LinkButton>}
-      <DocActions actions={defs} run={(key, note) => callAction(clientInvoiceActionAction, id, key as never, { version, note })} />
-      {can.requestChange && <RequestChangeButton kind="client_invoice" id={id} />}
+      <DocActions actions={can.requestChange ? [...defs, requestChangeDef()] : defs} moreLinks={more} run={withRequestChange("client_invoice", id, (key, note) => callAction(clientInvoiceActionAction, id, key as never, { version, note }))} />
     </>
   );
 }
@@ -138,5 +142,36 @@ export function MilestoneStatusSelect({ id, status, disabled }: { id: string; st
       <option value="BILLED">Billed</option>
       <option value="RECEIVED">Received</option>
     </select>
+  );
+}
+
+/**
+ * "Record client payment" on a running bill. The bill's tax invoice is created / issued behind the scenes
+ * (when not done yet), then the payment form opens set to settle it; anything unpaid is carried into the
+ * next running bill.
+ */
+export function RaBillPayButton({ id, label = "Record client payment" }: { id: string; label?: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  return (
+    <Button
+      size="sm"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        const r = await callAction(prepareRaBillPaymentAction, id);
+        if (!r.ok) {
+          setBusy(false);
+          toast.error(r.error);
+          return;
+        }
+        const d = (r as { data: { invoiceId: string; projectId: string; partyId: string; soId: string | null } }).data;
+        const qs = new URLSearchParams({ direction: "IN", projectId: d.projectId, partyId: d.partyId, invoiceId: d.invoiceId });
+        if (d.soId) qs.set("soId", d.soId);
+        router.push(`/payments/new?${qs}`);
+      }}
+    >
+      <HandCoins /> {busy ? "Preparing…" : label}
+    </Button>
   );
 }

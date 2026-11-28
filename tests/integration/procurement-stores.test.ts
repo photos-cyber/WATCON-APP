@@ -125,13 +125,13 @@ describe("site receipts (GRN) and stock posting", () => {
     const po = await approvedPo("10");
     const g = await receive(po.id, po.lines[0]!.id, "10");
     await recordConsumption(fx.roles.se.actor, { projectId: fx.p1.id, itemBrandId: fx.ibUltra.id, quantity: "6", txnDate: day(), idempotencyKey: key() });
-    // Reversal corrects final stock: Super Admin only.
-    expect((await errorOf(grnAction(fx.actors.admin, g.id, "reverse", { version: await v("grn", g.id), note: "Wrong PO" }))).message).toMatch(/Only the Super Admin/);
-    expect((await errorOf(grnAction(fx.actors.superAdmin, g.id, "reverse", { version: await v("grn", g.id), note: "Wrong PO" }))).message).toMatch(/Insufficient stock/);
+    // Reversal needs grn.reverse (Admins); the storekeeper cannot.
+    expect((await errorOf(grnAction(fx.roles.sk.actor, g.id, "reverse", { version: await v("grn", g.id), note: "Wrong PO" }))).message).toMatch(/permission/);
+    expect((await errorOf(grnAction(fx.actors.admin, g.id, "reverse", { version: await v("grn", g.id), note: "Wrong PO" }))).message).toMatch(/Insufficient stock/);
     await recordConsumption(fx.roles.se.actor, { projectId: fx.p1.id, itemBrandId: fx.ibAcc.id, quantity: "1", txnDate: day(), idempotencyKey: key() }).catch(() => null);
     const po2 = await approvedPo("5");
     const g2 = await receive(po2.id, po2.lines[0]!.id, "5");
-    await grnAction(fx.actors.superAdmin, g2.id, "reverse", { version: await v("grn", g2.id), note: "Duplicate delivery note" });
+    await grnAction(fx.actors.admin, g2.id, "reverse", { version: await v("grn", g2.id), note: "Duplicate delivery note" });
     const pl = await db.poLine.findUniqueOrThrow({ where: { id: po2.lines[0]!.id } });
     expect(pl.acceptedQty.toFixed(0)).toBe("0");
     expect((await db.purchaseOrder.findUniqueOrThrow({ where: { id: po2.id } })).status).toBe("APPROVED");
@@ -145,9 +145,9 @@ describe("PO amendments, cancellation and closure", () => {
     await receive(po.id, po.lines[0]!.id, "8");
     const ver = await v("purchaseOrder", po.id);
     expect((await errorOf(updatePo(fx.roles.pu.actor, po.id, ver, { partyId: fx.supplier.id, projectId: fx.p1.id, orderDate: day(), lines: [{ id: po.lines[0]!.id, itemBrandId: fx.ibUltra.id, quantity: "25", rate: "380", gstRate: "28" }] }))).message).toMatch(/Use Amend/);
-    // Amending a finalized PO is reserved for the Super Admin.
-    expect((await errorOf(poAction(fx.roles.pu.actor, po.id, "amend", { version: ver, note: "Client increased quantity" }))).message).toMatch(/Only the Super Admin/);
-    await poAction(fx.actors.superAdmin, po.id, "amend", { version: ver, note: "Client increased quantity" });
+    // Amending a finalized PO needs po.approve (Admins) — no Super Admin step.
+    expect((await errorOf(poAction(fx.roles.pu.actor, po.id, "amend", { version: ver, note: "Client increased quantity" }))).message).toMatch(/permission/);
+    await poAction(fx.actors.admin, po.id, "amend", { version: ver, note: "Client increased quantity" });
     expect((await errorOf(updatePo(fx.roles.pu.actor, po.id, ver + 1, { partyId: fx.supplier.id, projectId: fx.p1.id, orderDate: day(), lines: [{ id: po.lines[0]!.id, itemBrandId: fx.ibUltra.id, quantity: "5", rate: "380", gstRate: "28" }] }))).message).toMatch(/cannot be below/);
     await updatePo(fx.roles.pu.actor, po.id, ver + 1, { partyId: fx.supplier.id, projectId: fx.p1.id, orderDate: day(), lines: [{ id: po.lines[0]!.id, itemBrandId: fx.ibUltra.id, quantity: "25", rate: "380", gstRate: "28" }, { itemBrandId: fx.ibAcc.id, quantity: "5", rate: "360", gstRate: "28" }] });
     await poAction(fx.roles.pu.actor, po.id, "submit", { version: await v("purchaseOrder", po.id) });
@@ -166,9 +166,9 @@ describe("PO amendments, cancellation and closure", () => {
     const po = await approvedPo("20", { prId: pr.id, lines: [{ itemBrandId: fx.ibUltra.id, quantity: "20", rate: "380", gstRate: "28", prLineId: prLine.id }] });
     expect((await db.purchaseRequisition.findUniqueOrThrow({ where: { id: pr.id } })).status).toBe("ORDERED");
     await receive(po.id, po.lines[0]!.id, "12");
-    expect((await errorOf(poAction(fx.actors.admin, po.id, "close", { version: await v("purchaseOrder", po.id), note: "x" }))).message).toMatch(/Only the Super Admin/);
-    expect((await errorOf(poAction(fx.actors.superAdmin, po.id, "cancel", { version: await v("purchaseOrder", po.id), note: "x" }))).message).toMatch(/Short-close/);
-    await poAction(fx.actors.superAdmin, po.id, "close", { version: await v("purchaseOrder", po.id), note: "Supplier cannot supply balance" });
+    expect((await errorOf(poAction(fx.roles.pu.actor, po.id, "close", { version: await v("purchaseOrder", po.id), note: "x" }))).message).toMatch(/permission/);
+    expect((await errorOf(poAction(fx.actors.admin, po.id, "cancel", { version: await v("purchaseOrder", po.id), note: "x" }))).message).toMatch(/Short-close/);
+    await poAction(fx.actors.admin, po.id, "close", { version: await v("purchaseOrder", po.id), note: "Supplier cannot supply balance" });
     expect((await db.prLine.findUniqueOrThrow({ where: { id: prLine.id } })).orderedQty.toFixed(0)).toBe("12");
     expect((await db.purchaseRequisition.findUniqueOrThrow({ where: { id: pr.id } })).status).toBe("PARTIALLY_ORDERED");
     // the requisition cannot be over-ordered

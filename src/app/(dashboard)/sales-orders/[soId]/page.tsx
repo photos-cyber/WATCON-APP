@@ -1,4 +1,4 @@
-import { GitPullRequestArrow, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { ClientAccountCard, RecordClientPaymentButton } from "@/components/payables/client-account";
 import { clientAccount } from "@/modules/sales/client-account";
 import type { Metadata } from "next";
@@ -68,6 +68,8 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
   const account = ["APPROVED", "PARTIALLY_FULFILLED", "FULFILLED", "CLOSED"].includes(so.status) ? await clientAccount(user, { projectId: so.projectId, soId: so.id }) : null;
   const locked = ["APPROVED", "PARTIALLY_FULFILLED", "FULFILLED"].includes(so.status);
   const fMap = new Map(fulfilment.map((f) => [f.lineId, f]));
+  // Requisitions are optional: the column only appears when one was actually raised.
+  const showReq = fulfilment.some((f) => Number(f.requisitioned) > 0);
   // Lines have different units (Nos, Mtr, LS…): progress is the average share delivered per line, and the
   // labels list quantities per unit instead of adding them together.
   const lineShare = so.lines.map((l) => { const qn = Number(l.quantity); const d = Math.max(0, Number(fMap.get(l.id)?.delivered ?? "0")); return { unit: l.unit ?? "", qty: qn, done: Math.min(d, qn) }; });
@@ -118,31 +120,27 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
         }
         actions={
           <>
-            {can.requestAmendment && (
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/sales-orders/${so.id}/amend`}>
-                  <GitPullRequestArrow /> Request amendment
-                </Link>
-              </Button>
-            )}
+            {/* Daily next steps stay visible; everything else is under "More". */}
             {can_(user, "rabill.manage") && billable && (
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm">
                 <Link href={`/running-bills/new?soId=${so.id}`}>Generate running bill</Link>
               </Button>
             )}
-            {canInvoice && (
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/client-invoices/new?soId=${so.id}`}>Create invoice</Link>
-              </Button>
-            )}
             {account && can_(user, "payments.manage") && <RecordClientPaymentButton projectId={so.projectId} partyId={so.partyId} soId={so.id} />}
-            {billable && can_(user, "accounts.view") && (
-              <Button asChild size="sm" variant="ghost">
-                <Link href={`/projects/${so.projectId}?tab=accounts`}>View accounts</Link>
-              </Button>
-            )}
             <PlanOrderButtons rows={planRows} suppliers={suppliers.filter((p) => p.status === "ACTIVE").map((p) => ({ id: p.id, name: p.name, code: p.code }))} canPo={can_(user, "po.create")} canRfq={can_(user, "rfq.manage")} />
-            <SoActions id={so.id} version={so.version} projectId={so.projectId} partyId={so.partyId} can={can} />
+            <SoActions
+              id={so.id}
+              version={so.version}
+              projectId={so.projectId}
+              partyId={so.partyId}
+              can={can}
+              more={[
+                ...(can_(user, "stock.transfer") && locked ? [{ label: "Issue material to site", href: `/projects/${so.projectId}/issue` }] : []),
+                ...(canInvoice ? [{ label: "Invoice by delivery", href: `/client-invoices/new?soId=${so.id}` }] : []),
+                ...(billable && can_(user, "accounts.view") ? [{ label: "View accounts", href: `/projects/${so.projectId}?tab=accounts` }] : []),
+                ...(can.requestAmendment ? [{ label: "Request amendment", href: `/sales-orders/${so.id}/amend` }] : []),
+              ]}
+            />
             <DocShare type="sales_order" id={so.id} summary={summary} phone={so.party.whatsappNumber ?? so.party.phone} email={so.party.email} subject={`Sales Order ${so.number}`} />
           </>
         }
@@ -231,7 +229,7 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
                     { label: `Pending ${perUnit((l) => l.qty - l.done)}`, value: 0, className: "bg-muted" },
                   ]}
                 />
-                <p className="mt-1 text-xs text-muted-foreground">Material is requisitioned and bought project-wide; each column counts that item–brand across the project.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Material is bought project-wide; each column counts that item–brand across the project.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[820px] text-sm">
@@ -239,7 +237,7 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
                     <tr>
                       <th className="px-3 py-2 text-left font-medium">Line</th>
                       <th className="px-3 py-2 text-right font-medium">Ordered</th>
-                      <th className="px-3 py-2 text-right font-medium">Requisitioned</th>
+                      {showReq && <th className="px-3 py-2 text-right font-medium">Requisitioned</th>}
                       <th className="px-3 py-2 text-right font-medium">Purchased</th>
                       <th className="px-3 py-2 text-right font-medium">Received</th>
                       <th className="px-3 py-2 text-right font-medium">Delivered</th>
@@ -254,7 +252,7 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
                         <tr key={l.id}>
                           <td className="px-3 py-2">{l.lineNo}. {l.description ?? l.itemBrand?.item.name}</td>
                           <td className="px-3 py-2 text-right tabular-nums">{formatQty(l.quantity)}</td>
-                          <td className="px-3 py-2 text-right tabular-nums">{mat && f ? formatQty(f.requisitioned) : "—"}</td>
+                          {showReq && <td className="px-3 py-2 text-right tabular-nums">{mat && f ? formatQty(f.requisitioned) : "—"}</td>}
                           <td className="px-3 py-2 text-right tabular-nums">{mat && f ? formatQty(f.ordered) : "—"}</td>
                           <td className="px-3 py-2 text-right tabular-nums">{mat && f ? formatQty(f.received) : "—"}</td>
                           <td className="px-3 py-2 text-right tabular-nums">{f ? formatQty(f.delivered) : "—"}</td>
@@ -269,7 +267,8 @@ export default async function SalesOrderPage({ params }: PageProps<"/sales-order
           )}
 
           {account && <ClientAccountCard account={account} title="Order financial summary" originalValue={originalValue ? String(originalValue) : null} />}
-          <SoBilling soId={so.id} billing={billing} today={todayString()} savedTemplates={templates} />
+          {/* Billed by running bills: the payment-milestone schedule no longer applies, so it is hidden. */}
+          {!liveRa && <SoBilling soId={so.id} billing={billing} today={todayString()} savedTemplates={templates} />}
           <Section title="Revision history & amendments" id="amendments">
             <RevisionHistory requests={views.filter((v) => v.id !== pendingView?.id)} hasPending={Boolean(pendingView)} />
           </Section>

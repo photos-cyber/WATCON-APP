@@ -81,13 +81,20 @@ async function lockSo(tx: Tx, soId: string) {
 export async function soBillingPosition(client: Tx | typeof db, soId: string, opts: { excludeRaBillId?: string } = {}) {
   const so = await client.salesOrder.findUniqueOrThrow({ where: { id: soId }, include: { lines: { orderBy: { lineNo: "asc" } } } });
   const ibIds = [...new Set(so.lines.filter((l) => l.kind === "MATERIAL" && l.itemBrandId).map((l) => l.itemBrandId!))];
-  // Material that reached the project (effective type of reversals counts against what they reversed).
+  // Billing basis (owner rule 2026-11-27): material sent to the project site on a challan is billable as soon as
+  // the challan is DISPATCHED — the site's confirmation is not awaited. Shortfall returned / written off and
+  // quantity the site later records as damaged or rejected come off again (the next bill deducts them).
+  // Other stock movements (effective type of reversals counts against what they reversed):
+  //   + supplier deliveries straight to the site (RECEIPT at the project site, after the receipt is confirmed);
+  //   − material leaving the site (transfers / returns out of it);
+  //   + client deliveries from a warehouse.
+  // Challan receipts at the site (TRANSFER_IN) are NOT counted here — the dispatched challan already is.
   const delivered = ibIds.length
     ? await client.$queryRaw<{ ib: string; qty: string }[]>`
         SELECT m.item_brand_id::text AS ib, COALESCE(SUM(
           (CASE WHEN m.type = 'REVERSAL' THEN -m.quantity ELSE m.quantity END) *
           (CASE
-            WHEN l.type = 'SITE' AND l.project_id = ${so.projectId}::uuid AND COALESCE(o.type, m.type) IN ('RECEIPT', 'TRANSFER_IN') THEN 1
+            WHEN l.type = 'SITE' AND l.project_id = ${so.projectId}::uuid AND COALESCE(o.type, m.type) = 'RECEIPT' THEN 1
             WHEN l.type = 'SITE' AND l.project_id = ${so.projectId}::uuid AND COALESCE(o.type, m.type) IN ('TRANSFER_OUT', 'RETURN_TO_SUPPLIER') THEN -1
             WHEN l.type <> 'SITE' AND m.project_id = ${so.projectId}::uuid AND COALESCE(o.type, m.type) = 'CLIENT_DELIVERY' THEN 1
             ELSE 0 END)), 0)::text AS qty
@@ -96,17 +103,27 @@ export async function soBillingPosition(client: Tx | typeof db, soId: string, op
         WHERE m.organization_id = ${so.organizationId}::uuid AND m.item_brand_id = ANY(${ibIds}::uuid[])
         GROUP BY 1`
     : [];
-  const projectLines = ibIds.length ? await client.soLine.findMany({ where: { kind: "MATERIAL", itemBrandId: { in: ibIds }, so: { projectId: so.projectId, status: { in: [...DRIVING] } } }, select: { id: true, itemBrandId: true, quantity: true }, orderBy: [{ so: { createdAt: "asc" } }, { lineNo: "asc" }] }) : [];
-  // 1) Traced: posted site receipts of challan lines issued for a specific sales-order line go to that line.
-  const traced = projectLines.length
-    ? await client.$queryRaw<{ so_line_id: string; qty: string }[]>`
-        SELECT cl.so_line_id::text, COALESCE(SUM(gl.accepted_qty), 0)::text AS qty
-        FROM grn_lines gl JOIN grns g ON g.id = gl.grn_id JOIN challan_lines cl ON cl.id = gl.challan_line_id
-        WHERE g.status = 'POSTED' AND cl.so_line_id = ANY(${projectLines.map((l) => l.id)}::uuid[])
-        GROUP BY 1`
+  // Dispatched challan lines into this project's site: sent − returned / written off − damaged / rejected on posted receipts.
+  const challanSent = ibIds.length
+    ? await client.$queryRaw<{ ib: string; so_line_id: string | null; qty: string }[]>`
+        SELECT cl.item_brand_id::text AS ib, cl.so_line_id::text AS so_line_id,
+          COALESCE(SUM(cl.quantity - cl.written_off_qty - COALESCE((
+            SELECT SUM(gl.received_qty - gl.accepted_qty) FROM grn_lines gl JOIN grns g ON g.id = gl.grn_id
+            WHERE gl.challan_line_id = cl.id AND g.status = 'POSTED'), 0)), 0)::text AS qty
+        FROM challan_lines cl JOIN challans c ON c.id = cl.challan_id JOIN stock_locations t ON t.id = c.to_location_id
+        WHERE c.organization_id = ${so.organizationId}::uuid AND c.status NOT IN ('DRAFT', 'CANCELLED')
+          AND c.type IN ('ISSUE_TO_SITE', 'SITE_TO_SITE') AND t.type = 'SITE' AND t.project_id = ${so.projectId}::uuid
+          AND cl.item_brand_id = ANY(${ibIds}::uuid[])
+        GROUP BY 1, 2`
     : [];
-  const tracedBy = new Map(traced.map((t) => [t.so_line_id, max0q(fmtQty(qtyUnits(t.qty)))]));
-  const pool = new Map(delivered.map((d) => [d.ib, max0q(fmtQty(qtyUnits(d.qty)))]));
+  const projectLines = ibIds.length ? await client.soLine.findMany({ where: { kind: "MATERIAL", itemBrandId: { in: ibIds }, so: { projectId: so.projectId, status: { in: [...DRIVING] } } }, select: { id: true, itemBrandId: true, quantity: true }, orderBy: [{ so: { createdAt: "asc" } }, { lineNo: "asc" }] }) : [];
+  // 1) Traced: dispatched challan lines issued for a specific sales-order line go to that line.
+  const tracedBy = new Map<string, string>();
+  for (const c of challanSent) if (c.so_line_id) tracedBy.set(c.so_line_id, addQty(tracedBy.get(c.so_line_id) ?? Z, max0q(fmtQty(qtyUnits(c.qty)))));
+  // Net per material first (a return out of the site offsets the challan that brought it), then floor at zero.
+  const raw = new Map<string, string>();
+  for (const d of [...delivered, ...challanSent]) raw.set(d.ib, addQty(raw.get(d.ib) ?? Z, fmtQty(qtyUnits(d.qty))));
+  const pool = new Map([...raw].map(([ib, q]) => [ib, max0q(q)]));
   const deliveredByLine = new Map<string, string>();
   for (const pl of projectLines) {
     const left = pool.get(pl.itemBrandId!) ?? Z;
@@ -208,13 +225,36 @@ async function build(tx: Tx, actor: Actor, data: Data, excludeRaBillId?: string)
     return { soLineId: p.soLineId, contractQty: p.contractQty, prevCertifiedQty: p.billed, deliveredQty: p.delivered, rate: p.rate, gstRate: p.gstRate, claimedQty: qty, claimedAmount: qtyTimesRate(qty, p.rate) };
   });
   const current = lines.filter((l) => cmpQty(l.claimedQty, Z) > 0);
+  const credit = data.isFinal ? shortageCredit(pos) : { amount: "0.00", note: null as string | null };
+  if (!current.length && cmpMoney(credit.amount, Z) > 0) throw new ValidationError(`Nothing is left to bill, so there is no final bill to carry the shortage credit (${credit.amount}). ${credit.note} Raise a credit note for it from Credit / debit notes.`, { lines: "Nothing to bill." });
   if (!current.length) throw new ValidationError("Nothing new to bill: no delivered material or service quantity is left unbilled on this sales order.", { lines: "Nothing to bill." });
   // Keep lines with history too, so the bill shows previous / current / cumulative for each item.
   const kept = lines.filter((l) => cmpQty(l.claimedQty, Z) > 0 || cmpQty(l.prevCertifiedQty, Z) > 0);
   const gross = addMoney(Z, ...current.map((l) => l.claimedAmount));
   const gst = addMoney(Z, ...current.map((l) => pctOf(l.claimedAmount, l.gstRate)));
   const amounts = deductions({ gross, gst, retentionPct: data.retentionPct, otherDeductions: data.otherDeductions, advanceRecovery: data.advanceRecovery, advanceAvailable: st.advanceAvailable, advanceReceived: st.advanceReceived, soTaxable: dec2(so.taxable), isFinal: data.isFinal });
-  return { so, lines: kept, gross, gst, amounts, st };
+  return { so, lines: kept, gross, gst, amounts, st, credit };
+}
+
+/**
+ * Final bill: material billed on earlier bills that never fully reached the site (damage or shortage recorded
+ * after it was billed — dispatch-based billing) is credited back at the order rate plus GST through a GST credit
+ * note, raised and applied automatically when the final bill's invoice is issued. Only the excess of billed over
+ * delivered counts; nothing is credited twice because later bills cannot follow a final bill.
+ */
+export function shortageCredit(pos: SoLinePosition[]) {
+  const over = pos.filter((p) => p.kind === "MATERIAL" && cmpQty(p.billed, p.delivered) > 0).map((p) => {
+    const qty = subQty(p.billed, p.delivered);
+    const taxable = qtyTimesRate(qty, p.rate);
+    return { p, qty, taxable, total: addMoney(taxable, pctOf(taxable, p.gstRate)) };
+  });
+  // A credit note carries one GST rate: one group per rate.
+  const byRate = new Map<string, string>();
+  for (const o of over) byRate.set(o.p.gstRate, addMoney(byRate.get(o.p.gstRate) ?? "0.00", o.taxable));
+  const groups = [...byRate].map(([gstRate, taxable]) => ({ gstRate, taxable }));
+  const amount = addMoney("0.00", ...groups.map((g) => addMoney(g.taxable, pctOf(g.taxable, g.gstRate))));
+  const note = over.length ? `Shortage / damage credit (GST credit note on invoicing): ${over.map((o) => `line ${o.p.lineNo} ${o.p.description} ${o.qty} ${o.p.unit} billed but not delivered = ₹${o.total} incl. GST`).join("; ")}.` : null;
+  return { amount, note, groups };
 }
 
 function deductions(o: { gross: string; gst: string; retentionPct: string; otherDeductions: string; advanceRecovery: string | null; advanceAvailable: string; advanceReceived: string; soTaxable: string; isFinal: boolean }) {
@@ -246,7 +286,9 @@ export async function generateSoRunningBill(actor: Actor, input: unknown) {
     async (tx) => {
       await lockSo(tx, data.soId);
       const draft = await tx.raBill.findFirst({ where: { soId: data.soId, status: "DRAFT" }, select: { id: true, number: true, raNumber: true, billDate: true, periodFrom: true, periodTo: true } });
-      const { so, lines, gross, gst, amounts, st } = await build(tx, actor, data, draft?.id);
+      const { so, lines, gross, gst, amounts, st, credit } = await build(tx, actor, data, draft?.id);
+      // The automatic credit note is regenerated on every refresh; keep only what the user wrote.
+      const userNotes = data.deductionNotes?.replace(/\s*Shortage \/ damage credit[\s\S]*$/, "").trim() || null;
       const today = startOfToday().toISOString().slice(0, 10);
       const lastTo = st.prev.length ? await tx.raBill.findFirst({ where: { soId: so.id, status: LIVE_RA, ...(draft ? { id: { not: draft.id } } : {}) }, orderBy: { raNumber: "desc" }, select: { periodTo: true } }) : null;
       const billDate = data.billDate ?? draft?.billDate.toISOString().slice(0, 10) ?? today;
@@ -265,7 +307,8 @@ export async function generateSoRunningBill(actor: Actor, input: unknown) {
         retentionAmount: amounts.retention,
         advanceRecovery: amounts.advance,
         otherDeductions: data.otherDeductions,
-        deductionNotes: data.deductionNotes,
+        shortageCredit: credit.amount,
+        deductionNotes: [userNotes, credit.note].filter(Boolean).join(" ") || null,
         gstAmount: gst,
         netPayable: amounts.net,
         remarks: data.remarks,
@@ -313,7 +356,8 @@ export async function soRunningBillPreview(actor: Actor, soId: string) {
   const draft = await db.raBill.findFirst({ where: { soId, status: "DRAFT" }, select: { id: true, number: true } });
   const { lines } = await soBillingPosition(db, soId, { excludeRaBillId: draft?.id });
   const st = await soStatement(db, soId, draft?.id);
-  return { draft, lines, statement: { previousValue: st.previousValue, previousBilled: st.previousBilled, previousOutstanding: st.previousOutstanding, receivedToDate: st.receivedToDate, advanceAvailable: st.advanceAvailable, hasFinal: st.hasFinal }, previousBills: st.prev.map((p) => ({ id: p.id, number: p.number, raNumber: p.raNumber, status: p.status, billDate: p.billDate.toISOString(), netPayable: dec2(p.netPayable) })) };
+  const credit = shortageCredit(lines);
+  return { draft, lines, statement: { previousValue: st.previousValue, previousBilled: st.previousBilled, previousOutstanding: st.previousOutstanding, receivedToDate: st.receivedToDate, advanceAvailable: st.advanceAvailable, hasFinal: st.hasFinal, finalShortageCredit: credit.amount, finalShortageNote: credit.note }, previousBills: st.prev.map((p) => ({ id: p.id, number: p.number, raNumber: p.raNumber, status: p.status, billDate: p.billDate.toISOString(), netPayable: dec2(p.netPayable) })) };
 }
 
 /** Previous bills of the same order with what is still outstanding on each — for the bill page / PDF. */
@@ -327,4 +371,5 @@ export async function previousBillsWithOutstanding(client: Tx | typeof db, soId:
   });
 }
 
-export const totalPayable = (previousOutstanding: string, netPayable: string) => addMoney(previousOutstanding, netPayable);
+/** Previous outstanding + this bill − the GST credit note a final bill raises for shortage / damage. */
+export const totalPayable = (previousOutstanding: string, netPayable: string, shortageCredit = "0") => subMoney(addMoney(previousOutstanding, netPayable), shortageCredit);

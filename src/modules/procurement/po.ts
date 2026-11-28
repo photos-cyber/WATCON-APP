@@ -7,7 +7,7 @@ import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { addQty, cmpMoney, cmpQty, pctOf, subQty, taxModeFor } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, toDbDate, uuid } from "@/lib/validations/common";
-import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, isSuperAdmin, parseInput, projectScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
+import { assertProjectUsable, dec2, dec3, dec4, getCommercialSettings, parseInput, projectScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { gstRateField, optMoney, optPct, priceDocument, optionalProjectIdField, qtyField, rateField } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { ensureSiteLocation, ensureSystemLocations } from "@/modules/inventory/engine";
@@ -300,7 +300,7 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
         await log(tx, "Recorded supplier acknowledgement for");
       });
     case "amend":
-      requireSuperAdmin(actor, "amend a finalized purchase order");
+      requirePermission(actor, "po.approve", "You do not have permission to amend a finalized purchase order.");
       need(opts.note, "Give the reason for the amendment.");
       return db.$transaction(async (tx) => {
         const full = await tx.purchaseOrder.findUniqueOrThrow({ where: { id }, include: { lines: true } });
@@ -310,7 +310,7 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
       });
     case "cancel": {
       if (["DRAFT", "REJECTED", "PENDING_APPROVAL"].includes(po.status)) requireAnyPermission(actor, ["po.create", "po.cancel"]);
-      else requireSuperAdmin(actor, "cancel a finalized purchase order");
+      else requirePermission(actor, "po.cancel", "You do not have permission to cancel a finalized purchase order.");
       need(opts.note, "Give a reason for cancelling.");
       if (po.lines.some((l) => cmpQty(dec3(l.receivedQty), "0") > 0)) throw new ValidationError("Material has already been received against this PO, so it cannot be cancelled. Use Short-close to stop further deliveries.");
       if (po.lines.some((l) => cmpQty(dec3(l.billedQty), "0") > 0)) throw new ValidationError("Supplier bills exist against this PO. Cancel those bills first.");
@@ -323,7 +323,7 @@ export async function poAction(actor: Actor, id: string, action: PoAction, opts:
       });
     }
     case "close": {
-      requireSuperAdmin(actor, "short-close a purchase order");
+      requirePermission(actor, "po.cancel", "You do not have permission to short-close a purchase order.");
       need(opts.note, "Give a reason for closing.");
       return db.$transaction(async (tx) => {
         await transition(tx.purchaseOrder, w, ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"], { status: "CLOSED", statusNote: opts.note, closedAt: new Date() }, "purchase order");
@@ -415,11 +415,11 @@ export async function getPo(actor: Actor, id: string) {
       approveBlockedReason: null as string | null,
       send: can(actor, "po.create") && po.status === "APPROVED",
       acknowledge: can(actor, "po.create") && ["SENT", "APPROVED"].includes(po.status),
-      amend: isSuperAdmin(actor) && (AMENDABLE as readonly string[]).includes(po.status),
-      cancel: !anyReceived && (["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(po.status) ? can(actor, "po.create") || can(actor, "po.cancel") : isSuperAdmin(actor) && ["APPROVED", "SENT", "ACKNOWLEDGED"].includes(po.status)),
-      close: isSuperAdmin(actor) && ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"].includes(po.status),
-      /** Finalized: other users ask the Super Admin for a change. */
-      requestChange: !isSuperAdmin(actor) && can(actor, "po.create") && !["DRAFT", "REJECTED", "CANCELLED", "CLOSED"].includes(po.status),
+      amend: can(actor, "po.approve") && (AMENDABLE as readonly string[]).includes(po.status),
+      cancel: !anyReceived && (["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(po.status) ? can(actor, "po.create") || can(actor, "po.cancel") : can(actor, "po.cancel") && ["APPROVED", "SENT", "ACKNOWLEDGED"].includes(po.status)),
+      close: can(actor, "po.cancel") && ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED"].includes(po.status),
+      /** Finalized: users who cannot amend / cancel it themselves ask the Super Admin. */
+      requestChange: !can(actor, "po.approve") && can(actor, "po.create") && !["DRAFT", "REJECTED", "CANCELLED", "CLOSED"].includes(po.status),
       receive: can(actor, "grn.create") && isOpenForReceipt(po.status, settings.allowReceiptOnUnapprovedPo),
       bill: can(actor, "bills.manage") && ["APPROVED", "SENT", "ACKNOWLEDGED", "PARTIALLY_RECEIVED", "FULLY_RECEIVED", "CLOSED"].includes(po.status),
       pay: can(actor, "payments.manage") && !["DRAFT", "PENDING_APPROVAL", "REJECTED", "CANCELLED"].includes(po.status),

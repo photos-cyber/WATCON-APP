@@ -3,14 +3,14 @@
 import { Ban, PackageCheck, Pencil, RotateCcw, ThumbsDown, Truck, Undo2, Trash2, CircleCheck } from "lucide-react";
 import Link from "next/link";
 import { DocActions, type DocActionDef } from "@/components/commercial/doc-actions";
-import { RequestChangeButton } from "@/components/commercial/request-change";
+import { requestChangeDef, withRequestChange } from "@/components/commercial/request-change";
 import { Button } from "@/components/ui/button";
 import { callAction } from "@/lib/call-action";
 import { challanActionAction, grnActionAction, postGrnAction } from "@/modules/stores/actions";
 
 type GrnCan = { edit: boolean; submit: boolean; post: boolean; postBlockedReason: string | null; reject: boolean; cancel: boolean; reverse: boolean; requestChange?: boolean };
 
-const CONFIRM_RECEIPT = { title: "Confirm this receipt?", description: "The accepted quantities are added to stock now and the purchase order / challan is updated. After this only the Super Admin can reverse it." };
+const CONFIRM_RECEIPT = { title: "Confirm this receipt?", description: "The accepted quantities are added to stock now and the purchase order / challan is updated. It can be reversed later from this page if needed (with a reason)." };
 
 export function GrnActions({ id, version, can, proofMissing = [] }: { id: string; version: number; can: GrnCan; proofMissing?: string[] }) {
   const defs: DocActionDef[] = [];
@@ -34,8 +34,7 @@ export function GrnActions({ id, version, can, proofMissing = [] }: { id: string
           <PackageCheck /> Confirm receipt
         </Button>
       )}
-      <DocActions actions={defs} run={(key, note) => (key === "post" ? callAction(postGrnAction, id, version) : callAction(grnActionAction, id, key as "submit" | "reject" | "cancel" | "reverse", { version, note }))} />
-      {can.requestChange && <RequestChangeButton kind="grn" id={id} />}
+      <DocActions actions={can.requestChange ? [...defs, requestChangeDef()] : defs} run={withRequestChange("grn", id, (key, note) => (key === "post" ? callAction(postGrnAction, id, version) : callAction(grnActionAction, id, key as "submit" | "reject" | "cancel" | "reverse", { version, note })))} />
       {blocked && <span className="text-xs text-amber-700 dark:text-amber-400">Add first: {proofMissing.join(", ")}</span>}
     </>
   );

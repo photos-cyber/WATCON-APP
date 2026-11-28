@@ -38,7 +38,7 @@ Expected material margin is ₹5,000 before labour and overheads, excluding GST.
 
 ## Practical training in 19 steps
 
-Use an isolated training application. The trainer needs the required permissions. Records are finalized by the person who prepares them; changes to final records need the Super Admin. Never share a login.
+Use an isolated training application. The trainer needs the required permissions. Records are finalized by the person who prepares them; Admins can amend or cancel final records with a reason, and only Sales Order changes need the Super Admin. Never share a login.
 
 1. Open Clients. Click Add client. Create a fictional client, or select the existing Acme Developers training record. Use the agreed test state for GST.
 
@@ -68,9 +68,9 @@ Use an isolated training application. The trainer needs the required permissions
 
 14. Open Challans. Use New challan and Deliver to client, with the approved Sales Order and the location that holds the filters. Save challan and Dispatch 4 filters. Repeat for the remaining 6. Keep delivery proof. Stock becomes 6, then zero.
 
-15. Open Running Bills. Use New running bill for the active Client PO. Enter the actual current measurement, review earlier quantities and Save draft. Press Submit to client. When the client accepts it, press Client accepted — invoice now (certifies, creates and issues the invoice in one step). A fully certified total of 10 gives ₹17,700 including GST.
+15. Open the Sales Order and click Generate running bill. Dispatched challans fill the quantities automatically; check them and Save. Press Submit to client. A fully billed total of 10 gives ₹17,700 including GST.
 
-16. Open the client invoice and use Record receipt. Enter ₹7,080, allocate it to the invoice and save. Later record ₹10,620 against the remaining due. Client due becomes zero. An unallocated receipt is an advance and does not settle the invoice.
+16. On the running bill press Record client payment (the invoice is raised automatically). Enter ₹7,080 and save. The ₹10,620 still due is shown as previous outstanding on the next bill; record it later from the same button. Client due becomes zero. An unallocated receipt is an advance and does not settle the bill.
 
 17. Open the supplier bill and use Record payment. Pay and allocate ₹5,000, then ₹6,800. Supplier due becomes zero.
 

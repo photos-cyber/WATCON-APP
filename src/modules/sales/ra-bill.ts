@@ -7,7 +7,7 @@ import { NotFoundError, ValidationError } from "@/lib/errors";
 import { addMoney, addQty, cmpMoney, cmpQty, pctOf, qtyTimesRate, subMoney, subQty } from "@/lib/money";
 import { can, type Actor } from "@/lib/permissions/definitions";
 import { dateString, optionalText, text, toDbDate, uuid } from "@/lib/validations/common";
-import { dec2, dec3, dec4, isSuperAdmin, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, requireSuperAdmin, transition } from "@/modules/commercial/core";
+import { dec2, dec3, dec4, parseInput, projectRequiredScoped, requireAnyPermission, requirePermission, transition } from "@/modules/commercial/core";
 import { optMoney, qtyOrZero } from "@/modules/commercial/pricing";
 import type { EntityAccess } from "@/modules/documents/access";
 import { RA_CERTIFIED, cpoLineBilled, lockClientPo, netRate } from "./shared";
@@ -198,8 +198,7 @@ export async function raBillAction(actor: Actor, id: string, action: RaAction, o
         await log(tx, "Resubmitted to client");
       });
     case "cancel":
-      // Before client certification the bill can be withdrawn by its users; a certified bill is final.
-      if (r.status === "CLIENT_CERTIFIED") requireSuperAdmin(actor, "cancel a certified running bill");
+      if (r.status === "CLIENT_CERTIFIED") requirePermission(actor, "rabill.approve", "You do not have permission to cancel a certified running bill.");
       else requireAnyPermission(actor, ["rabill.manage", "rabill.approve"]);
       need(opts.note, "Give a reason for cancelling.");
       return db.$transaction(async (tx) => {
@@ -283,12 +282,13 @@ export async function getRaBill(actor: Actor, id: string) {
       retentionAmount: dec2(r.retentionAmount),
       advanceRecovery: dec2(r.advanceRecovery),
       otherDeductions: dec2(r.otherDeductions),
+      shortageCredit: dec2(r.shortageCredit),
       gstAmount: dec2(r.gstAmount),
       netPayable: dec2(r.netPayable),
       gross,
       basis: r.soId ? ("SO" as const) : ("CPO" as const),
       /** Cumulative statement (sales-order bills). */
-      statement: { previousValue: dec2(r.previousValue), currentValue: gross, cumulativeValue: addMoney(dec2(r.previousValue), gross), previousBilled: dec2(r.previousBilled), currentBilling: dec2(r.netPayable), previousOutstanding: dec2(r.previousOutstanding), receivedToDate: dec2(r.receivedToDate), totalPayable: totalPayable(dec2(r.previousOutstanding), dec2(r.netPayable)) },
+      statement: { previousValue: dec2(r.previousValue), currentValue: gross, cumulativeValue: addMoney(dec2(r.previousValue), gross), previousBilled: dec2(r.previousBilled), currentBilling: dec2(r.netPayable), previousOutstanding: dec2(r.previousOutstanding), receivedToDate: dec2(r.receivedToDate), totalPayable: totalPayable(dec2(r.previousOutstanding), dec2(r.netPayable), dec2(r.shortageCredit)) },
       previousBills,
       certified: (RA_CERTIFIED as readonly string[]).includes(r.status),
       invoice: r.invoice && r.invoice.status !== "CANCELLED" ? { ...r.invoice, total: dec2(r.invoice.total), receivedAmount: dec2(r.invoice.receivedAmount) } : null,
@@ -304,8 +304,8 @@ export async function getRaBill(actor: Actor, id: string) {
       certify: certifier && ["SUBMITTED", "DISPUTED"].includes(r.status),
       dispute: certifier && r.status === "SUBMITTED",
       resubmit: manager && r.status === "DISPUTED",
-      cancel: r.status === "CLIENT_CERTIFIED" ? isSuperAdmin(actor) : manager && (OPEN as readonly string[]).includes(r.status),
-      requestChange: !isSuperAdmin(actor) && manager && (RA_CERTIFIED as readonly string[]).includes(r.status),
+      cancel: r.status === "CLIENT_CERTIFIED" ? can(actor, "rabill.approve") : manager && (OPEN as readonly string[]).includes(r.status),
+      requestChange: !can(actor, "rabill.approve") && manager && (RA_CERTIFIED as readonly string[]).includes(r.status),
       invoice: can(actor, "invoice.manage") && r.status === "CLIENT_CERTIFIED",
       /** One click: certify as claimed + create + issue the invoice. */
       acceptAndInvoice: certifier && (can(actor, "invoice.manage") || can(actor, "invoice.approve")) && ["SUBMITTED", "DISPUTED"].includes(r.status),

@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { generateSoRunningBillAction } from "@/modules/sales/actions";
 
 export type SoBillLine = { soLineId: string; lineNo: number; kind: "MATERIAL" | "SERVICE" | "INSTALLATION"; description: string; unit: string; contractQty: string; delivered: string; billed: string; billable: string; rate: string; gstRate: string };
-export type SoStatementView = { previousValue: string; previousBilled: string; previousOutstanding: string; receivedToDate: string; advanceAvailable: string; hasFinal: boolean };
+export type SoStatementView = { previousValue: string; previousBilled: string; previousOutstanding: string; receivedToDate: string; advanceAvailable: string; hasFinal: boolean; finalShortageCredit?: string; finalShortageNote?: string | null };
 
 const QTY = /^\d{1,11}(\.\d{1,3})?$/;
 const KIND: Record<SoBillLine["kind"], string> = { MATERIAL: "Material", SERVICE: "Service", INSTALLATION: "Installation" };
@@ -70,7 +70,7 @@ export function SoRunningBillForm({ soId, lines, statement, initial, draftNumber
             <tr>
               <th className="px-2 py-2 text-left font-medium">Item</th>
               <th className="px-2 py-2 text-right font-medium">Order qty</th>
-              <th className="px-2 py-2 text-right font-medium" title="Received at site (challans, direct deliveries) or delivered to the client">Delivered</th>
+              <th className="px-2 py-2 text-right font-medium" title="Sent on dispatched site challans (less shortage / damage), direct deliveries to site, or delivered to the client">Dispatched</th>
               <th className="px-2 py-2 text-right font-medium">Billed before</th>
               <th className="px-2 py-2 text-right font-medium">Can bill now</th>
               <th className="w-32 px-2 py-2 text-right font-medium">This bill</th>
@@ -116,6 +116,11 @@ export function SoRunningBillForm({ soId, lines, statement, initial, draftNumber
           <Checkbox checked={isFinal} onCheckedChange={(c) => { const f = c === true; setFinal(f); if (f) setClaims(Object.fromEntries(lines.map((l) => [l.soLineId, l.billable]))); }} />
           Final bill — bills everything still billable (incl. services / installation) and recovers the remaining advance. No further bills after it.
         </label>
+        {isFinal && Number(statement.finalShortageCredit ?? 0) > 0 && (
+          <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 sm:col-span-2 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+            A GST credit note of about {formatINR(statement.finalShortageCredit!)} will be raised and applied automatically when this final bill is invoiced (material billed earlier that never fully reached the site). {statement.finalShortageNote}
+          </p>
+        )}
       </FormSection>
 
       <div className="flex justify-end">

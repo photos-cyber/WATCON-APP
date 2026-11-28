@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { can as can_ } from "@/lib/permissions/definitions";
 import { RelatedDocs } from "@/components/commercial/related-docs";
 import { DetailGrid, DocStatusBadge, Money, Section, SummaryCards } from "@/components/commercial/ui";
@@ -61,12 +60,7 @@ export default async function PoPage({ params }: PageProps<"/purchase-orders/[po
         }
         actions={
           <>
-            <PoActions id={po.id} version={po.version} can={can} partyId={po.party.id} projectId={po.projectId} />
-            {po.projectId && can_(user, "accounts.view") && financial && (
-              <Button asChild size="sm" variant="ghost">
-                <Link href={`/projects/${po.projectId}?tab=accounts`}>View accounts</Link>
-              </Button>
-            )}
+            <PoActions id={po.id} version={po.version} can={can} partyId={po.party.id} projectId={po.projectId} more={po.projectId && can_(user, "accounts.view") && financial ? [{ label: "View accounts", href: `/projects/${po.projectId}?tab=accounts` }] : []} />
             <DocShare type="purchase_order" id={po.id} summary={summary} phone={po.party.whatsappNumber ?? po.party.phone} email={po.party.email} subject={`Purchase Order ${po.number}`} />
           </>
         }

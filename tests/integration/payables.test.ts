@@ -93,9 +93,9 @@ describe("supplier bills", () => {
     // The GRN line records only what was actually accepted; the PO line records the full billed quantity.
     expect((await db.grnLine.findUniqueOrThrow({ where: { id: gl.id } })).billedQty.toFixed(0)).toBe("20");
     expect((await db.poLine.findUniqueOrThrow({ where: { id: po.lines[0]!.id } })).billedQty.toFixed(0)).toBe("25");
-    // Cancelling a final bill is an amendment: Super Admin only. It restores both counters exactly.
-    expect((await errorOf(billAction(fx.actors.admin, bill.id, "cancel", { version: await v("supplierBill", bill.id), note: "Re-enter after GRN" }))).message).toMatch(/Only the Super Admin/);
-    await billAction(fx.actors.superAdmin, bill.id, "cancel", { version: await v("supplierBill", bill.id), note: "Re-enter after GRN" });
+    // An Admin (bills.approve) cancels a final bill directly; a user without it cannot. It restores both counters exactly.
+    expect((await errorOf(billAction(fx.roles.ac.actor, bill.id, "cancel", { version: await v("supplierBill", bill.id), note: "Re-enter after GRN" }))).message).toMatch(/permission/);
+    await billAction(fx.actors.admin, bill.id, "cancel", { version: await v("supplierBill", bill.id), note: "Re-enter after GRN" });
     expect((await db.grnLine.findUniqueOrThrow({ where: { id: gl.id } })).billedQty.toFixed(0)).toBe("0");
     expect((await db.poLine.findUniqueOrThrow({ where: { id: po.lines[0]!.id } })).billedQty.toFixed(0)).toBe("0");
   });
@@ -196,10 +196,10 @@ describe("payments, advances and notes", () => {
     expect(a.id).toBe(b.id);
     expect(await db.payment.count({ where: { organizationId: fx.org.id } })).toBe(1);
     expect((await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } })).status).toBe("PAID");
-    // Cancelling a recorded payment is an amendment: Super Admin only, with a reason.
-    expect((await errorOf(cancelPayment(fx.roles.ac.actor, a.id, await v("payment", a.id), "Bounced cheque"))).message).toMatch(/Only the Super Admin/);
-    expect((await errorOf(cancelPayment(fx.actors.superAdmin, a.id, await v("payment", a.id), ""))).message).toMatch(/reason/);
-    await cancelPayment(fx.actors.superAdmin, a.id, await v("payment", a.id), "Bounced cheque");
+    // Accounts cancel a recorded payment directly, with a reason.
+    expect((await errorOf(cancelPayment(fx.roles.vw.actor, a.id, await v("payment", a.id), "Bounced cheque"))).message).toMatch(/permission/i);
+    expect((await errorOf(cancelPayment(fx.roles.ac.actor, a.id, await v("payment", a.id), ""))).message).toMatch(/reason/);
+    await cancelPayment(fx.roles.ac.actor, a.id, await v("payment", a.id), "Bounced cheque");
     const after = await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } });
     expect([after.status, after.paidAmount.toFixed(2)]).toEqual(["APPROVED", "0.00"]);
     const alloc = await db.paymentAllocation.findFirstOrThrow({ where: { paymentId: a.id } });
@@ -210,9 +210,8 @@ describe("payments, advances and notes", () => {
     const bill = await approvedBill("10");
     const p = await pay("1180", [{ documentId: bill.id, amount: "1180" }]);
     const alloc = await db.paymentAllocation.findFirstOrThrow({ where: { paymentId: p.id } });
-    expect((await errorOf(reverseAllocation(fx.roles.ac.actor, alloc.id, "Allocated to the wrong bill"))).message).toMatch(/Only the Super Admin/);
-    await reverseAllocation(fx.actors.superAdmin, alloc.id, "Allocated to the wrong bill");
-    expect((await errorOf(reverseAllocation(fx.actors.superAdmin, alloc.id, "again"))).message).toMatch(/already reversed/);
+    await reverseAllocation(fx.roles.ac.actor, alloc.id, "Allocated to the wrong bill");
+    expect((await errorOf(reverseAllocation(fx.roles.ac.actor, alloc.id, "again"))).message).toMatch(/already reversed/);
     expect((await getPayment(fx.roles.ac.actor, p.id)).unallocated).toBe("1180.00");
   });
 
@@ -221,9 +220,9 @@ describe("payments, advances and notes", () => {
     expect((await errorOf(createNote(fx.roles.ac.actor, { noteType: "CREDIT", partyRole: "SUPPLIER", supplierBillId: bill.id, noteDate: day(), reason: "Too much", taxable: "1100", gstRate: "18" }))).message).toMatch(/more than the/);
     const note = await createNote(fx.roles.ac.actor, { noteType: "CREDIT", partyRole: "SUPPLIER", supplierBillId: bill.id, noteDate: day(), reason: "Rate difference", taxable: "100", gstRate: "18" });
     expect(note.total.toFixed(2)).toBe("118.00");
-    // A credit note amends a final bill: only the Super Admin applies it.
-    expect((await errorOf(noteAction(fx.actors.admin, note.id, "approve", { version: 1 }))).message).toMatch(/Only the Super Admin/);
-    await noteAction(fx.actors.superAdmin, note.id, "approve", { version: 1 });
+    // An Admin (bills.approve) applies a credit note directly; a user without it cannot.
+    expect((await errorOf(noteAction(fx.roles.ac.actor, note.id, "approve", { version: 1 }))).message).toMatch(/permission/);
+    await noteAction(fx.actors.admin, note.id, "approve", { version: 1 });
     const { outstanding } = await getBill(fx.roles.ac.actor, bill.id);
     expect(outstanding).toBe("1062.00");
     await pay("1062", [{ documentId: bill.id, amount: "1062" }]);

@@ -128,7 +128,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -216,7 +216,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -312,7 +312,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -390,7 +390,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -484,7 +484,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -562,7 +562,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -636,7 +636,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -750,7 +750,7 @@ Click Create party. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -864,7 +864,7 @@ Click Create party. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -930,7 +930,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1000,7 +1000,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1094,7 +1094,7 @@ Click Save enquiry. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1192,7 +1192,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1284,7 +1284,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1372,7 +1372,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1470,7 +1470,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1560,7 +1560,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1660,7 +1660,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1752,7 +1752,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1854,7 +1854,7 @@ Click Save challan. Correct any field named in a validation message. Wait for th
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1906,17 +1906,17 @@ Open Running Bills from the left menu. Address: /running-bills.
 
 ### How do I add or operate a record?
 
-1. Open Running Bills.
+1. Open the Sales Order (or Running Bills) and click Generate running bill.
 
-2. Click New running bill for the project.
+2. The bill fills itself: material sent to the project site on dispatched site challans, plus material delivered by suppliers straight to site, that has not been billed before — at the sales-order rates. Services and installation are added when you enter them (or on the final bill).
 
-3. Choose the relevant order.
+3. Check quantities and deductions, then Save. Generating again before submitting refreshes the same draft, so nothing is billed twice.
 
-4. Enter current measurements and review previous quantities.
+4. Press Submit to client and share the PDF. It shows previous bills, what is still unpaid (previous outstanding) and the total payable.
 
-5. Save, then press Submit to client (no internal review).
+5. When the client pays, press Record client payment on the bill. The tax invoice is raised automatically and the payment settles it. Pay in parts if needed — whatever is unpaid is carried into the next running bill.
 
-6. Record client certification through the authorized action.
+6. If the client changes quantities, use Record client certification (or Client disputes) before taking payment.
 
 ### Important fields
 
@@ -1944,7 +1944,7 @@ Click Save draft. Correct any field named in a validation message. Wait for the 
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -1956,11 +1956,11 @@ Read the saved status. Draft records still need the next action described above.
 
 ### Does it affect stock or accounts?
 
-A Running Bill records measured and certified work. The separate Client Invoice creates the receivable. Do not treat certification as cash received.
+A running bill does not move stock. Its tax invoice (raised when the client accepts or pays) is the receivable; client payments settle it. Unpaid amounts stay outstanding and appear as previous outstanding on the next bill — they are shown, never billed twice.
 
 ### What should I do next?
 
-Prepare the Client Invoice from eligible certified work.
+Keep dispatching material on site challans and generate the next running bill each period. Record each client payment on its running bill until the bill shows Paid.
 
 ### Common mistakes to avoid
 
@@ -1968,7 +1968,7 @@ Do not use another project, brand or party just to make a form save. Do not ente
 
 ### Check work before billing
 
-This version limits a running bill by Client PO quantities. It does not automatically require a linked delivered challan for every claim. Check actual completed work and company policy before submitting a claim. Direct Sales Order invoicing has a different delivered-quantity check.
+Material becomes billable as soon as its site challan is dispatched — the bill does not wait for the site to confirm receipt. If the site later records damage or a shortage (returned or written off), that quantity is deducted on the next bill. If nothing more of that material is dispatched, a GST credit note (quantity × order rate + GST) is raised and applied automatically when the final bill is invoiced — against the final invoice first, then the order's other unpaid invoices. The final bill shows it and takes it off the total payable. The final bill must still bill something (e.g. installation); otherwise raise the credit note from Credit / debit notes. Material that leaves the site again (returns, transfers) is deducted too. The order quantity is always the upper limit.
 
 ![Local training application: Running Bills](screenshots/local-running-bills.png)
 
@@ -2026,7 +2026,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2106,7 +2106,7 @@ Click Record payment or Record receipt, according to the chosen direction. Corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2166,7 +2166,7 @@ Open Credit / Debit Notes from the left menu. Address: /notes.
 
 4. Enter the reference, date, reason and value.
 
-5. Save. The Super Admin applies the note (it changes a final bill or invoice).
+5. Save, then press Approve & apply. The note is set against the bill or invoice at once.
 
 ### Important fields
 
@@ -2184,7 +2184,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2250,7 +2250,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2320,7 +2320,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2386,7 +2386,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2452,7 +2452,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2464,7 +2464,7 @@ Read the saved status. Draft records still need the next action described above.
 
 ### Does it affect stock or accounts?
 
-Daily documents are finalized in one step by the person who prepares them — nobody else has to approve them. Once final, only the Super Admin can amend, cancel or reverse a document that affects stock or money; everyone else uses Request change, which notifies the Super Admin.
+Daily documents are finalized in one step by the person who prepares them — nobody else has to approve them. Once final, Admins can amend, cancel or reverse a document themselves (a reason is required and recorded in the history). Only the Sales Order is locked: its amendments, closing or cancelling need the Super Admin.
 
 ### What should I do next?
 
@@ -2520,7 +2520,7 @@ Use the save or creation button described above. Read validation messages, corre
 
 ### How do I view or edit?
 
-Open the record from its list. Use Edit only when it is offered. Final records cannot be edited. Only the Super Admin amends, cancels or reverses them — use Request change to ask.
+Open the record from its list. Use Edit only when it is offered. Final records cannot be edited directly. Admins use Amend, Cancel or Reverse on the record (with a reason). A confirmed Sales Order is the exception: only the Super Admin approves its amendments.
 
 ### How do I print or download?
 
@@ -2582,7 +2582,7 @@ Expected material margin is ₹5,000 before labour and overheads, excluding GST.
 
 ### Practical training in 19 steps
 
-Use an isolated training application. The trainer needs the required permissions. Records are finalized by the person who prepares them; changes to final records need the Super Admin. Never share a login.
+Use an isolated training application. The trainer needs the required permissions. Records are finalized by the person who prepares them; Admins can amend or cancel final records with a reason, and only Sales Order changes need the Super Admin. Never share a login.
 
 1. Open Clients. Click Add client. Create a fictional client, or select the existing Acme Developers training record. Use the agreed test state for GST.
 
@@ -2612,9 +2612,9 @@ Use an isolated training application. The trainer needs the required permissions
 
 14. Open Challans. Use New challan and Deliver to client, with the approved Sales Order and the location that holds the filters. Save challan and Dispatch 4 filters. Repeat for the remaining 6. Keep delivery proof. Stock becomes 6, then zero.
 
-15. Open Running Bills. Use New running bill for the active Client PO. Enter the actual current measurement, review earlier quantities and Save draft. Press Submit to client. When the client accepts it, press Client accepted — invoice now (certifies, creates and issues the invoice in one step). A fully certified total of 10 gives ₹17,700 including GST.
+15. Open the Sales Order and click Generate running bill. Dispatched challans fill the quantities automatically; check them and Save. Press Submit to client. A fully billed total of 10 gives ₹17,700 including GST.
 
-16. Open the client invoice and use Record receipt. Enter ₹7,080, allocate it to the invoice and save. Later record ₹10,620 against the remaining due. Client due becomes zero. An unallocated receipt is an advance and does not settle the invoice.
+16. On the running bill press Record client payment (the invoice is raised automatically). Enter ₹7,080 and save. The ₹10,620 still due is shown as previous outstanding on the next bill; record it later from the same button. Client due becomes zero. An unallocated receipt is an advance and does not settle the bill.
 
 17. Open the supplier bill and use Record payment. Pay and allocate ₹5,000, then ₹6,800. Supplier due becomes zero.
 
@@ -2992,7 +2992,7 @@ Refresh the record and review its latest version before trying again.
 
 ### Action refused
 
-Read the reason. Your role may not have the permission, or the document is final — ask the Super Admin with Request change.
+Read the reason. Your role may not have the permission. For a confirmed Sales Order, send an amendment request to the Super Admin.
 
 ### Upload problem
 
