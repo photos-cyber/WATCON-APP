@@ -71,7 +71,7 @@ export default async function PaymentPage({ params }: PageProps<"/payments/[paym
         </p>
       )}
       {p.status === "POSTED" && !p.refundOf && (unallocated !== "0.00" ? (
-        <NextStep tone="warn" title={`${formatINR(unallocated)} held as an advance`}>{can.allocate ? "Use “Allocate advance” to set it against " + (out ? "the supplier's bills" : "the client's invoices") + " when they are ready." : out ? "It will be set against the supplier's bills." : "It will be set against the client's invoices or recovered on running bills."}</NextStep>
+        <NextStep tone="warn" title={`${formatINR(unallocated)} held as an advance`}>{!out && !openDocs.length ? "There is no issued invoice for this client on this project yet. It will be set against the next invoice automatically when that invoice is issued (e.g. “Client accepted — invoice now” on the running bill)." : can.allocate ? "Use “Allocate advance” to set it against " + (out ? "the supplier's bills" : "the client's invoices") + " when they are ready." : out ? "It will be set against the supplier's bills." : "It will be set against the client's invoices or recovered on running bills."}</NextStep>
       ) : (
         <NextStep tone="done" title={out ? "Fully set against bills" : "Fully set against invoices"}>Download or share the {out ? "payment voucher" : "receipt"} (top right).</NextStep>
       ))}

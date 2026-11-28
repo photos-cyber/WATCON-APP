@@ -130,7 +130,12 @@ export default async function RfqPage({ params }: PageProps<"/rate-enquiries/[rf
             enquiry={{ number: rfq.number, title: rfq.title, responseDue: rfq.responseDue ? formatDate(rfq.responseDue) : null }}
             supplierOptions={supplierOptions.filter((s) => s.status === "ACTIVE" && !rfq.suppliers.some((x) => x.partyId === s.id)).map((s) => ({ value: s.id, label: s.name, hint: s.gstin ?? "Unregistered" }))}
             lines={rfq.lines.map((l) => ({ id: l.id, itemId: l.itemId, name: l.item.name, itemBrandId: l.itemBrandId, quantity: l.quantity, unit: l.unit, acceptableBrands: l.acceptableBrands }))}
-            quotations={rfq.quotations.map((q) => ({ id: q.id, partyId: q.partyId, partyName: q.party.name, number: q.number, revision: q.revision, status: q.status, quoteDate: q.quoteDate.toISOString(), convertible: q.convertible }))}
+            quotations={rfq.quotations.map((q) => ({ id: q.id, partyId: q.partyId, partyName: q.party.name, number: q.number, revision: q.revision, status: q.status, quoteDate: q.quoteDate.toISOString(), convertible: q.convertible,
+              // The current quotation's values pre-fill the "Revise" form (all editable).
+              prefill: q.status === "RECEIVED" ? {
+                head: { quoteDate: q.quoteDate.toISOString().slice(0, 10), validUntil: q.validUntil ? q.validUntil.toISOString().slice(0, 10) : "", supplierRef: q.supplierRef ?? "", freight: q.freight, freightGstRate: String(Number(q.freightGstRate)), deliveryDays: q.deliveryDays?.toString() ?? "", paymentTerms: q.paymentTerms ?? "", advancePct: q.advancePct ? String(Number(q.advancePct)) : "", creditDays: q.creditDays?.toString() ?? "", warranty: q.warranty ?? "" },
+                lines: q.lines.filter((l) => l.rfqLineId).map((l) => ({ rfqLineId: l.rfqLineId!, itemBrandId: l.itemBrandId, quantity: l.quantity, rate: String(Number(l.rate)), discountPct: String(Number(l.discountPct)), gstRate: String(Number(l.gstRate)), leadTimeDays: l.leadTimeDays?.toString() ?? "", paymentTerms: l.paymentTerms ?? "" })),
+              } : null }))}
             comparison={comparison.map((c) => ({ lineId: c.line.id, name: c.line.item.name, quantity: c.line.quantity, unit: c.line.unit, quotes: c.quotes }))}
             options={options}
           />

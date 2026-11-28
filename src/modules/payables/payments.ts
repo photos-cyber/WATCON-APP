@@ -88,6 +88,41 @@ async function allocateTx(tx: Tx, actor: Actor, paymentId: string, documentId: s
   return label;
 }
 
+/**
+ * On issue of a client TAX invoice (owner request 2026-11-28): the client's advance still held on
+ * unallocated receipts of the same client and project is set against it automatically — receipts made
+ * against the invoice's own sales order first, then project-level receipts, oldest first. Receipts tied
+ * to another sales order and refund rows are never used. Each allocation is an ordinary (reversible)
+ * allocation through `allocateTx`, audited on the receipt. Returns what was applied.
+ */
+export async function applyClientAdvancesTx(tx: Tx, actor: Actor, invoiceId: string) {
+  const inv = await lockInvoice(tx, invoiceId);
+  const applied: { receipt: string; amount: string }[] = [];
+  if (inv.kind !== "TAX_INVOICE" || !["ISSUED", "PARTIALLY_PAID"].includes(inv.status)) return { total: "0.00", applied };
+  const receipts = await tx.payment.findMany({
+    where: { organizationId: inv.organizationId, direction: "IN", status: "POSTED", refundOfId: null, partyId: inv.partyId, projectId: inv.projectId, soId: inv.soId ?? null },
+    orderBy: [{ paymentDate: "asc" }, { createdAt: "asc" }],
+    select: { id: true },
+  });
+  // Plus project-level receipts (no sales order) when the invoice belongs to an order.
+  const general = inv.soId ? await tx.payment.findMany({ where: { organizationId: inv.organizationId, direction: "IN", status: "POSTED", refundOfId: null, partyId: inv.partyId, projectId: inv.projectId, soId: null }, orderBy: [{ paymentDate: "asc" }, { createdAt: "asc" }], select: { id: true } }) : [];
+  let total = "0.00";
+  for (const r of [...receipts, ...general]) {
+    const fresh = await lockInvoice(tx, invoiceId);
+    const due = outstandingOf(dec2(fresh.netReceivable), dec2(fresh.receivedAmount), dec2(fresh.adjustedAmount));
+    if (cmpMoney(due, "0") <= 0) break;
+    const p = await lockPayment(tx, r.id);
+    const free = unallocatedOf(p);
+    if (cmpMoney(free, "0") <= 0) continue;
+    const amount = cmpMoney(free, due) < 0 ? free : due;
+    const label = await allocateTx(tx, actor, p.id, invoiceId, amount);
+    await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "payment.allocated", entityType: "payment", entityId: p.id, projectId: p.projectId, summary: `Advance of ${formatINR(amount)} from ${p.number} set against ${label} automatically when it was issued` }, tx);
+    applied.push({ receipt: p.number, amount });
+    total = addMoney(total, amount);
+  }
+  return { total, applied };
+}
+
 export type ProofFile = { fileName: string; bytes: Uint8Array };
 
 /**

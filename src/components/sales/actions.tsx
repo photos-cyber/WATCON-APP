@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { formatINR } from "@/lib/money";
 import { DocActions, type DocActionDef, type MoreLink } from "@/components/commercial/doc-actions";
 import { requestChangeDef, withRequestChange } from "@/components/commercial/request-change";
 import { Button } from "@/components/ui/button";
@@ -116,7 +117,16 @@ export function InvoiceActions({ id, version, partyId, projectId, can, more = []
   return (
     <>
       {can.receive && <LinkButton href={`/payments/new?direction=IN&partyId=${partyId}&invoiceId=${id}${projectId ? `&projectId=${projectId}` : ""}`} icon={ReceiptIndianRupee}>Record client payment</LinkButton>}
-      <DocActions actions={can.requestChange ? [...defs, requestChangeDef()] : defs} moreLinks={more} run={withRequestChange("client_invoice", id, (key, note) => callAction(clientInvoiceActionAction, id, key as never, { version, note }))} />
+      <DocActions
+        actions={can.requestChange ? [...defs, requestChangeDef()] : defs}
+        moreLinks={more}
+        run={withRequestChange("client_invoice", id, (key, note) => callAction(clientInvoiceActionAction, id, key as never, { version, note }))}
+        onDone={(key, res) => {
+          if (key !== "issue") return;
+          const adv = (res as { data?: { advance?: { total: string; applied: { receipt: string }[] } | null } }).data?.advance;
+          if (adv && adv.applied.length) toast.info(`${formatINR(adv.total)} of the client's advance (${adv.applied.map((a) => a.receipt).join(", ")}) was set against this invoice.`);
+        }}
+      />
     </>
   );
 }
@@ -165,7 +175,13 @@ export function RaBillPayButton({ id, label = "Record client payment" }: { id: s
           toast.error(r.error);
           return;
         }
-        const d = (r as { data: { invoiceId: string; projectId: string; partyId: string; soId: string | null } }).data;
+        const d = (r as { data: { invoiceId: string; projectId: string; partyId: string; soId: string | null; paidFromAdvance?: boolean; invoiceNumber?: string } }).data;
+        if (d.paidFromAdvance) {
+          setBusy(false);
+          toast.success(`Invoice ${d.invoiceNumber ?? ""} is fully paid from the client's advance — nothing more to record.`);
+          router.refresh();
+          return;
+        }
         const qs = new URLSearchParams({ direction: "IN", projectId: d.projectId, partyId: d.partyId, invoiceId: d.invoiceId });
         if (d.soId) qs.set("soId", d.soId);
         router.push(`/payments/new?${qs}`);

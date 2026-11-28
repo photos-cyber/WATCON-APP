@@ -20,7 +20,9 @@ import { addRfqSuppliersAction, convertQuotationToPoAction, createPosFromAwardAc
 import type { ComparisonQuote } from "@/modules/procurement/rfq";
 
 type Line = { id: string; itemId: string; name: string; itemBrandId: string | null; quantity: string; unit: string; acceptableBrands: string | null };
-type Quote = { id: string; partyId: string; partyName: string; number: string; revision: number; status: string; quoteDate: string; convertible?: boolean };
+type Head = { quoteDate: string; validUntil: string; supplierRef: string; freight: string; freightGstRate: string; deliveryDays: string; paymentTerms: string; advancePct: string; creditDays: string; warranty: string };
+type Prefill = { head: Head; lines: (Omit<Entry, "enabled"> & { rfqLineId: string })[] };
+type Quote = { id: string; partyId: string; partyName: string; number: string; revision: number; status: string; quoteDate: string; convertible?: boolean; prefill?: Prefill | null };
 type Can = { manage: boolean; send: boolean; award: boolean; approveAward: boolean; approveBlockedReason: string | null; createPos: boolean; cancel: boolean; close: boolean };
 type Entry = { enabled: boolean; itemBrandId: string; quantity: string; rate: string; discountPct: string; gstRate: string; leadTimeDays: string; paymentTerms: string };
 
@@ -34,8 +36,26 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
   const gstOf = (l: Line) => options.find((o) => o.id === l.itemBrandId)?.gstRate ?? options.find((o) => o.itemId === l.itemId)?.gstRate ?? "18";
   const blank = () => Object.fromEntries(lines.map((l) => [l.id, { enabled: true, itemBrandId: l.itemBrandId ?? "", quantity: l.quantity, rate: "", discountPct: "0", gstRate: String(Number(gstOf(l))), leadTimeDays: "", paymentTerms: "" }])) as Record<string, Entry>;
   const [partyId, setPartyId] = useState<string | null>(null);
-  const [head, setHead] = useState({ quoteDate: today, validUntil: "", supplierRef: "", freight: "0", freightGstRate: "18", deliveryDays: "", paymentTerms: "", advancePct: "", creditDays: "", warranty: "" });
+  const blankHead = (): Head => ({ quoteDate: today, validUntil: "", supplierRef: "", freight: "0", freightGstRate: "18", deliveryDays: "", paymentTerms: "", advancePct: "", creditDays: "", warranty: "" });
+  const [head, setHead] = useState<Head>(blankHead);
   const [entries, setEntries] = useState<Record<string, Entry>>(blank);
+  // Picking a supplier who has already quoted (e.g. through their quote link) fills the form with
+  // that quotation — every field stays editable, and saving records a revision.
+  function selectSupplier(next: string | null) {
+    setPartyId(next);
+    const pre = quotations.find((q) => q.partyId === next && q.status === "RECEIVED")?.prefill;
+    if (!pre) {
+      setHead(blankHead());
+      setEntries(blank());
+      return;
+    }
+    setHead(pre.head);
+    const byLine = new Map(pre.lines.map((l) => [l.rfqLineId, l]));
+    setEntries(Object.fromEntries(lines.map((l) => {
+      const q = byLine.get(l.id);
+      return [l.id, q ? { enabled: true, itemBrandId: q.itemBrandId, quantity: q.quantity, rate: q.rate, discountPct: q.discountPct, gstRate: q.gstRate, leadTimeDays: q.leadTimeDays, paymentTerms: q.paymentTerms } : { ...blank()[l.id]!, enabled: false }];
+    })) as Record<string, Entry>);
+  }
   // Award qty starts pre-filled: the existing award if one was proposed, else the full line qty on the recommended quote.
   const defaultAwards = () => {
     const next: Record<string, string> = {};
@@ -97,9 +117,7 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
     setBusy(null);
     if (!res.ok) return toast.error(res.error);
     toast.success("Quotation recorded. Attach the supplier's quotation file under “Supplier quotations”.");
-    setPartyId(null);
-    setEntries(blank());
-    setHead((h) => ({ ...h, validUntil: "", supplierRef: "", freight: "0", deliveryDays: "", paymentTerms: "", advancePct: "", creditDays: "", warranty: "" }));
+    selectSupplier(null);
     router.refresh();
   }
 
@@ -201,7 +219,7 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="sm:col-span-2">
                 <span className={label}>Supplier *</span>
-                <SingleSelect options={suppliers.map((s) => ({ value: s.id, label: s.name, hint: responded.has(s.id) ? "already quoted" : undefined }))} value={partyId} onChange={setPartyId} placeholder="Which supplier's quotation?" />
+                <SingleSelect options={suppliers.map((s) => ({ value: s.id, label: s.name, hint: responded.has(s.id) ? "already quoted" : undefined }))} value={partyId} onChange={selectSupplier} placeholder="Which supplier's quotation?" />
               </div>
               <label className="block">
                 <span className={label}>Their quotation no.</span>
@@ -250,7 +268,7 @@ export function RfqWorkflow({ id, version, status, today, can, suppliers, suppli
                 <Input value={head.paymentTerms} onChange={(e) => setHead({ ...head, paymentTerms: e.target.value })} />
               </label>
             </div>
-            {current && <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">This replaces {current.number} (revision {current.revision}). The old one stays in the history.</p>}
+            {current && <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">Filled in from the supplier&apos;s quotation {current.number} (revision {current.revision}). Change any value and save — it replaces that quotation, and the old one stays in the history.</p>}
             <div className="space-y-2">
               {lines.map((l) => {
                 const x = entries[l.id]!;

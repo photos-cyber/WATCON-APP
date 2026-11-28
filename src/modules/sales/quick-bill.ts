@@ -80,5 +80,7 @@ export async function prepareRaBillPayment(actor: Actor, raBillId: string) {
   }
   const inv = await db.clientInvoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { status: true, version: true } });
   if (inv.status === "DRAFT") await clientInvoiceAction(actor, invoiceId, "issue", { version: inv.version });
-  return { invoiceId, projectId: bill.projectId, partyId: bill.partyId, soId: bill.soId };
+  // Issuing applies any advance the client already paid; if that covered the whole invoice there is nothing left to record.
+  const after = await db.clientInvoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { status: true, number: true } });
+  return { invoiceId, projectId: bill.projectId, partyId: bill.partyId, soId: bill.soId, paidFromAdvance: after.status === "PAID", invoiceNumber: after.number };
 }

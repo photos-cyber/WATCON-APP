@@ -124,8 +124,11 @@ describe("client side runs on the sales order (client PO optional)", () => {
     const bill = await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id });
     // The unallocated advance recorded against the order counts as received on the bill's statement.
     expect((await getRaBill(fx.roles.pm.actor, bill.id)).bill.statement?.receivedToDate).toBe("30000.00");
+    // Issuing the invoice sets the order's advance against it automatically (no "Allocate advance" click).
     const inv = await certifyAndInvoice(bill.id);
-    await allocatePayment(fx.roles.ac.actor, adv.id, { documentId: inv.id, amount: "30000" });
+    const auto = await db.paymentAllocation.findMany({ where: { paymentId: adv.id, reversedAt: null }, select: { clientInvoiceId: true, amount: true } });
+    expect(auto.map((a) => [a.clientInvoiceId, a.amount.toFixed(2)])).toEqual([[inv.id, "30000.00"]]);
+    expect((await db.clientInvoice.findUniqueOrThrow({ where: { id: inv.id } })).status).toBe("PARTIALLY_PAID");
     acc = await clientAccount(fx.roles.ac.actor, { projectId: fx.p1.id, soId: so.id });
     expect([acc.received, acc.clientAdvances, acc.paymentReceived, acc.outstandingBilled]).toEqual(["30000.00", "0.00", "30000.00", "20000.00"]);
     const project = await clientAccount(fx.roles.ac.actor, { projectId: fx.p1.id });
@@ -133,10 +136,26 @@ describe("client side runs on the sales order (client PO optional)", () => {
     // An order's advance can't settle another order's invoice; supplier payments can't carry a sales order.
     const other = await confirmedSo("10");
     await issueAndReceive("10", other.lines[0]!.id);
+    // An advance held for the first order is NOT used by the other order's invoice when it is issued.
+    const held = await receipt({ soId: so.id, amount: "5000" });
     const inv2 = await certifyAndInvoice((await generateSoRunningBill(fx.roles.pm.actor, { soId: other.id })).id);
+    expect(await db.paymentAllocation.count({ where: { paymentId: held.id } })).toBe(0);
+    expect((await db.clientInvoice.findUniqueOrThrow({ where: { id: inv2.id } })).receivedAmount.toFixed(2)).toBe("0.00");
     const adv2 = await receipt({ soId: so.id, amount: "5000" });
     expect((await errorOf(allocatePayment(fx.roles.ac.actor, adv2.id, { documentId: inv2.id, amount: "5000" }))).message).toMatch(/another sales order/);
     expect((await errorOf(createPayment(fx.roles.ac.actor, { direction: "OUT", partyId: fx.supplier.id, projectId: fx.p1.id, soId: so.id, paymentDate: day(), mode: "CASH", amount: "1", idempotencyKey: key() }))).message).toMatch(/Only client receipts/);
+  });
+
+  it("project-level advances are applied oldest first when an invoice is issued; the rest stays as advance", async () => {
+    const so = await confirmedSo("20");
+    const a1 = await receipt({ amount: "6000", paymentDate: day(-2) });
+    const a2 = await receipt({ amount: "9000" });
+    await issueAndReceive("10");
+    const inv = await certifyAndInvoice((await generateSoRunningBill(fx.roles.pm.actor, { soId: so.id })).id);
+    const allocs = async (id: string) => (await db.paymentAllocation.findMany({ where: { paymentId: id, reversedAt: null } })).map((a) => a.amount.toFixed(2));
+    expect([await allocs(a1.id), await allocs(a2.id)]).toEqual([["6000.00"], ["4000.00"]]);
+    expect((await db.clientInvoice.findUniqueOrThrow({ where: { id: inv.id } })).status).toBe("PAID");
+    expect((await clientAccount(fx.roles.ac.actor, { projectId: fx.p1.id })).clientAdvances).toBe("5000.00");
   });
 
   it("Test 8: client-PO linked orders bill on the sales order; legacy client-PO billing keeps working; no double contract", async () => {

@@ -1,5 +1,6 @@
 import "server-only";
 import { raiseShortageCreditNotesTx } from "@/modules/payables/notes";
+import { applyClientAdvancesTx } from "@/modules/payables/payments";
 import { shortageCredit, soBillingPosition } from "./so-running-bill";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -227,7 +228,9 @@ export async function clientInvoiceAction(actor: Actor, id: string, action: Invo
       await transition(tx.clientInvoice, w, ["DRAFT"], { status: "ISSUED", number, issuedById: actor.id, issuedAt: new Date() }, "invoice");
       await writeAudit({ organizationId: actor.organizationId, actorId: actor.id, action: "invoice.issued", entityType: "client_invoice", entityId: id, projectId: inv.projectId, summary: `Issued ${proforma ? "proforma / advance request" : "tax invoice"} ${number} – ₹${dec2(inv.total)} (net receivable ₹${dec2(inv.netReceivable)})` }, tx);
       const creditNotes = proforma ? null : await finalBillCreditNotesTx(tx, actor, id, inv.invoiceDate);
-      return { number, creditNotes };
+      // Money the client already paid as an advance settles the new invoice straight away.
+      const advance = proforma ? null : await applyClientAdvancesTx(tx, actor, id);
+      return { number, creditNotes, advance };
     });
   }
   if (!opts.note?.trim()) throw new ValidationError("Give a reason for cancelling.", { note: "Reason required." });

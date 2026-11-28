@@ -70,7 +70,7 @@ Use an isolated training application. The trainer needs the required permissions
 
 15. Open the Sales Order and click Generate running bill. Dispatched challans fill the quantities automatically; check them and Save. Press Submit to client. A fully billed total of 10 gives ₹17,700 including GST.
 
-16. On the running bill press Record client payment (the invoice is raised automatically). Enter ₹7,080 and save. The ₹10,620 still due is shown as previous outstanding on the next bill; record it later from the same button. Client due becomes zero. An unallocated receipt is an advance and does not settle the bill.
+16. On the running bill press Record client payment (the invoice is raised automatically). Enter ₹7,080 and save. The ₹10,620 still due is shown as previous outstanding on the next bill; record it later from the same button. Client due becomes zero. Money received before the invoice is kept as an advance; it is set against the invoice automatically when the invoice is issued (oldest advance first).
 
 17. Open the supplier bill and use Record payment. Pay and allocate ₹5,000, then ₹6,800. Supplier due becomes zero.
 

@@ -41,7 +41,7 @@ export function AllocateAdvance({ paymentId, unallocated, docs, direction }: { p
       title={`Allocate the advance (${formatINR(unallocated)})`}
       description={direction === "OUT" ? "Apply the unallocated part of this payment to an approved bill of the same supplier and project." : "Apply the unallocated part of this receipt to an issued invoice of the same client and project."}
       trigger={
-        <Button size="sm" disabled={!docs.length} title={docs.length ? undefined : "Nothing open to allocate to"}>
+        <Button size="sm" disabled={!docs.length} title={docs.length ? undefined : direction === "OUT" ? "No approved, unpaid bill for this supplier on this project yet" : "No issued invoice for this client on this project yet — it is applied automatically when one is issued"}>
           <Link2 /> Allocate advance
         </Button>
       }

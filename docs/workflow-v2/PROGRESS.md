@@ -442,6 +442,15 @@ Owner: all users are Admins; the Super Admin approves only SO amendments (SO clo
 - Wording: confirm dialogs (receipt, PO, client PO), notes summary card, permission descriptions (run `npm run db:seed` to refresh in DB), `core.ts` policy comment, help `content.json` + `docs/user-guide/*.md` (PDF/DOCX not regenerated).
 - Tests rewritten in client-payments-v2, payables, procurement-stores, purchasing-v2, sales. `tsc` clean; eslint 0 errors; unit 99/99. **Integration tests not run** — the local Postgres (port 5433) was not running.
 
+
+## Client advances applied automatically on invoice issue (owner request 2026-11-28)
+
+- `payments.ts` `applyClientAdvancesTx`: when a client TAX invoice is issued (`clientInvoiceAction` issue, so also "Client accepted — invoice now" and "Record client payment" on a running bill), unallocated POSTED receipts of the same client + project are allocated to it through `allocateTx` — receipts against the invoice's own SO first, then project-level (no SO) receipts, oldest first; receipts of another SO and refund rows are never used; proformas are skipped. Audit `payment.allocated` per receipt. Ordinary allocations (reversible).
+- No double count: running-bill advance recovery uses only proforma receipts (`soStatement.advanceReceived`), not plain advances.
+- `prepareRaBillPayment` returns `paidFromAdvance`; the bill's "Record client payment" button then just reports the invoice is paid instead of opening the form. Invoice "Issue" shows a toast with the advance used.
+- Receipt page: greyed Allocate advance has a tooltip, and the advance banner explains it will be applied on the next invoice.
+- Tests: so-po-driven Test 4 rewritten (auto allocation; other order's advance untouched) + new oldest-first test. `tsc` clean; eslint 0 errors. **Integration tests not run** (local Postgres on 5433 down).
+
 ## Reference
 
 - Routes (dashboard): `/sales-orders /quotations /client-pos /material-planning /purchase-requisitions /rate-enquiries /purchase-orders /site-receipts /challans /stock /running-bills /client-invoices /payments (/receipts → ?direction=IN) /supplier-bills /notes /accounts /approvals /projects/[id]?tab=…`; public `/quote/[token]` (supplier), `/client-quote/[token]` (client); `GET /api/documents/pdf`, `/api/attachments`.
